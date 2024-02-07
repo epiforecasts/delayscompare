@@ -80,12 +80,13 @@ simulate_scenarios2 <- function(case_data,
   # FOR TESTING:
   #scen_values <- scen_values[1:2]
   scen_timepoints <- scen_timepoints[1:2]
+  scen_values <- scen_values[1:2]
   ##
   
   results_list <- list()
   results_id <- data.frame()
   
-  for(i in 4:length(scen_values)){
+  for(i in 1:length(scen_values)){
     for(j in 1:length(scen_values)){
       for(k in 1:length(scen_timepoints)){
         
