@@ -1,7 +1,7 @@
 
 ## Estimate reporting delay ##
 
-ebola_delay <- ebola_confirmed |>
+ebola_delay <- ebola_confirmed_linelist |>
   dplyr::select("Date of symptom onset", "Date of sample tested") |>
   rename(date_onset="Date of symptom onset", report_date="Date of sample tested")
 
@@ -26,4 +26,4 @@ ggplot(test, aes(x=test)) +
   geom_histogram(binwidth = 1, col = "#d3d3d36e") +
   theme_bw()
 
-
+saveRDS(ebola_reporting_delay, file=here("data", "ebolareportingdelay.RDS"))
