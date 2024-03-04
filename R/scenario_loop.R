@@ -35,16 +35,16 @@ sim_scenarios <- function(case_data,
           filter(date <= scen_timepoints[k])
         
         # Generation interval
-        gen_time <- dist_spec(mean=gen_mean*scen_values[i], 
-                              sd=gen_sd,
-                              max=30, 
-                              distribution="gamma")
+        gen_time <- dist_spec(mean=gen_mean*scen_values[i],
+                          sd=gen_sd,
+                          distribution="gamma",
+                          max=30)
         
         # Incubation period
         inc_period <- dist_spec(mean=inc_mean*scen_values[j],
                                 sd=inc_sd,
-                                max=30,
-                                distribution="lognormal")
+                                distribution="lognormal",
+                                max=30)
   
         def <- estimate_infections(case_segment,
                                    generation_time = generation_time_opts(gen_time),

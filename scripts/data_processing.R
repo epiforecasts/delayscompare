@@ -14,6 +14,12 @@ ebola_confirmed <- ebola_confirmed |>
   select(date_index, count) |>
   rename(date=date_index, confirm=count)
 
+# Assuming no data reported on missing days
+extra_dates <- data.frame(date=seq(ebola_confirmed$date[1], ebola_confirmed$date[nrow(ebola_confirmed)], by="day"))
+ebola_confirmed <- right_join(ebola_confirmed, extra_dates, by="date")
+
+ebola_confirmed$confirm[is.na(ebola_confirmed$confirm)] <- 0
+
 ebola_reporting_delay <- readRDS(here("data", "ebolareportingdelay.RDS"))
 
 #### SARS-CoV-2 ####
@@ -32,3 +38,10 @@ covid_eng$confirm <- as.numeric(covid_eng$confirm)
 covid_eng <- covid_eng |>
   filter(date < "2020-12-31")
 
+rt_covid <- read.csv(here("data", "rt.csv")) |>
+  filter(region=="United Kingdom",
+         type=="estimate") |>
+  select(date, median) |>
+  rename(R=median)
+
+rt_covid$date <- as.Date(rt_covid$date, "%Y-%m-%d")
