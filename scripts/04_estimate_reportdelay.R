@@ -1,3 +1,4 @@
+source(here("scripts", "02_dataprocessing.R"))
 
 ## Estimate Ebola reporting delay ##
 
@@ -16,10 +17,12 @@ ggplot(ebola_delay, aes(x=delay)) +
 
 ebola_reporting_delay <- bootstrapped_dist_fit(
   ebola_delay$delay,
+  dist="lognormal",
   bootstraps=100,
-  bootstrap_samples=250,
+  bootstrap_samples=1000,
   max_value=max_ebola_delay)
 
+## WHY DOESN'T THIS WORK NOW? ##
 test <- data.frame(test=rlnorm(500, meanlog=ebola_reporting_delay$mean_mean, sdlog=ebola_reporting_delay$sd_mean))
 
 ggplot(test, aes(x=test)) +
@@ -46,4 +49,3 @@ cholera_confirmed <- cholera_confirmed |>
   summarise(suspect=sum(sCh))
 
 # Under-reporting
-

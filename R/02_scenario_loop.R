@@ -20,15 +20,10 @@ sim_scenarios <- function(case_data,
 
   results_list <- list()
   results_id <- data.frame()
-  
-  i <- 3
-  j <- 3
-  k <- 5
-  
-  
- # for(i in 1:2){
-#    for(j in 1:2){
- #     for(k in 5:6){
+
+ for(i in 1:length(scen_values)){
+    for(j in 1:length(scen_values)){
+      for(k in 1:length(scen_timepoints)){
         
         # Case data 
         case_segment <- case_data |>
@@ -41,25 +36,19 @@ sim_scenarios <- function(case_data,
         print(nrow(case_segment))
         
         # Generation interval
-        gen_time <- dist_spec(mean=gen_mean*scen_values[i],
+        gen_time <- Gamma(mean=gen_mean*scen_values[i],
                           sd=gen_sd,
-                          distribution="gamma",
                           max=30)
-        
-        inc_meanlog <- convert_to_logmean(inc_mean*scen_values[j], inc_sd)
-        inc_sdlog <- convert_to_logsd(inc_mean*scen_values[j], inc_sd)
-        
-        # Incubation period
-        inc_period <- dist_spec(mean=inc_mean,
-                                  sd=inc_sd,
-                                  distribution="lognormal",
-                                  max=30)
 
-        reporting_delay <- dist_spec(mean=rep_meanlog,
-                                     sd=rep_sdlog,
-                                     distribution="lognormal",
+        # Incubation period
+        inc_period <- LogNormal(meanlog=convert_to_logmean(inc_mean*scen_values[j], inc_sd),
+                                sdlog=convert_to_logsd(inc_mean*scen_values[j], inc_sd),
+                                max=30)
+        
+        reporting_delay <- LogNormal(meanlog=rep_meanlog,
+                                     sdlog=rep_sdlog,
                                      max=48)
-  
+
         def <- estimate_infections(case_segment,
                                    generation_time = generation_time_opts(gen_time),
                                    delays = delay_opts(inc_period + reporting_delay),
@@ -76,9 +65,9 @@ sim_scenarios <- function(case_data,
         results_id <- rbind(results_id, scen_id)
         
         print(paste("timepoint =", k, "gen time =", i, "inc period =", j))
- #     }
- #   }
- # }
+      }
+    }
+  }
   
   save_warnings <- warnings()
   

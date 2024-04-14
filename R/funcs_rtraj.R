@@ -1,3 +1,7 @@
+###############################
+## Data processing functions ##
+###############################
+
 ##' Get estimates shown at \url{https://epiforecasts.io/covid} for all times
 ##'
 ##' Nowcasts at \url{https://epiforecasts.covid} and the related github repository at
@@ -106,8 +110,3 @@ get_covid19_nowcasts <-
     return(median_estimates)
   }
 
-library("gh")
-library("readr")
-library("dplyr")
-library("tidyr")
-rt_covid <- get_covid19_nowcasts()

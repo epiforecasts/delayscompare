@@ -45,7 +45,7 @@ rt_ebola_epinow <- rt_ebola |>
 
 ebola_sim_data <- simulate_infections(
   R=rt_ebola_epinow,
-  initial_infections=1,
+  initial_infections=5,
   generation_time=generation_time_opts(ebola_gen_time),
   delays=delay_opts(combined_delay_ebola),
   obs=obs_opts(family="poisson", scale=0.83)
@@ -97,7 +97,7 @@ rt_covid_epinow <- rt_covid |>
 
 covid_sim_data <- simulate_infections(
   R=rt_covid_epinow,
-  initial_infections=10000,
+  initial_infections=2500,
   generation_time=generation_time_opts(covid_gen_time),
   delays=delay_opts(covid_inc_period + covid_rep_delay),
   obs=obs_opts("poisson", scale=0.4)
