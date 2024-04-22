@@ -5,9 +5,10 @@ library(scoringutils)
 
 ## Loading results ##
 
-res_ebola <- readRDS(here("results", paste0("res_ebola", "2024-04-15", ".rds")))
+#res_ebola <- readRDS(here("results", paste0("res_ebola", "2024-04-15", ".rds")))
+ebola_samples <- readRDS(here("results", paste0("res_ebola_samples", "2024-04-22", ".rds")))
 res_ebola_id <- readRDS(here("results", paste0("res_ebola_id", "2024-04-15", ".rds")))
-ebola_sim_data <- readRDS(here("results", paste0("ebola_sim_data", "2024-04-11", ".rds")))
+ebola_sim_data <- readRDS(here("data", paste0("ebola_sim_data", "2024-04-11", ".rds")))
 
 ## Plotting the results ##
 
@@ -18,21 +19,23 @@ for(i in 1:length(res_ebola)){
 }
 
 ## CRPS ##
+#
+#bola_samples <- data.frame()
+#or(i in 1:length(res_ebola)){
+# samples_scen <- res_ebola[[i]]$samples[res_ebola[[i]]$samples$variable=="infections"] |>
+#   mutate(model="EpiNow2")
+# 
+# # Add ID
+# samples_scen$result_list <- i
+# 
+# # Bind to dataframe
+# ebola_samples <- rbind(ebola_samples, samples_scen)
+#
 
-ebola_samples <- data.frame()
-for(i in 1:length(res_ebola)){
-  samples_scen <- res_ebola[[i]]$samples[res_ebola[[i]]$samples$variable=="infections"] |>
-    mutate(model="EpiNow2")
-  
-  # Add ID
-  samples_scen$result_list <- i
-  
-  # Bind to dataframe
-  ebola_samples <- rbind(ebola_samples, samples_scen)
-}
+#bola_samples <- ebola_samples |>
+# rename(prediction=value)
 
-ebola_samples <- ebola_samples |>
-  rename(prediction=value)
+#saveRDS(ebola_samples, here("results", paste0("res_ebola_samples", Sys.Date(), ".rds")))
 
 # Add simulated data
 ebola_samples <- ebola_sim_data |> 
@@ -72,11 +75,10 @@ ebola_scores_details <- ebola_scores |>
 ebola_scores_details$inc_period <- factor(ebola_scores_details$inc_period, levels=c("very low", "low", "correct", "high", "very high"))
 ebola_scores_details$gen_time <- factor(ebola_scores_details$gen_time, levels=c("very low", "low", "correct", "high", "very high"))
 
-
-ebola_timepoints <- ebola_sim_data_infections$date[c(1:(nrow(ebola_sim_data_infections) %/% (4*7)))*4*7]
-
 ebola_sim_data_infections <- ebola_sim_data |> 
   filter(variable=="infections") 
+
+ebola_timepoints <- ebola_sim_data_infections$date[c(1:(nrow(ebola_sim_data_infections) %/% (4*7)))*4*7]
 
 ebola_sim_data_timepoints <- ebola_sim_data_infections |> filter(date %in% ebola_timepoints)
 
