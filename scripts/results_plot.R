@@ -32,8 +32,11 @@ for(i in 1:length(res_ebola)){
 # ebola_samples <- rbind(ebola_samples, samples_scen)
 #
 
-#bola_samples <- ebola_samples |>
+#ebola_samples <- ebola_samples |>
 # rename(prediction=value)
+
+#ebola_samples <- ebola_samples |>
+#  filter(type=="forecast")
 
 #saveRDS(ebola_samples, here("results", paste0("res_ebola_samples", Sys.Date(), ".rds")))
 
