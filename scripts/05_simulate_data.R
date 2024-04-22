@@ -53,7 +53,9 @@ ebola_sim_data <- simulate_infections(
 
 saveRDS(ebola_sim_data, file=here("data", paste0("ebola_sim_data", Sys.Date(), ".rds")))
 
-ggplot(ebola_sim_data) + geom_line(aes(x=date, y=value)) + facet_wrap(~variable) + theme_classic()
+
+#ebola_sim_data_infections$date <- as.Date(format(ebola_sim_data_infections$date, "%d/%m/%y"))
+
 
 #########################
 #### SARS-CoV-2-like ####

@@ -55,7 +55,7 @@ sim_scenarios <- function(case_data,
                                    obs=obs_opts(family="poisson", scale=obs_scale),
                                    stan = stan_opts(control = list(adapt_delta = 0.98)))
         
-        results_list[[length(results_list)+1]] <- def
+        results_list[[length(results_list)+1]] <- def$summarised
         
         scen_id <- data.frame(result_list=length(results_list),
                               timepoint=k,

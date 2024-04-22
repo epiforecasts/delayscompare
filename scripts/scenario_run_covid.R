@@ -21,7 +21,7 @@ res_covid <- sim_scenarios(case_data=covid_sim_data_cases,
                            inc_sd=1.52, # from Sherratt et al. 2021 - surveillance paper
                            rep_meanlog=convert_to_logmean(4.4, 5.6),
                            rep_sdlog=convert_to_logsd(4.4, 5.6), # MAXIMUM IS JUST A PLACEHOLDER # from Sherratt et al. 2021 - surveillance paper
-                           freq_fc=4,
+                           freq_fc=8,
                            weeks_inc=12,
                            obs_scale=0.4)
 saveRDS(res_covid[[1]], here("results", paste0("res_covid", Sys.Date(), ".rds")))

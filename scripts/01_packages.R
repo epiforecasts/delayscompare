@@ -6,7 +6,8 @@ pkgs <- c("EpiNow2",
           "here",
           "ggplot2",
           "gh",
-          "readr"
+          "readr",
+          "cowplot"
               )
 install.packages(setdiff(pkgs, rownames(installed.packages()))) 
 
