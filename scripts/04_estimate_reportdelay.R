@@ -4,7 +4,7 @@ source(here("scripts", "02_dataprocessing.R"))
 
 ebola_delay <- ebola_confirmed_linelist |>
   dplyr::select("Date of symptom onset", "Date of sample tested") |>
-  rename(date_onset="Date of symptom onset", report_date="Date of sample tested")
+  rename(date_onset="Date of symptom onset", report_date="Date of sample tested") # from Fang et al. 2016
 
 ebola_delay$delay <- difftime(ebola_delay$report_date, ebola_delay$date_onset, units="days")
 

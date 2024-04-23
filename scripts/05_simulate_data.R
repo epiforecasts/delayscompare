@@ -2,28 +2,6 @@
 #### Ebola-like ####
 ####################
 
-## Generation time
-
-ebola_gen_time <- Gamma(mean=16.2,
-                        sd=9.4,
-                        max=45)
-
-## Incubation period
-
-ebola_inc_period <- LogNormal(meanlog=convert_to_logmean(11.4, 8.1),
-                              sdlog=convert_to_logsd(11.4, 8.1),
-                              max=45)
-
-## Reporting delay
-
-ebola_reporting_delay <- readRDS(here("data", "ebolareportingdelay.RDS"))
-
-ebola_rep_delay <- LogNormal(meanlog=ebola_reporting_delay$mean_mean,
-                             sdlog=ebola_reporting_delay$sd_mean,
-                             max=48)
-
-combined_delay_ebola <- ebola_inc_period + ebola_rep_delay
-
 ## Loading and visualising Rt trajectory
 
 rt_ebola <- readRDS(here("data", "rt_ebola.rds"))
@@ -53,31 +31,9 @@ ebola_sim_data <- simulate_infections(
 
 saveRDS(ebola_sim_data, file=here("data", paste0("ebola_sim_data", Sys.Date(), ".rds")))
 
-
-#ebola_sim_data_infections$date <- as.Date(format(ebola_sim_data_infections$date, "%d/%m/%y"))
-
-
 #########################
 #### SARS-CoV-2-like ####
 #########################
-
-## Generation time
-
-covid_gen_time <- Gamma(mean=3.6, 
-                        sd=3.1,
-                        max=30)
-
-## Incubation period
-
-covid_inc_period <- LogNormal(meanlog=convert_to_logmean(5.2, 1.52),
-                              sdlog=convert_to_logsd(5.2, 1.52),
-                              max=30)
-
-## Reporting delay
-
-covid_rep_delay <- LogNormal(meanlog=convert_to_logmean(4.4, 5.6),
-                             sdlog=convert_to_logsd(4.4, 5.6),
-                             max=30)
 
 # Loading and visualising Rt trajectory
 
