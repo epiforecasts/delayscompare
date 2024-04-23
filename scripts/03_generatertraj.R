@@ -3,20 +3,42 @@ source(here("R", "funcs_rtraj.R"))
 
 ## Ebola Rt trajectory
 
-samples_semi_mechanistic <- readRDS(here("data", "samples_semi_mechanistic.rds" ))
+## create temporary directory
+tmpdir <- tempdir()
+## download data file from `ebola.forecast.wa.sl` repository and save in
+## temporary directory
+download.file(
+  "https://github.com/sbfnk/ebola.forecast.wa.sl/raw/master/data/ebola_wa.rdata",
+  file.path(tmpdir, "ebola_wa.rdata")
+)
+## load data (this creates the `ebola_wa` object)
+load(file.path(tmpdir, "ebola_wa.rdata"))
 
-rt_ebola <- samples_semi_mechanistic %>%
-  gather(variable, value, R0, cases) %>%
-  mutate(variable=factor(variable)) 
+## rename column for EpiNow2
+ebola_wa <- ebola_wa |>
+  rename(confirm = incidence)
 
-rt_ebola <- rt_ebola |> filter(variable=="R0",
-                              stochasticity=="stochastic",
-                              start_n_week_before=="1",
-                              weeks_averaged=="1",
-                              transmission_rate=="varying",
-                              last_obs==max(last_obs))
+## Use EpiNow2 to estimate Rt
+## uses the delay distributions defined in `05_simulate_delay.R`
+ebola_epinow <- epinow(
+  ## use Ebola data set
+  ebola_wa,
+  ## Ebola generation time
+  generation_time = generation_time_opts(ebola_gen_time),
+  ## Ebola delay
+  delay = delay_opts(combined_delay_ebola),
+  ## assume 83% of infections are observed
+  ## accumulate incidence over missing days (as data is weekly)
+  obs = obs_opts(scale = 0.83, na = "accumulate"),
+  ## generate 1000 samples
+  stan = stan_opts(chains = 2, cores = 2, samples = 1000),
+  ## when there is no data, revert to mean Rt
+  ## (fine as we're not doing real-time inference and faster than the default)
+  rt = rt_opts(gp_on = "R0")
+)
 
-rt_ebola <- rt_ebola |> 
+rt_ebola <- ebola_epinow$estimates$samples |>
+  filter(variable == "R") |>
   group_by(date) |>
   summarise(R=median(value),
             lower_50=quantile(value, 0.25),
