@@ -1,5 +1,5 @@
 source("~/delayscompare/scripts/01_packages.R")
-source(here("R", "02_scenario_loop.R"))
+source(here("R", "scenario_loop.R"))
 
 ## Load data ##
 

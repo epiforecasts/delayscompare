@@ -21,13 +21,11 @@ ebola_confirmed <- right_join(ebola_confirmed, extra_dates, by="date")
 
 ebola_confirmed$confirm[is.na(ebola_confirmed$confirm)] <- 0
 
-ebola_reporting_delay <- readRDS(here("data", "ebolareportingdelay.rds"))
-
 ###################
 #### SARS-CoV2 ####
 ###################
 
-covid_eng <- read.csv("https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=newCasesBySpecimenDate&format=csv")
+covid_eng <- read.csv("https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=newCasesBySpecimenDate&format=csv") # THIS DOESN'T WORK ANYMORE - NEED TO FIX
 
 # Formatting data for EpiNow2
 covid_eng <- covid_eng |> 
