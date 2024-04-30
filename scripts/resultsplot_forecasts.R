@@ -91,7 +91,7 @@ ebola_samples_plot_incperiod <- ebola_samples_plot_incperiod |>
   filter(!is.na(inc_period))
 
 plot_incperiod <- ggplot() +
-  geom_line(ebola_sim_data_infections, mapping=aes(x=date, y=value), width=0.8) +
+  geom_line(ebola_sim_data_infections, mapping=aes(x=date, y=value)) +
   geom_line(ebola_samples_plot_incperiod |> filter(timepoint==1 | is.na(timepoint)), mapping=aes(x=date, y=median, color=inc_period)) +
   geom_ribbon(ebola_samples_plot_incperiod |> filter(timepoint==1 | is.na(timepoint)), mapping=aes(x=date, ymin=lower50, ymax=upper50, fill=inc_period), alpha=0.5) +
   geom_ribbon(ebola_samples_plot_incperiod |> filter(timepoint==1 | is.na(timepoint)), mapping=aes(x=date, ymin=lower90, ymax=upper90, fill=inc_period), alpha=0.2) +
@@ -128,8 +128,9 @@ plot_incperiod <- ggplot() +
   scale_colour_viridis(discrete=TRUE, name="Incubation period") +
   xlab("Date") +
   ylab("Infections") +
-  facet_wrap(~inc_period, ncol=1) +
+  #facet_wrap(~inc_period, ncol=1) +
   lshtm_theme() +
-  ylim(0, max(ebola_samples_plot_incperiod$upper90))
+  ylim(0, max(ebola_samples_plot_incperiod$upper50))
 
 plot_grid(plot_gentime, plot_incperiod, ncol=2)
+

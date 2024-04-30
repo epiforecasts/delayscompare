@@ -86,7 +86,7 @@ heatmap_ebola <-
   facet_wrap(~timepoint_lab, nrow=1) +
   xlab("Generation time") +
   ylab("Incubation period") +
-  scale_fill_gradientn(colours = terrain.colors(50), values=rescale(c(-1,1.07)), name="CRPS for one-week forecast") +
+  scale_fill_gradientn(colours = terrain.colors(50), name="CRPS for one-week forecast") +
   theme_classic() +
   theme(axis.text.x = element_text(angle=45, hjust=1)) +
   lshtm_theme()

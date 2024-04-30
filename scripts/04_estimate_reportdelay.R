@@ -30,22 +30,3 @@ ggplot(test, aes(x=test)) +
   theme_bw()
 
 saveRDS(ebola_reporting_delay, file=here("data", "ebolareportingdelay.RDS"))
-
-## Estimate cholera reporting delay ##
-
-cholera_confirmed <- read.csv(here("data", "ZambiaCholera.csv"))
-
-# Separate out total reports
-cholera_confirmed_tot <- cholera_confirmed |>
-  filter(Location=="AFR::ZMB" | Location=="AFR::ZMB::Lusaka::Lusaka::(Chawama|Chelston|Chilenje|Chipata|Kanyama|Matero)")
-
-cholera_confirmed <- cholera_confirmed |>
-  filter(TL==TR)
-
-# Given all other variables are "NA" once get down to daily case counts, can only look at suspected cases.
-
-cholera_confirmed <- cholera_confirmed |>
-  group_by(TL) |>
-  summarise(suspect=sum(sCh))
-
-# Under-reporting

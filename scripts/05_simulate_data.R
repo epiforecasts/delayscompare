@@ -4,7 +4,7 @@ source(here("scripts", "02b_definedelays.R"))
 #### Ebola-like ####
 ####################
 
-## Loading and visualising Rt trajectory
+# Loading and visualising Rt trajectory
 
 rt_ebola <- readRDS(here("data", "rt_ebola.rds"))
 
@@ -67,4 +67,40 @@ ggplot(covid_sim_data) + geom_line(aes(x=date, y=value)) + facet_wrap(~variable)
 
 saveRDS(covid_sim_data, file=here("data", paste0("covid_sim_data", Sys.Date(), ".rds")))
 
+######################
+#### Cholera-like ####
+######################
+
+####################
+#### Ebola-like ####
+####################
+
+# Loading and visualising Rt trajectory
+
+rt_cholera <- readRDS(here("data", "rt_cholera.rds"))
+
+ggplot(rt_cholera) + 
+  geom_line(aes(x=date, y=R), colour="#C4961A", linewidth=1.2) +
+  geom_ribbon(aes(x=date, ymin=lower_50, ymax=upper_50), alpha=0.5, fill="#FFDB6D") +
+  geom_ribbon(aes(x=date, ymin=lower_90, ymax=upper_90), alpha=0.3, fill="#FFDB6D") +
+  xlab("Date") +
+  ylab("Rt") +
+  theme_classic() +
+  scale_x_date(date_breaks = "1 month", date_labels =  "%b %Y", limits = c(min(rt_ebola$date), max(rt_ebola$date)), expand=c(0,0))
+
+# Reformatting rt_ebola for EpiNow2
+rt_cholera_epinow <- rt_cholera |>
+  select(date, R)
+
+#### Simulate Ebola data ####
+
+cholera_sim_data <- simulate_infections(
+  R=rt_cholera_epinow,
+  initial_infections=5,
+  generation_time=generation_time_opts(cholera_gen_time),
+  delays=delay_opts(combined_delay_cholera),
+  obs=obs_opts(family="poisson", scale=0.28)
+)
+
+saveRDS(cholera_sim_data, file=here("data", paste0("cholera_sim_data", Sys.Date(), ".rds")))
 
