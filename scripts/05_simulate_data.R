@@ -71,10 +71,6 @@ saveRDS(covid_sim_data, file=here("data", paste0("covid_sim_data", Sys.Date(), "
 #### Cholera-like ####
 ######################
 
-####################
-#### Ebola-like ####
-####################
-
 # Loading and visualising Rt trajectory
 
 rt_cholera <- readRDS(here("data", "rt_cholera.rds"))
@@ -88,11 +84,11 @@ ggplot(rt_cholera) +
   theme_classic() +
   scale_x_date(date_breaks = "1 month", date_labels =  "%b %Y", limits = c(min(rt_ebola$date), max(rt_ebola$date)), expand=c(0,0))
 
-# Reformatting rt_ebola for EpiNow2
+# Reformatting rt_cholera for EpiNow2
 rt_cholera_epinow <- rt_cholera |>
   select(date, R)
 
-#### Simulate Ebola data ####
+#### Simulate cholera data ####
 
 cholera_sim_data <- simulate_infections(
   R=rt_cholera_epinow,

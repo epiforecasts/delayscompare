@@ -11,14 +11,6 @@ ebola_samples <- readRDS(here("results", paste0("res_ebola_samples", "2024-04-24
 res_ebola_id <- readRDS(here("results", paste0("res_ebola2_id", "2024-04-24", ".rds")))
 ebola_sim_data <- readRDS(here("data", paste0("ebola_sim_data", "2024-04-23", ".rds")))
 
-## Plotting the results ##
-
-plots_list <- list()
-for(i in 1:length(res_ebola)){
-  plot_scen <- plot(res_ebola[[i]])
-  plots_list[[length(plots_list)+1]] <- plot_scen
-}
-
 ## CRPS ##
 
 # Add simulated data
