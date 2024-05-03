@@ -22,8 +22,10 @@ ebola_reporting_delay <- bootstrapped_dist_fit(
   bootstrap_samples=1000,
   max_value=max_ebola_delay)
 
-## WHY DOESN'T THIS WORK NOW? ##
-test <- data.frame(test=rlnorm(500, meanlog=ebola_reporting_delay$mean_mean, sdlog=ebola_reporting_delay$sd_mean))
+test <- data.frame(test=rlnorm(500,
+  meanlog=mean(ebola_reporting_delay[[1]]$parameters$meanlog),
+  sdlog=mean(ebola_reporting_delay[[1]]$parameters$sdlog)
+))
 
 ggplot(test, aes(x=test)) +
   geom_histogram(binwidth = 1, col = "#d3d3d36e") +
