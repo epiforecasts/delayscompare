@@ -9,7 +9,7 @@ source(here("scripts", "02b_definedelays.R"))
 rt_ebola <- readRDS(here("data", "rt_ebola.rds"))
 
 ggplot(rt_ebola) + 
-  geom_line(aes(x=date, y=R), colour="firebrick4", linewidth=1.2) +
+  geom_line(aes(x=date, y=R), colour="firebrick4", size=1.2) +
   geom_ribbon(aes(x=date, ymin=lower_50, ymax=upper_50), alpha=0.5, fill="firebrick4") +
   geom_ribbon(aes(x=date, ymin=lower_90, ymax=upper_90), alpha=0.3, fill="firebrick4") +
   xlab("Date") +
@@ -42,7 +42,7 @@ saveRDS(ebola_sim_data, file=here("data", paste0("ebola_sim_data", Sys.Date(), "
 rt_covid <- readRDS(here("data", "rt_covid.rds"))
 
 ggplot(rt_covid) + 
-  geom_line(aes(x=date, y=median), color="darkblue", linewidth=1.2) +
+  geom_line(aes(x=date, y=median), color="darkblue", size=1.2) +
   geom_ribbon(aes(x=date, ymin=lower_50, ymax=upper_50), alpha=0.5, fill="darkblue") +
   geom_ribbon(aes(x=date, ymin=lower_90, ymax=upper_90), alpha=0.3, fill="darkblue") +
   xlab("Date") +
@@ -54,6 +54,8 @@ ggplot(rt_covid) +
 rt_covid_epinow <- rt_covid |> 
   select(date, median) |>
   rename(R=median)
+
+#### Simulate SARS-CoV-2 data ####
 
 covid_sim_data <- simulate_infections(
   R=rt_covid_epinow,
@@ -76,7 +78,7 @@ saveRDS(covid_sim_data, file=here("data", paste0("covid_sim_data", Sys.Date(), "
 rt_cholera <- readRDS(here("data", "rt_cholera.rds"))
 
 ggplot(rt_cholera) + 
-  geom_line(aes(x=date, y=R), colour="#C4961A", linewidth=1.2) +
+  geom_line(aes(x=date, y=R), colour="#C4961A", size=1.2) +
   geom_ribbon(aes(x=date, ymin=lower_50, ymax=upper_50), alpha=0.5, fill="#FFDB6D") +
   geom_ribbon(aes(x=date, ymin=lower_90, ymax=upper_90), alpha=0.3, fill="#FFDB6D") +
   xlab("Date") +

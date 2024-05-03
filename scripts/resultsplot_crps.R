@@ -15,7 +15,7 @@ ebola_sim_data <- readRDS(here("data", paste0("ebola_sim_data", "2024-04-23", ".
 
 # Add simulated data
 ebola_samples <- ebola_sim_data |> 
-  filter(variable=="infections") |>
+  filter(variable=="reported_cases") |>
   rename(true_value=value) |>
   select(-variable) |>
   right_join(ebola_samples, by="date") 
@@ -52,7 +52,7 @@ ebola_scores_details$inc_period <- factor(ebola_scores_details$inc_period, level
 ebola_scores_details$gen_time <- factor(ebola_scores_details$gen_time, levels=c("very low", "low", "correct", "high", "very high"))
 
 ebola_sim_data_infections <- ebola_sim_data |> 
-  filter(variable=="infections") 
+  filter(variable=="reported_cases") 
 
 ebola_timepoints <- ebola_sim_data_infections$date[c(1:(nrow(ebola_sim_data_infections) %/% (8*7)))*8*7]
 
