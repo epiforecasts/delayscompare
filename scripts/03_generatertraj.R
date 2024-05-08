@@ -93,20 +93,6 @@ saveRDS(rt_covid, here("data", "rt_covid.rds"))
 #### cholera ####
 #################
 
-cholera_epinow <- epinow(
-  cholera_yem_tot,
-  generation_time = generation_time_opts(cholera_gen_time),
-  delay = delay_opts(combined_delay_cholera),
-  ## accumulate incidence over missing days (as data is weekly)
-  obs = obs_opts(scale = 0.28, na = "accumulate"), # Not sure about scale param
-  ## generate 1000 samples
-  stan = stan_opts(chains = 4, cores = 2, samples = 2000), 
-  ## when there is no data, revert to mean Rt
-  ## (fine as we're not doing real-time inference and faster than the default)
-  rt = rt_opts(prior = list(mean = 2, sd = 2), 
-    gp_on = "R0")
-)
-
 cholera_epinow <- estimate_infections(
   cholera_yem_tot,
   generation_time=generation_time_opts(cholera_gen_time),
@@ -119,7 +105,7 @@ cholera_epinow <- estimate_infections(
 
 plot(cholera_epinow)
 
-rt_cholera <- cholera_epinow$estimates$samples |>
+rt_cholera <- cholera_epinow$samples |>
   filter(variable == "R", type!="forecast") |>
   group_by(date) |>
   summarise(R=median(value),
@@ -128,4 +114,4 @@ rt_cholera <- cholera_epinow$estimates$samples |>
             lower_90=quantile(value, 0.1),
             upper_90=quantile(value, 0.9))
 
-saveRDS(rt_ebola, here("data", "rt_cholera.rds"))
+saveRDS(rt_cholera, here("data", "rt_cholera.rds"))

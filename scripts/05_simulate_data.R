@@ -84,7 +84,7 @@ ggplot(rt_cholera) +
   xlab("Date") +
   ylab("Rt") +
   theme_classic() +
-  scale_x_date(date_breaks = "1 month", date_labels =  "%b %Y", limits = c(min(rt_ebola$date), max(rt_ebola$date)), expand=c(0,0))
+  scale_x_date(date_breaks = "1 month", date_labels =  "%b %Y", limits = c(min(rt_cholera$date), max(rt_cholera$date)), expand=c(0,0))
 
 # Reformatting rt_cholera for EpiNow2
 rt_cholera_epinow <- rt_cholera |>

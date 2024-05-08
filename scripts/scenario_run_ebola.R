@@ -26,22 +26,22 @@ res_ebola <- sim_scenarios(case_data=ebola_sim_data_cases,
                            weeks_inc=12,
                            obs_scale=0.83)
 
-saveRDS(res_ebola[[1]], here("results", paste0("res_ebola2", Sys.Date(), ".rds")))
-saveRDS(res_ebola[[2]], here("results", paste0("res_ebola2_id", Sys.Date(), ".rds")))
-saveRDS(res_ebola[[3]], here("results", paste0("res_ebola2_warnings", Sys.Date(), ".rds")))
+saveRDS(res_ebola[[1]], here("results", paste0("res_ebola", Sys.Date(), ".rds")))
+saveRDS(res_ebola[[2]], here("results", paste0("res_ebola_id", Sys.Date(), ".rds")))
+saveRDS(res_ebola[[3]], here("results", paste0("res_ebola_warnings", Sys.Date(), ".rds")))
 
 ## Saving samples only ##
 
 ebola_samples <- data.frame()
 for(i in 1:length(res_ebola)){
-  samples_scen <- res_ebola[[i]][res_ebola[[i]]$variable=="infections"] |>
+  samples_scen <- res_ebola[[1]][[i]][res_ebola[[i]]$variable=="reported_cases"] |>
     mutate(model="EpiNow2")
-
 # Add ID
 samples_scen$result_list <- i
 
 # Bind to dataframe
-ebola_samples <- rbind(ebola_samples, samples_scen)}
+ebola_samples <- rbind(ebola_samples, samples_scen)
+}
 
 ebola_samples <- ebola_samples |>
   rename(prediction=value)

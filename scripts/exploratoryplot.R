@@ -14,7 +14,7 @@ ebola_sim_data <- readRDS(here("data", paste0("ebola_sim_data", "2024-04-23", ".
 
 ebola_samples_alltypes <- data.frame()
 for(i in 1:length(res_ebola)){
-  samples_scen <- res_ebola[[i]][res_ebola[[i]]$variable=="infections"] |>
+  samples_scen <- res_ebola[[i]][res_ebola[[i]]$variable=="reported_cases"] |>
     mutate(model="EpiNow2")
   
   # Add ID
@@ -56,7 +56,7 @@ ebola_samples_plot <- ebola_samples_plot |>
 
 # Add observed cases
 ebola_samples_plot <- ebola_sim_data |> 
-  filter(variable=="infections") |>
+  filter(variable=="reported_cases") |>
   rename(true_value=value) |>
   select(-variable) |>
   right_join(ebola_samples_plot, by="date") 
@@ -139,20 +139,20 @@ plot_rt_ebola <- ggplot(rt_ebola) +
 
 # Adding the simulated data plot 
 
-ebola_sim_data_infections <- ebola_sim_data |> 
-  filter(variable=="infections") 
+ebola_sim_data_cases <- ebola_sim_data |> 
+  filter(variable=="reported_cases") 
 
-ebola_timepoints <- ebola_sim_data_infections$date[c(1:(nrow(ebola_sim_data_infections) %/% (8*7)))*8*7]
+ebola_timepoints <- ebola_sim_data_cases$date[c(1:(nrow(ebola_sim_data_cases) %/% (8*7)))*8*7]
 
-ebola_sim_data_timepoints <- ebola_sim_data_infections |> filter(date %in% ebola_timepoints)
+ebola_sim_data_timepoints <- ebola_sim_data_cases |> filter(date %in% ebola_timepoints)
 
 timeseries_ebola <- ggplot() + 
-  geom_line(ebola_sim_data_infections, mapping=aes(x=date, y=value)) + 
+  geom_line(ebola_sim_data_cases, mapping=aes(x=date, y=value)) + 
   geom_rect(data = highlight_periods, aes(xmin = start_date, xmax = end_date, ymin = -Inf, ymax = Inf), 
             fill = "#619CFF", alpha = 0.5) +
   #geom_point(ebola_sim_data_timepoints, mapping=aes(x=date,y=value), color="red") +
   xlab("Date") +
-  ylab("Infections") +
+  ylab("Reported cases") +
   scale_x_date(date_breaks = "1 month", date_labels =  "%b %Y", limits = c(min(rt_ebola$date), max(rt_ebola$date)), expand=c(0,0)) +
   lshtm_theme()
 

@@ -22,9 +22,9 @@ sim_scenarios <- function(case_data,
   results_id <- data.frame()
 
  for(i in 1:length(scen_values)){
-    for(j in 1:length(scen_values)){
+   for(j in 1:length(scen_values)){
       for(k in 1:length(scen_timepoints)){
-        
+
         # Case data 
         case_segment <- case_data |>
           filter(date <= scen_timepoints[k])
@@ -38,12 +38,12 @@ sim_scenarios <- function(case_data,
         # Generation interval
         gen_time <- Gamma(mean=gen_mean*scen_values[i],
                           sd=gen_sd,
-                          max=30)
+                          max=50)
 
         # Incubation period
         inc_period <- LogNormal(meanlog=convert_to_logmean(inc_mean*scen_values[j], inc_sd),
                                 sdlog=convert_to_logsd(inc_mean*scen_values[j], inc_sd),
-                                max=30)
+                                max=50)
         
         reporting_delay <- LogNormal(meanlog=rep_meanlog,
                                      sdlog=rep_sdlog,
@@ -65,9 +65,9 @@ sim_scenarios <- function(case_data,
         results_id <- rbind(results_id, scen_id)
         
         print(paste("timepoint =", k, "gen time =", i, "inc period =", j))
-      }
+     }
     }
-  }
+ }
   
   save_warnings <- warnings()
   

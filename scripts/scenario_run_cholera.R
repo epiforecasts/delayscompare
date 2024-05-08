@@ -3,7 +3,7 @@ source(here("R", "scenario_loop.R"))
 
 ## Load data ##
 
-cholera_sim_data <- readRDS(here("data", paste0("cholera_sim_data", "2024-04-23", ".rds")))
+cholera_sim_data <- readRDS(here("data", paste0("cholera_sim_data", "2024-05-07", ".rds")))
 
 # In required format for EpiNow2
 
@@ -33,7 +33,7 @@ saveRDS(res_cholera[[3]], here("results", paste0("res_cholera_warnings", Sys.Dat
 
 cholera_samples <- data.frame()
 for(i in 1:length(res_cholera)){
-  samples_scen <- res_cholera[[i]][res_cholera[[i]]$variable=="infections"] |>
+  samples_scen <- res_cholera[[1]][[i]][res_cholera[[i]]$variable=="infections"] |>
     mutate(model="EpiNow2")
 
 # Add ID

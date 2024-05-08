@@ -7,7 +7,7 @@ library(RColorBrewer)
 
 ## Loading results ##
 
-ebola_samples <- readRDS(here("results", paste0("res_ebola_samples", "2024-04-24", ".rds")))
+ebola_samples <- readRDS(here("results", paste0("res_ebola_samples", "2024-05-07", ".rds")))
 res_ebola_id <- readRDS(here("results", paste0("res_ebola2_id", "2024-04-24", ".rds")))
 ebola_sim_data <- readRDS(here("data", paste0("ebola_sim_data", "2024-04-23", ".rds")))
 
@@ -51,19 +51,19 @@ ebola_scores_details <- ebola_scores |>
 ebola_scores_details$inc_period <- factor(ebola_scores_details$inc_period, levels=c("very low", "low", "correct", "high", "very high"))
 ebola_scores_details$gen_time <- factor(ebola_scores_details$gen_time, levels=c("very low", "low", "correct", "high", "very high"))
 
-ebola_sim_data_infections <- ebola_sim_data |> 
+ebola_sim_data_cases <- ebola_sim_data |> 
   filter(variable=="reported_cases") 
 
-ebola_timepoints <- ebola_sim_data_infections$date[c(1:(nrow(ebola_sim_data_infections) %/% (8*7)))*8*7]
+ebola_timepoints <- ebola_sim_data_infections$date[c(1:(nrow(ebola_sim_data_cases) %/% (8*7)))*8*7]
 
 ebola_sim_data_timepoints <- ebola_sim_data_infections |> filter(date %in% ebola_timepoints)
 
 timeseries_ebola <- ggplot() + 
-  geom_line(ebola_sim_data_infections, mapping=aes(x=date, y=value)) + 
+  geom_line(ebola_sim_data_cases, mapping=aes(x=date, y=value)) + 
   geom_point(ebola_sim_data_timepoints, mapping=aes(x=date,y=value), color="red") +
   xlab("Date") +
-  ylab("Infections") +
-  scale_x_continuous(breaks=ebola_sim_data_infections$date[grepl("-01$",ebola_sim_data_infections$date)]) +
+  ylab("Reported cases") +
+  scale_x_continuous(breaks=ebola_sim_data_cases$date[grepl("-01$",ebola_sim_data_cases$date)]) +
   lshtm_theme()
 
 timepoints_lab <- data.frame(timepoint=c(1:length(ebola_timepoints)),
