@@ -33,7 +33,7 @@ saveRDS(res_cholera[[3]], here("results", paste0("res_cholera_warnings", Sys.Dat
 
 cholera_samples <- data.frame()
 for(i in 1:length(res_cholera)){
-  samples_scen <- res_cholera[[1]][[i]][res_cholera[[i]]$variable=="infections"] |>
+  samples_scen <- res_cholera[[1]]res_cholera[[i]][res_cholera[[i]]$variable=="reported_cases"] |>
     mutate(model="EpiNow2")
 
 # Add ID
@@ -44,9 +44,6 @@ cholera_samples <- rbind(cholera_samples, samples_scen)}
 
 cholera_samples <- cholera_samples |>
   rename(prediction=value)
-
-cholera_samples <- cholera_samples |>
-  filter(type=="forecast")
 
 saveRDS(cholera_samples, here("results", paste0("res_cholera_samples", Sys.Date(), ".rds")))
 

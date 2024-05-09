@@ -34,7 +34,7 @@ saveRDS(res_ebola[[3]], here("results", paste0("res_ebola_warnings", Sys.Date(),
 
 ebola_samples <- data.frame()
 for(i in 1:length(res_ebola)){
-  samples_scen <- res_ebola[[1]][[i]][res_ebola[[i]]$variable=="reported_cases"] |>
+  samples_scen <- res_ebola[[1]]res_ebola[[i]][res_ebola[[i]]$variable=="reported_cases"] |>
     mutate(model="EpiNow2")
 # Add ID
 samples_scen$result_list <- i
@@ -45,9 +45,6 @@ ebola_samples <- rbind(ebola_samples, samples_scen)
 
 ebola_samples <- ebola_samples |>
   rename(prediction=value)
-
-ebola_samples <- ebola_samples |>
-  filter(type=="forecast")
 
 saveRDS(ebola_samples, here("results", paste0("res_ebola_samples", Sys.Date(), ".rds")))
 

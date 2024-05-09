@@ -6,6 +6,11 @@ plotcrps <- function(res_samples,
                      res_id, 
                      sim_data){
   
+  res_samples <- res_samples |> 
+    filter(type=="forecast") |>
+    # add info
+    left_join(res_id, by="result_list")
+  
   # Add simulated data
   res_samples <- sim_data |> 
     filter(variable=="reported_cases") |>
@@ -195,6 +200,193 @@ plotforecasts <- function(res_samples,
     
     
     plot_grid(forecasts_gentime, forecasts_incperiod, ncol=2)
+}
+
+############################
+#### Plots by timepoint ####
+############################
+
+plotbytime <- function(res_samples,
+                       res_id,
+                       sim_data,
+                       disease,
+                       forecastonly=FALSE){
+  
+  ## Getting ready to plot ##
+  
+  res_samples <- res_samples |> 
+    # add info
+    left_join(res_id, by="result_list")
+  
+  
+  # Make factors so that ordering of facets is right
+  res_samples$gen_time <- factor(res_samples$gen_time, levels=c("very low", "low", "correct", "high", "very high"))
+  res_samples$inc_period <- factor(res_samples$inc_period, levels=c("very high", "high", "correct", "low", "very low"))
+  
+  # Get quantiles
+  res_samples_plot <- sample_to_quantile(res_samples, quantiles = c(0.05, 0.25, 0.5, 0.75, 0.95), type = 7)
+  
+  res_samples_plot <- res_samples_plot |>
+    pivot_wider(names_from="quantile",
+                values_from="prediction")
+  
+  res_samples_plot <- res_samples_plot |>
+    rename(lower90="0.05",
+           upper90="0.95",
+           lower50="0.25",
+           upper50="0.75",
+           median="0.5")
+  
+  ## Optional filter to plot just forecasts
+  if(forecastonly==TRUE){
+    res_samples_plot <- res_samples_plot |>
+      filter(type=="forecast")
+  }
+  
+  # Add observed cases
+  res_samples_plot <- sim_data |> 
+    filter(variable=="reported_cases") |>
+    rename(true_value=value) |>
+    select(-variable) |>
+    right_join(res_samples_plot, by="date") 
+  
+  ## Plot by timepoint, faceted by generation time and incubation period ##
+  
+  results_list <- list()
+  
+  if(forecastonly==FALSE){
+  for(i in 1:max(res_samples_plot$timepoint)){
+    bytimepoint <- res_samples_plot |>
+      filter(timepoint==i)
+    plot_timepoint <- ggplot(bytimepoint) +
+      geom_col(aes(x=date, y=true_value), alpha=0.5) +
+      geom_line(aes(x=date, y=median, colour=type)) +
+      geom_ribbon(aes(x=date, ymin=lower50, ymax=upper50, fill=type), alpha=0.5) +
+      # geom_ribbon(aes(x=date, ymin=lower90, ymax=upper90, fill=type), alpha=0.2) +
+      facet_grid(inc_period~gen_time) +
+      ylab("Observed cases") +
+      xlab("Date") +
+      lshtm_theme() +
+      scale_x_continuous(breaks= bytimepoint$date[grepl("-01$", bytimepoint$date)],
+                         sec.axis = sec_axis(~ . , name = "Generation time", breaks = NULL, labels = NULL)) +
+      scale_y_continuous(sec.axis = sec_axis(~ . , name = "Incubation period", breaks = NULL, labels = NULL)) 
+    
+    results_list[[i]] <- assign(paste0("plot_", disease, "timepoint", i), plot_timepoint)
+  }
+  }
+  
+  if(forecastonly==TRUE){
+    for(i in 1:max(res_samples_plot$timepoint)){
+      bytimepoint <- res_samples_plot |>
+        filter(timepoint==i)
+      plot_timepoint <- ggplot(bytimepoint) +
+        geom_col(aes(x=date, y=true_value), alpha=0.5) +
+        geom_line(aes(x=date, y=median), colour="#619CFF") +
+        geom_ribbon(aes(x=date, ymin=lower50, ymax=upper50), alpha=0.5, fill="#619CFF") +
+        # geom_ribbon(aes(x=date, ymin=lower90, ymax=upper90, fill=type), alpha=0.2) +
+        facet_grid(inc_period~gen_time) +
+        ylab("Observed cases") +
+        xlab("Date") +
+        lshtm_theme() +
+        scale_x_continuous(breaks= bytimepoint$date[grepl("-01$", bytimepoint$date)],
+                           sec.axis = sec_axis(~ . , name = "Generation time", breaks = NULL, labels = NULL)) +
+        scale_y_continuous(sec.axis = sec_axis(~ . , name = "Incubation period", breaks = NULL, labels = NULL)) 
+      
+      results_list[[i]] <- assign(paste0("plot_", disease, "timepoint", i), plot_timepoint)
+    }
+    
+  }
+  return(results_list)
+}
+
+#################################################
+#### "Correct" forecasts across time horizon ####
+#################################################
+
+plotcorrect <- function(
+    res_samples,
+    res_id,
+    sim_data,
+    rt_timeseries){
+  
+  # Add info
+  res_samples <- res_samples |>
+    left_join(res_id, by="result_list")
+  
+  # Add observed data
+  res_samples <- sim_data |> 
+    filter(variable=="reported_cases") |>
+    rename(true_value=value) |>
+    select(-variable) |>
+    right_join(res_samples, by="date") 
+  
+  res_samples_correct <- res_samples |>
+    filter(inc_period=="correct", gen_time=="correct")
+  
+  res_samples_correct  <- sample_to_quantile(res_samples_correct, quantiles = c(0.05, 0.25, 0.5, 0.75, 0.95), type = 7)
+  res_samples_correct <- res_samples_correct  |>
+    pivot_wider(names_from="quantile",
+                values_from="prediction")
+  
+  res_samples_correct <- res_samples_correct |>
+    rename(lower90="0.05",
+           upper90="0.95",
+           lower50="0.25",
+           upper50="0.75",
+           median="0.5")
+  
+  plot_correct <- ggplot(res_samples_correct) +
+    geom_col(aes(x=date, y=true_value), alpha=0.5) +
+    geom_line(aes(x=date, y=median, colour=type)) +
+    geom_ribbon(aes(x=date, ymin=lower50, ymax=upper50, fill=type), alpha=0.5) +
+    # geom_ribbon(aes(x=date, ymin=lower90, ymax=upper90, fill=type), alpha=0.2) +
+    facet_wrap(~timepoint, nrow=1, scale="free") +
+    ylab("Observed cases") +
+    xlab("Date") +
+    lshtm_theme() +
+    scale_x_date(date_breaks = "1 month", date_labels =  "%b %Y") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  
+  # Adding bars showing forecast horizon
+  highlight_periods <- res_samples_correct |>
+    group_by(timepoint, type) |>
+    summarise(start_date=min(date),
+              end_date=max(date)) |>
+    filter(type=="forecast")
+  
+  plot_rt <- ggplot(rt_timeseries) + 
+    geom_rect(data = highlight_periods, aes(xmin = start_date, xmax = end_date, ymin = -Inf, ymax = Inf), 
+              fill="#619CFF",alpha = 0.5) +
+    geom_line(aes(x=date, y=R), colour="firebrick4", size=1.2) +
+    geom_ribbon(aes(x=date, ymin=lower_50, ymax=upper_50), alpha=0.5, fill="firebrick4") +
+    geom_ribbon(aes(x=date, ymin=lower_90, ymax=upper_90), alpha=0.3, fill="firebrick4") +
+    xlab("Date") +
+    ylab("Rt") +
+    lshtm_theme() +
+    scale_x_date(date_breaks = "1 month", date_labels =  "%b %Y", limits = c(min(rt_timeseries$date), max(rt_timeseries$date)), expand=c(0,0))
+  
+  # Adding the simulated data plot 
+  
+  sim_data_cases <- sim_data |> 
+    filter(variable=="reported_cases") 
+  
+  plot_simdata <- ggplot() + 
+    geom_line(sim_data_cases, mapping=aes(x=date, y=value)) + 
+    geom_rect(data = highlight_periods, aes(xmin = start_date, xmax = end_date, ymin = -Inf, ymax = Inf), 
+              fill = "#619CFF", alpha = 0.5) +
+    xlab("Date") +
+    ylab("Reported cases") +
+    scale_x_date(date_breaks = "1 month", date_labels =  "%b %Y", limits = c(min(rt_timeseries$date), max(rt_timeseries$date)), expand=c(0,0)) +
+    lshtm_theme()
+  
+  ## Adding to one plot ##
+  
+  plots_upper <- plot_grid(plot_rt, plot_simdata, align="v", ncol=1)
+  
+  plot_correct_space <- plot_grid(NULL, plot_correct, NULL, rel_widths=c(0.035, 1, 0.05), nrow=1)
+  
+  plot_grid(plots_upper, plot_correct_space, ncol=1)
+  
 }
 
 

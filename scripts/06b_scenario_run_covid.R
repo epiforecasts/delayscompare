@@ -17,12 +17,37 @@ covid_sim_data_cases <- covid_sim_data_cases |>
 res_covid <- sim_scenarios(case_data=covid_sim_data_cases,
                            gen_mean=3.6,
                            gen_sd=3.1, # from Sherratt et al. 2021 - surveillance paper
+                           gen_max=30,
                            inc_mean=5.2,
                            inc_sd=1.52, # from Sherratt et al. 2021 - surveillance paper
+                           inc_max=30,
                            rep_meanlog=convert_to_logmean(4.4, 5.6),
                            rep_sdlog=convert_to_logsd(4.4, 5.6), # MAXIMUM IS JUST A PLACEHOLDER # from Sherratt et al. 2021 - surveillance paper
+                           rep_max=30,
                            freq_fc=16,
                            weeks_inc=12,
                            obs_scale=0.4)
+
 saveRDS(res_covid[[1]], here("results", paste0("res_covid", Sys.Date(), ".rds")))
 saveRDS(res_covid[[2]], here("results", paste0("res_covid_id", Sys.Date(), ".rds")))
+saveRDS(res_covid[[3]], here("results", paste0("res_covid_warnings", Sys.Date(), ".rds")))
+
+## Saving samples only ##
+
+covid_samples <- data.frame()
+for(i in 1:length(res_covid)){
+  samples_scen <- res_covid[[1]]res_covid[[i]][res_covid[[i]]$variable=="reported_cases"] |>
+    mutate(model="EpiNow2")
+  
+  # Add ID
+  samples_scen$result_list <- i
+  
+  # Bind to dataframe
+  covid_samples <- rbind(covid_samples, samples_scen)}
+
+covid_samples <- covid_samples |>
+  rename(prediction=value)
+
+saveRDS(covid_samples, here("results", paste0("res_covid_samples", Sys.Date(), ".rds")))
+
+
