@@ -27,7 +27,7 @@ ebola_sim_data <- simulate_infections(
   R=rt_ebola_epinow,
   initial_infections=5,
   generation_time=generation_time_opts(ebola_gen_time),
-  delays=delay_opts(combined_delay_ebola),
+  delays=delay_opts(fix_dist(combined_delay_ebola)),
   obs=obs_opts(family="poisson", scale=0.83)
 )
 
