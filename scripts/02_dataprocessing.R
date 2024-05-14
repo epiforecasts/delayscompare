@@ -2,6 +2,8 @@
 #### Ebola ####
 ###############
 
+library(here)
+
 ebola_confirmed_linelist <- read_xlsx(here("data", "ebola_linelist.xlsx"), "lab-confirmed database")
 ebola_suspected_linelist <- read_xlsx(here("data", "ebola_linelist.xlsx"), "suspected database")
 

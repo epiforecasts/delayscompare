@@ -1,4 +1,6 @@
-source("~/delayscompare/scripts/01_packages.R")
+library(here)
+
+source(here("scripts", "01_packages.R"))
 source(here("R", "funcs_data.R"))
 source(here("R", "scenario_loop.R"))
 
