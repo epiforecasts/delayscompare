@@ -34,18 +34,11 @@ saveRDS(res_covid[[3]], here("results", paste0("res_covid_warnings", Sys.Date(),
 
 ## Saving samples only ##
 
-covid_samples <- data.frame()
-for(i in 1:length(res_covid)){
-  samples_scen <- res_covid[[1]]res_covid[[i]][res_covid[[i]]$variable=="reported_cases"] |>
-    mutate(model="EpiNow2")
-  
-  # Add ID
-  samples_scen$result_list <- i
-  
-  # Bind to dataframe
-  covid_samples <- rbind(covid_samples, samples_scen)}
-
-covid_samples <- covid_samples |>
+covid_samples <- lapply(1:length(res_ebola[[1]]), function(i) {
+  res_covid[[1]][[i]][$variable=="reported_cases"]
+}) |>
+  bind_rows(.id = "result_list") |>
+  mutate(model = "EpiNow2", result_list = as.integer(result_list)) |>
   rename(prediction=value)
 
 saveRDS(covid_samples, here("results", paste0("res_covid_samples", Sys.Date(), ".rds")))

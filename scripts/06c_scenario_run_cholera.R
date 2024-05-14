@@ -31,19 +31,19 @@ saveRDS(res_cholera[[3]], here("results", paste0("res_cholera_warnings", Sys.Dat
 
 ## Saving samples only ##
 
-cholera_samples <- data.frame()
-for(i in 1:length(res_cholera)){
-  samples_scen <- res_cholera[[1]]res_cholera[[i]][res_cholera[[i]]$variable=="reported_cases"] |>
+cholera_samples <- lapply(seq_along(res_cholera[[1]]), function(i) {
+  samples_scen <- res_cholera[[1]][[i]][variable=="reported_cases"] |>
     mutate(model="EpiNow2")
 
-# Add ID
-samples_scen$result_list <- i
+  # Add ID
+  samples_scen$result_list <- i
 
-# Bind to dataframe
-cholera_samples <- rbind(cholera_samples, samples_scen)}
+  # Bind to dataframe
+  return(samples_scen)
 
-cholera_samples <- cholera_samples |>
-  rename(prediction=value)
+})
 
 saveRDS(cholera_samples, here("results", paste0("res_cholera_samples", Sys.Date(), ".rds")))
+cholera_samples <- bind_rows(cholera_samples) |>
+  rename(prediction=value)
 
