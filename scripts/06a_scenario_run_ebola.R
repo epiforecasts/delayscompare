@@ -1,10 +1,11 @@
 source("~/delayscompare/scripts/01_packages.R")
+source(here("R", "funcs_data.R"))
 source(here("R", "scenario_loop.R"))
 
 ## Load data ##
 
-ebola_sim_data <- readRDS(here("data", paste0("ebola_sim_data", "2024-04-23", ".rds")))
-ebola_reporting_delay <- readRDS(here("data", "ebolareportingdelay.rds"))
+ebola_sim_data <- read_latest(here("data"), "ebola_sim_data")
+ebola_reporting_delay <- readRDS(here("data", "ebolareportingdelay.RDS"))
 
 # In required format for EpiNow2
 
@@ -26,9 +27,9 @@ res_ebola <- sim_scenarios(case_data=ebola_sim_data_cases,
                            weeks_inc=12,
                            obs_scale=0.83)
 
-saveRDS(res_ebola[[1]], here("results", paste0("res_ebola", Sys.Date(), ".rds")))
-saveRDS(res_ebola[[2]], here("results", paste0("res_ebola_id", Sys.Date(), ".rds")))
-saveRDS(res_ebola[[3]], here("results", paste0("res_ebola_warnings", Sys.Date(), ".rds")))
+save_latest(res_ebola[[1]], here("results"), "res_ebola")
+save_latest(res_ebola[[2]], here("results"), "res_ebola_id")
+save_latest(res_ebola[[3]], here("results"), "res_ebola_warnings")
 
 ## Saving samples only ##
 
@@ -46,5 +47,5 @@ ebola_samples <- rbind(ebola_samples, samples_scen)
 ebola_samples <- ebola_samples |>
   rename(prediction=value)
 
-saveRDS(ebola_samples, here("results", paste0("res_ebola_samples", Sys.Date(), ".rds")))
+save_latest(ebola_samples, here("results"), "res_ebola_samples")
 

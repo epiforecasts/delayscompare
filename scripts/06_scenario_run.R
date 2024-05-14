@@ -1,11 +1,12 @@
 source("~/delayscompare/scripts/01_packages.R")
+source(here("R", "funcs_data.R"))
 source(here("R", "scenario_loop.R"))
 
 ## Load data ##
 
-ebola_sim_data <- readRDS(here("data", paste0("ebola_sim_data", "2024-04-11", ".rds")))
+ebola_sim_data <- read_latest(here("data"), "ebola_sim_data")
 ebola_reporting_delay <- readRDS(here("data", "ebolareportingdelay.rds"))
-covid_sim_data <- readRDS(here("data", paste0("covid_sim_data", "2024-04-11", ".rds")))
+covid_sim_data <- read_latest(here("data"), "covid_sim_data")
 
 # In required format for EpiNow2
 
@@ -32,8 +33,8 @@ res_ebola <- sim_scenarios(case_data=ebola_sim_data_cases,
                            weeks_inc=12,
                            obs_scale=0.83)
 
-saveRDS(res_ebola[[1]], here("results", paste0("res_ebola", Sys.Date(), ".rds")))
-saveRDS(res_ebola[[2]], here("results", paste0("res_ebola_id", Sys.Date(), ".rds")))
+save_latest(lates_ebola[[1]], here("results"), "res_ebola")
+save_latest(res_ebola[[2]], here("results"), "res_ebola_id")
 
 ## COVID-19 ##
 
@@ -47,5 +48,5 @@ res_covid <- sim_scenarios(case_data=covid_sim_data_cases,
                            freq_fc=4,
                            weeks_inc=12,
                            obs_scale=0.4)
-saveRDS(res_covid[[1]], here("results", paste0("res_covid", Sys.Date(), ".rds")))
-saveRDS(res_covid[[2]], here("results", paste0("res_covid_id", Sys.Date(), ".rds")))
+save_latest(res_covid[[1]], here("results"), "res_covid")
+save_latest(res_covid[[2]], here("results"), "res_covid_id")
