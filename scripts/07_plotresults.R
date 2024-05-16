@@ -43,7 +43,7 @@ for(i in 1:max(res_ebola_id$timepoint)){
 
 ## "Correct" parameter forecasts across time horizon ##
 
-plotcorrect(ebola_samples,
+plot_correct <- plotcorrect(ebola_samples,
             res_ebola_id,
             ebola_sim_data,
             rt_ebola)
@@ -99,10 +99,13 @@ plots_timepoint_cholera2 <- plotbytime(cholera_samples,
 
 ## "Correct" parameter forecasts across time horizon ##
 
-plotcorrect(cholera_samples,
-            res_cholera_id,
-            cholera_sim_data,
-            rt_cholera)
+plot_correct <- plotcorrect(cholera_samples,
+                            res_cholera_id,
+                            cholera_sim_data,
+                            rt_cholera)
+
+ggsave(here("results", paste0("plot_cholera_correct.png")), plot_correct, width=12, height=7.65, units="in")
+
 plot_rankings <-plotrankings(cholera_samples,
                              res_cholera_id,
                              cholera_sim_data)
