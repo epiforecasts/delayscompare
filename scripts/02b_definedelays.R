@@ -6,6 +6,8 @@
 
 ## Generation time
 
+library(here)
+
 ebola_gen_time <- Gamma(mean=16.2,
                         sd=9.4,
                         max=45) # from Park et al. 2019
