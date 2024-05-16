@@ -12,8 +12,8 @@ ebola_gen_time <- Gamma(mean=16.2,
 
 ## Incubation period
 
-ebola_inc_period <- LogNormal(meanlog=convert_to_logmean(11.4, 8.1),
-                              sdlog=convert_to_logsd(11.4, 8.1),
+ebola_inc_period <- LogNormal(mean=11.4,
+                              sd=8.1,
                               max=45) # from Aylward et al. 2014 
 
 ## Reporting delay
