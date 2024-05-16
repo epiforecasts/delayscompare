@@ -17,14 +17,14 @@ ebola_sim_data_cases <- ebola_sim_data_cases |>
   rename(confirm=value)
 
 ## Run scenarios ##
-
+ebola_rep_params <- get_parameters(fix_dist(ebola_reporting_delay))
 res_ebola <- sim_scenarios(case_data=ebola_sim_data_cases,
                            gen_mean=16.2,
                            gen_sd=9.40, # from Park et al. 2019
                            inc_mean=11.4,
                            inc_sd=8.1, # from Aylward et al. 2014 
-                           rep_meanlog=ebola_reporting_delay$mean_mean,
-                           rep_sdlog=ebola_reporting_delay$sd_mean,
+                           rep_meanlog=ebola_rep_params$meanlog,
+                           rep_sdlog=ebola_rep_params$sdlog,
                            freq_fc=8,
                            weeks_inc=12,
                            obs_scale=0.83)
