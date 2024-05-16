@@ -46,8 +46,8 @@ sim_scenarios <- function(case_data,
                           max=gen_max)
 
         # Incubation period
-        inc_period <- LogNormal(meanlog=convert_to_logmean(inc_mean*scen_values[j], inc_sd),
-                                sdlog=convert_to_logsd(inc_mean*scen_values[j], inc_sd),
+        inc_period <- LogNormal(mean=inc_mean*scen_values[j]),
+                                sd=inc_mean*scen_values[j]),
                                 max=inc_max)
         
         reporting_delay <- LogNormal(meanlog=rep_meanlog,
