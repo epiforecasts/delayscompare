@@ -41,7 +41,10 @@ plotcrps <- function(res_samples,
   
   ## Add the info for each scenario to the plot
   ebola_scores_details <- ebola_scores |>
-    left_join(res_id, by="result_list")
+    left_join(res_id, by="result_list") |>
+    group_by(timepoint) |>
+    filter(date == max(date)) |>
+    ungroup()
   
   ### Heatmap by timepoint ###
   
