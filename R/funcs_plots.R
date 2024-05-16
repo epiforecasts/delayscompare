@@ -439,7 +439,7 @@ plotrankings <- function(res_samples,
       inc_period = factor(
         inc_period, levels=c("very low", "low", "correct", "high", "very high")
       ),
-      gen_time_period = factor(
+      gen_time = factor(
         gen_time, levels=c("very low", "low", "correct", "high", "very high")
       )
     )
