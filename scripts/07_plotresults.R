@@ -50,6 +50,12 @@ plotcorrect(ebola_samples,
 
 ggsave(here("results", paste0("plot_ebola_correct.png")), plot_correct, width=12, height=7.65, units="in")
 
+plot_rankings <- plotrankings(ebola_samples,
+                              res_ebola_id,
+                              ebola_sim_data)
+
+ggsave(here("results", paste0("plot_ebola_rankings.png")), plot_rankings)
+
 ######################
 #### CHOLERA-LIKE ####
 ######################
@@ -97,3 +103,8 @@ plotcorrect(cholera_samples,
             res_cholera_id,
             cholera_sim_data,
             rt_cholera)
+plot_rankings <-plotrankings(cholera_samples,
+                             res_cholera_id,
+                             cholera_sim_data)
+
+ggsave(here("results", paste0("plot_cholera_rankings.png")), plot_rankings)
