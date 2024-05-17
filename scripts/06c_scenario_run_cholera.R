@@ -34,19 +34,21 @@ save_latest(res_cholera[[3]], here("results"), "res_cholera_warnings")
 
 ## Saving samples only ##
 
-cholera_samples <- data.frame()
-for(i in 1:length(res_cholera)){
-  samples_scen <- res_cholera[[1]]res_cholera[[i]][res_cholera[[i]]$variable=="reported_cases"] |>
+cholera_samples <- lapply(seq_along(res_cholera[[1]]), function(i) {
+  samples_scen <- res_cholera[[1]][[i]][variable=="reported_cases"] |>
     mutate(model="EpiNow2")
 
-# Add ID
-samples_scen$result_list <- i
+  # Add ID
+  samples_scen$result_list <- i
 
-# Bind to dataframe
-cholera_samples <- rbind(cholera_samples, samples_scen)}
+  # Bind to dataframe
+  return(samples_scen)
 
-cholera_samples <- cholera_samples |>
+})
+
+cholera_samples <- bind_rows(cholera_samples) |>
   rename(prediction=value)
 
 save_latest(cholera_samples, here("results"), "res_cholera_samples")
+
 

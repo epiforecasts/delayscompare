@@ -35,18 +35,11 @@ save_latest(res_ebola[[3]], here("results"), "res_ebola_warnings")
 
 ## Saving samples only ##
 
-ebola_samples <- data.frame()
-for(i in 1:length(res_ebola)){
-  samples_scen <- res_ebola[[1]]res_ebola[[i]][res_ebola[[i]]$variable=="reported_cases"] |>
-    mutate(model="EpiNow2")
-# Add ID
-samples_scen$result_list <- i
-
-# Bind to dataframe
-ebola_samples <- rbind(ebola_samples, samples_scen)
-}
-
-ebola_samples <- ebola_samples |>
+ebola_samples <- lapply(1:length(res_ebola[[1]]), function(i) {
+  res_ebola[[1]][[i]][variable=="reported_cases"]
+}) |>
+  bind_rows(.id = "result_list") |>
+  mutate(model = "EpiNow2", result_list = as.integer(result_list)) |>
   rename(prediction=value)
 
 save_latest(ebola_samples, here("results"), "res_ebola_samples")
