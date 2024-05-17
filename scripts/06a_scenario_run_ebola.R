@@ -29,7 +29,7 @@ res_ebola <- sim_scenarios(case_data=ebola_sim_data_cases,
                            weeks_inc=12,
                            obs_scale=0.83)
 
-save_latest(res_ebola[[1]], here("results"), "res_ebola")
+#save_latest(res_ebola[[1]], here("results"), "res_ebola")
 save_latest(res_ebola[[2]], here("results"), "res_ebola_id")
 save_latest(res_ebola[[3]], here("results"), "res_ebola_warnings")
 

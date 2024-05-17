@@ -15,8 +15,8 @@ sim_scenarios <- function(case_data,
   
   ## Scenarios
   
-  scen_values <- c(0.75, 1, 1.25) # no delay needed + removed the extremes to test
-  names(scen_values) <- c("low", "correct", "high") # removed extremes to test
+  scen_values <- c(0.25, 0.75, 1, 1.25, 1.75) # no delay needed + removed the extremes to test
+  names(scen_values) <- c("very low", "low", "correct", "high", "very high") # removed extremes to test
   
   scen_timepoints <- case_data$date[c(1:(nrow(case_data) %/% (freq_fc*7)))*freq_fc*7]
   names(scen_timepoints) <- c(1:length(scen_timepoints))
@@ -26,10 +26,8 @@ sim_scenarios <- function(case_data,
 
  for(i in 1:length(scen_values)){
    for(j in 1:length(scen_values)){
-    #  for(k in 1:length(scen_timepoints)){
+      for(k in 1:length(scen_timepoints)){
      
-     k <- 2
-
         # Case data 
         case_segment <- case_data |>
           filter(date <= scen_timepoints[k])
@@ -46,8 +44,8 @@ sim_scenarios <- function(case_data,
                           max=gen_max)
 
         # Incubation period
-        inc_period <- LogNormal(mean=inc_mean*scen_values[j]),
-                                sd=inc_mean*scen_values[j]),
+        inc_period <- LogNormal(mean=inc_mean*scen_values[j],
+                                sd=inc_mean*scen_values[j],
                                 max=inc_max)
         
         reporting_delay <- LogNormal(meanlog=rep_meanlog,
@@ -62,19 +60,19 @@ sim_scenarios <- function(case_data,
         
         results_list[[length(results_list)+1]] <- def$samples
         
-        scen_id <- data.frame(result_list=length(results_list),
+        results_id[[length(results_id)+1]] <- data.frame(result_list=length(results_list),
                               timepoint=k,
                               gen_time=names(scen_values)[i],
                               inc_period=names(scen_values)[j])
         
-        results_id <- rbind(results_id, scen_id)
-        
         print(paste("timepoint =", k, "gen time =", i, "inc period =", j))
      }
     }
- #}
+ }
   
   save_warnings <- warnings()
+  
+  results_id <- bind_rows(results_id)
   
   return(list(results_list,
               results_id,

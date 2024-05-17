@@ -31,14 +31,15 @@ res_covid <- sim_scenarios(case_data=covid_sim_data_cases,
                            weeks_inc=12,
                            obs_scale=0.4)
 
-save_latest(res_covid[[1]], here("results"), "res_covid")
+
+#save_latest(res_covid[[1]], here("results"), "res_covid")
 save_latest(res_covid[[2]], here("results"), "res_covid_id")
 save_latest(res_covid[[3]], here("results"), "res_covid_warnings")
 
 ## Saving samples only ##
 
-covid_samples <- lapply(1:length(res_ebola[[1]]), function(i) {
-  res_covid[[1]][[i]][$variable=="reported_cases"]
+covid_samples <- lapply(1:length(res_covid[[1]]), function(i) {
+  res_covid[[1]][[i]][variable=="reported_cases"]
 }) |>
   bind_rows(.id = "result_list") |>
   mutate(model = "EpiNow2", result_list = as.integer(result_list)) |>

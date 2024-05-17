@@ -5,5 +5,5 @@ read_latest <- function(dir, file_name) {
 }
 
 save_latest <- function(x, dir, file_name) {
-  saveRDS(x, file.path(dir, paste0(file_name, Sys.date(), ".rds"))
+  saveRDS(x, file.path(dir, paste0(file_name, Sys.Date(), ".rds")))
 }
