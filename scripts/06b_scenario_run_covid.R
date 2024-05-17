@@ -1,9 +1,12 @@
-source("~/delayscompare/scripts/01_packages.R")
+library(here)
+
+source(here("scripts", "01_packages.R"))
+source(here("R", "funcs_data.R"))
 source(here("R", "scenario_loop.R"))
 
 ## Load data ##
 
-covid_sim_data <- readRDS(here("data", paste0("covid_sim_data", "2024-04-11", ".rds")))
+covid_sim_data <- read_latest(here("data"), "covid_sim_data")
 
 # In required format for EpiNow2
 
@@ -28,26 +31,19 @@ res_covid <- sim_scenarios(case_data=covid_sim_data_cases,
                            weeks_inc=12,
                            obs_scale=0.4)
 
-saveRDS(res_covid[[1]], here("results", paste0("res_covid", Sys.Date(), ".rds")))
-saveRDS(res_covid[[2]], here("results", paste0("res_covid_id", Sys.Date(), ".rds")))
-saveRDS(res_covid[[3]], here("results", paste0("res_covid_warnings", Sys.Date(), ".rds")))
+save_latest(res_covid[[1]], here("results"), "res_covid")
+save_latest(res_covid[[2]], here("results"), "res_covid_id")
+save_latest(res_covid[[3]], here("results"), "res_covid_warnings")
 
 ## Saving samples only ##
 
-covid_samples <- data.frame()
-for(i in 1:length(res_covid)){
-  samples_scen <- res_covid[[1]]res_covid[[i]][res_covid[[i]]$variable=="reported_cases"] |>
-    mutate(model="EpiNow2")
-  
-  # Add ID
-  samples_scen$result_list <- i
-  
-  # Bind to dataframe
-  covid_samples <- rbind(covid_samples, samples_scen)}
-
-covid_samples <- covid_samples |>
+covid_samples <- lapply(1:length(res_ebola[[1]]), function(i) {
+  res_covid[[1]][[i]][$variable=="reported_cases"]
+}) |>
+  bind_rows(.id = "result_list") |>
+  mutate(model = "EpiNow2", result_list = as.integer(result_list)) |>
   rename(prediction=value)
 
-saveRDS(covid_samples, here("results", paste0("res_covid_samples", Sys.Date(), ".rds")))
+save_latest(covid_samples, here("results"), "res_covid_samples")
 
 

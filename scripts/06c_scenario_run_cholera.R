@@ -1,9 +1,12 @@
-source("~/delayscompare/scripts/01_packages.R")
+library(here)
+
+source(here("scripts", "01_packages.R"))
+source(here("R", "funcs_data.R"))
 source(here("R", "scenario_loop.R"))
 
 ## Load data ##
 
-cholera_sim_data <- readRDS(here("data", paste0("cholera_sim_data", "2024-05-07", ".rds")))
+cholera_sim_data <- read_latest(here("data"), "cholera_sim_data")
 
 # In required format for EpiNow2
 
@@ -25,25 +28,27 @@ res_cholera <- sim_scenarios(case_data=cholera_sim_data_cases,
                            weeks_inc=12,
                            obs_scale=0.28) # https://tbiomed.biomedcentral.com/articles/10.1186/s12976-017-0061-x
 
-saveRDS(res_cholera[[1]], here("results", paste0("res_cholera", Sys.Date(), ".rds")))
-saveRDS(res_cholera[[2]], here("results", paste0("res_cholera_id", Sys.Date(), ".rds")))
-saveRDS(res_cholera[[3]], here("results", paste0("res_cholera_warnings", Sys.Date(), ".rds")))
+save_latest(res_cholera[[1]], here("results"), "res_cholera")
+save_latest(res_cholera[[2]], here("results"), "res_cholera_id")
+save_latest(res_cholera[[3]], here("results"), "res_cholera_warnings")
 
 ## Saving samples only ##
 
-cholera_samples <- data.frame()
-for(i in 1:length(res_cholera)){
-  samples_scen <- res_cholera[[1]]res_cholera[[i]][res_cholera[[i]]$variable=="reported_cases"] |>
+cholera_samples <- lapply(seq_along(res_cholera[[1]]), function(i) {
+  samples_scen <- res_cholera[[1]][[i]][variable=="reported_cases"] |>
     mutate(model="EpiNow2")
 
-# Add ID
-samples_scen$result_list <- i
+  # Add ID
+  samples_scen$result_list <- i
 
-# Bind to dataframe
-cholera_samples <- rbind(cholera_samples, samples_scen)}
+  # Bind to dataframe
+  return(samples_scen)
 
-cholera_samples <- cholera_samples |>
+})
+
+cholera_samples <- bind_rows(cholera_samples) |>
   rename(prediction=value)
 
-saveRDS(cholera_samples, here("results", paste0("res_cholera_samples", Sys.Date(), ".rds")))
+save_latest(cholera_samples, here("results"), "res_cholera_samples")
+
 

@@ -1,6 +1,9 @@
-source("~/delayscompare/scripts/01_packages.R")
+library(here)
+
+source(here("scripts", "01_packages.R"))
 source(here("R", "scenario_loop.R"))
 source(here("R", "funcs_plots.R"))
+source(here("R", "funcs_data.R"))
 source(here("R", "lshtm_theme.R"))
 
 library(scoringutils)
@@ -13,9 +16,9 @@ library(RColorBrewer)
 
 ## Loading results ##
 
-ebola_samples <- readRDS(here("results", paste0("res_ebola_samples", "2024-05-08", ".rds")))
-res_ebola_id <- readRDS(here("results", paste0("res_ebola2_id", "2024-04-24", ".rds")))
-ebola_sim_data <- readRDS(here("data", paste0("ebola_sim_data", "2024-04-23", ".rds")))
+ebola_samples <- read_latest(here("results"), "res_ebola_samples")
+res_ebola_id <- read_latest(here("results"), "res_ebola2_id")
+ebola_sim_data <- read_latest(here("data"), "ebola_sim_data")
 rt_ebola <- readRDS(here("data", "rt_ebola.rds"))
 
 ## CRPS ##
@@ -43,12 +46,18 @@ for(i in 1:max(res_ebola_id$timepoint)){
 
 ## "Correct" parameter forecasts across time horizon ##
 
-plotcorrect(ebola_samples,
+plot_correct <- plotcorrect(ebola_samples,
             res_ebola_id,
             ebola_sim_data,
             rt_ebola)
 
 ggsave(here("results", paste0("plot_ebola_correct.png")), plot_correct, width=12, height=7.65, units="in")
+
+plot_rankings <- plotrankings(ebola_samples,
+                              res_ebola_id,
+                              ebola_sim_data)
+
+ggsave(here("results", paste0("plot_ebola_rankings.png")), plot_rankings)
 
 ######################
 #### CHOLERA-LIKE ####
@@ -56,9 +65,9 @@ ggsave(here("results", paste0("plot_ebola_correct.png")), plot_correct, width=12
 
 ## Loading results ##
 
-cholera_samples <- readRDS(here("results", paste0("res_cholera_samples", "2024-05-08", ".rds")))
-res_cholera_id <- readRDS(here("results", paste0("res_cholera_id", "2024-05-08", ".rds")))
-cholera_sim_data <- readRDS(here("data", paste0("cholera_sim_data", "2024-05-07", ".rds")))
+cholera_samples <- read_latest(here("results"), "res_cholera_samples")
+res_cholera_id <- read_latest(here("results"), "res_cholera_id")
+cholera_sim_data <- read_lates(here("data"), "cholera_sim_data")
 rt_cholera <- readRDS(here("data", "rt_cholera.rds"))
 
 ## CRPS ##
@@ -93,7 +102,15 @@ plots_timepoint_cholera2 <- plotbytime(cholera_samples,
 
 ## "Correct" parameter forecasts across time horizon ##
 
-plotcorrect(cholera_samples,
-            res_cholera_id,
-            cholera_sim_data,
-            rt_cholera)
+plot_correct <- plotcorrect(cholera_samples,
+                            res_cholera_id,
+                            cholera_sim_data,
+                            rt_cholera)
+
+ggsave(here("results", paste0("plot_cholera_correct.png")), plot_correct, width=12, height=7.65, units="in")
+
+plot_rankings <-plotrankings(cholera_samples,
+                             res_cholera_id,
+                             cholera_sim_data)
+
+ggsave(here("results", paste0("plot_cholera_rankings.png")), plot_rankings)
