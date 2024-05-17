@@ -34,14 +34,14 @@ covid_gen_time <- Gamma(mean=3.6,
 
 ## Incubation period
 
-covid_inc_period <- LogNormal(meanlog=convert_to_logmean(5.2, 1.52),
-                              sdlog=convert_to_logsd(5.2, 1.52),
+covid_inc_period <- LogNormal(mean=5.2,
+                              sd=1.52,
                               max=30) # from Sherratt et al. 2021 - surveillance paper
 
 ## Reporting delay
 
-covid_rep_delay <- LogNormal(meanlog=convert_to_logmean(4.4, 5.6),
-                             sdlog=convert_to_logsd(4.4, 5.6),
+covid_rep_delay <- LogNormal(mean=4.4,
+                             sd=5.6,
                              max=30) # MAXIMUM IS JUST A PLACEHOLDER # from Sherratt et al. 2021 - surveillance paper
 
 #### cholera-like ####
@@ -58,14 +58,14 @@ cholera_gen_time <- Gamma(mean=5,
 
 ## Incubation period 
 
-cholera_inc_period <- LogNormal(meanlog=convert_to_logmean(1.4,1.98),
-                                sdlog=convert_to_logsd(1.4, 1.98),
+cholera_inc_period <- LogNormal(mean=1.4,
+                                sd=1.98,
                                 max=30) # max is a placeholder # Azman et al. 2013
 
 ## Reporting delay
 
-cholera_rep_delay <- LogNormal(meanlog=convert_to_logmean(4.4, 1.88),
-                               sdlog=convert_to_logsd(4.4, 1.88),
+cholera_rep_delay <- LogNormal(mean=1.88,
+                               sd=4.4,
                                max=30) # max is placeholder # https://tbiomed.biomedcentral.com/articles/10.1186/s12976-017-0061-x 
 
 combined_delay_cholera <- cholera_inc_period + cholera_rep_delay
