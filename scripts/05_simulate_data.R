@@ -1,4 +1,7 @@
+library(here)
+
 source(here("scripts", "02b_definedelays.R"))
+source(here("R", "funcs_data.R"))
 
 ####################
 #### Ebola-like ####
@@ -27,11 +30,11 @@ ebola_sim_data <- simulate_infections(
   R=rt_ebola_epinow,
   initial_infections=5,
   generation_time=generation_time_opts(ebola_gen_time),
-  delays=delay_opts(combined_delay_ebola),
+  delays=delay_opts(fix_dist(combined_delay_ebola)),
   obs=obs_opts(family="poisson", scale=0.83)
 )
 
-saveRDS(ebola_sim_data, file=here("data", paste0("ebola_sim_data", Sys.Date(), ".rds")))
+save_latest(ebola_sim_data, here("data"), "ebola_sim_data")
 
 #########################
 #### SARS-CoV-2-like ####
@@ -67,7 +70,7 @@ covid_sim_data <- simulate_infections(
 
 ggplot(covid_sim_data) + geom_line(aes(x=date, y=value)) + facet_wrap(~variable)
 
-saveRDS(covid_sim_data, file=here("data", paste0("covid_sim_data", Sys.Date(), ".rds")))
+save_latest(covid_sim_data, here("data"), "covid_sim_data")
 
 ######################
 #### Cholera-like ####
@@ -100,5 +103,5 @@ cholera_sim_data <- simulate_infections(
   obs=obs_opts(family="poisson", scale=0.28)
 )
 
-saveRDS(cholera_sim_data, file=here("data", paste0("cholera_sim_data", Sys.Date(), ".rds")))
+save_latest(cholera_sim_data, here("data"), "cholera_sim_data")
 

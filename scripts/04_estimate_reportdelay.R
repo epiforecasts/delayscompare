@@ -1,3 +1,5 @@
+library(here)
+
 source(here("scripts", "02_dataprocessing.R"))
 
 ## Estimate Ebola reporting delay ##
