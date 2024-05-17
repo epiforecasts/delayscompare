@@ -22,7 +22,7 @@ sim_scenarios <- function(case_data,
   names(scen_timepoints) <- c(1:length(scen_timepoints))
 
   results_list <- list()
-  results_id <- data.frame()
+  results_id <- list()
 
  for(i in 1:length(scen_values)){
    for(j in 1:length(scen_values)){
@@ -58,7 +58,7 @@ sim_scenarios <- function(case_data,
                                    obs=obs_opts(family="poisson", scale=obs_scale),
                                    stan = stan_opts())
         
-        results_list[[length(results_list)+1]] <- def$samples
+        results_list[[length(results_list)+1]] <- def$samples[variable=="reported_cases"]
         
         results_id[[length(results_id)+1]] <- data.frame(result_list=length(results_list),
                               timepoint=k,

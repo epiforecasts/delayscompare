@@ -39,7 +39,7 @@ save_latest(res_covid[[3]], here("results"), "res_covid_warnings")
 ## Saving samples only ##
 
 covid_samples <- lapply(1:length(res_covid[[1]]), function(i) {
-  res_covid[[1]][[i]][variable=="reported_cases"]
+  res_covid[[1]][[i]]
 }) |>
   bind_rows(.id = "result_list") |>
   mutate(model = "EpiNow2", result_list = as.integer(result_list)) |>

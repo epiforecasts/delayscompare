@@ -9,7 +9,7 @@ pkgs <- c("EpiNow2",
           "readr",
           "cowplot"
               )
-install.packages(setdiff(pkgs, rownames(installed.packages())), repos = c("https://epiforecasts.r-universe.dev", getOption("repos")))
+#install.packages(setdiff(pkgs, rownames(installed.packages())), repos = c("https://epiforecasts.r-universe.dev", getOption("repos")))
 
 lapply(pkgs, library, character.only=TRUE)
 

@@ -38,7 +38,7 @@ save_latest(res_cholera[[3]], here("results"), "res_cholera_warnings")
 ## Saving samples only ##
 
 cholera_samples <- lapply(seq_along(res_cholera[[1]]), function(i) {
-  samples_scen <- res_cholera[[1]][[i]][variable=="reported_cases"] |>
+  samples_scen <- res_cholera[[1]][[i]] |>
     mutate(model="EpiNow2")
 
   # Add ID
