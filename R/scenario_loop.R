@@ -21,7 +21,7 @@ sim_scenarios <- function(case_data,
   scen_timepoints <- case_data$date[c(1:(nrow(case_data) %/% (freq_fc*7)))*freq_fc*7]
   names(scen_timepoints) <- c(1:length(scen_timepoints))
 
-  results_list <- list()
+  res_samples <- list()
   results_id <- list()
 
  for(i in 1:length(scen_values)){
@@ -58,9 +58,9 @@ sim_scenarios <- function(case_data,
                                    obs=obs_opts(family="poisson", scale=obs_scale),
                                    stan = stan_opts())
         
-        results_list[[length(results_list)+1]] <- def$samples[variable=="reported_cases"]
+        res_samples[[length(res_samples)+1]] <- def$samples[variable=="reported_cases"]
         
-        results_id[[length(results_id)+1]] <- data.frame(result_list=length(results_list),
+        results_id[[length(results_id)+1]] <- data.frame(result_list=length(res_samples),
                               timepoint=k,
                               gen_time=names(scen_values)[i],
                               inc_period=names(scen_values)[j])
@@ -74,7 +74,22 @@ sim_scenarios <- function(case_data,
   
   results_id <- bind_rows(results_id)
   
-  return(list(results_list,
+  res_samples <- lapply(seq_along(res_samples[[1]]), function(i) {
+    samples_scen <- res_samples[[1]][[i]] |>
+      mutate(model="EpiNow2")
+    
+    # Add ID
+    samples_scen$result_list <- i
+    
+    # Bind to dataframe
+    return(samples_scen)
+    
+  })
+  
+  res_samples <- bind_rows(res_samples) |>
+    rename(prediction=value)
+  
+  return(list(res_samples,
               results_id,
               save_warnings))
 }

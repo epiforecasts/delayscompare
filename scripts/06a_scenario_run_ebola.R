@@ -28,7 +28,7 @@ res_ebola <- sim_scenarios(case_data=ebola_sim_data_cases,
                            rep_meanlog=ebola_rep_params$meanlog,
                            rep_sdlog=ebola_rep_params$sdlog,
                            rep_max=50,
-                           freq_fc=40,
+                           freq_fc=2,
                            weeks_inc=12,
                            obs_scale=0.83)
 
@@ -37,13 +37,5 @@ save_latest(res_ebola[[2]], here("results"), "res_ebola_id")
 save_latest(res_ebola[[3]], here("results"), "res_ebola_warnings")
 
 ## Saving samples only ##
-
-ebola_samples <- lapply(1:length(res_ebola[[1]]), function(i) {
-  res_ebola[[1]][[i]]
-}) |>
-  bind_rows(.id = "result_list") |>
-  mutate(model = "EpiNow2", result_list = as.integer(result_list)) |>
-  rename(prediction=value)
-
-save_latest(ebola_samples, here("results"), "res_ebola_samples")
+save_latest(res_ebola[[1]], here("results"), "res_ebola_samples")
 
