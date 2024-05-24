@@ -67,14 +67,15 @@ ggsave(here("results", paste0("plot_ebola_rankings.png")), plot_rankings)
 
 cholera_samples <- read_latest(here("results"), "res_cholera_samples")
 res_cholera_id <- read_latest(here("results"), "res_cholera_id")
-cholera_sim_data <- read_lates(here("data"), "cholera_sim_data")
+cholera_sim_data <- read_latest(here("data"), "cholera_sim_data")
 rt_cholera <- readRDS(here("data", "rt_cholera.rds"))
 
 ## CRPS ##
 
 plot_crps_cholera <- plotcrps(cholera_samples, 
                             res_cholera_id, 
-                            cholera_sim_data)
+                            cholera_sim_data,
+                            forecast_freq=2)
 
 ## Forecasts by parameter ##
 
