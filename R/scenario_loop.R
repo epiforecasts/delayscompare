@@ -74,8 +74,8 @@ sim_scenarios <- function(case_data,
   
   results_id <- bind_rows(results_id)
   
-  res_samples <- lapply(seq_along(res_samples[[1]]), function(i) {
-    samples_scen <- res_samples[[1]][[i]] |>
+  res_samples <- lapply(seq_along(res_samples), function(i) {
+    samples_scen <- res_samples[[i]] |>
       mutate(model="EpiNow2")
     
     # Add ID

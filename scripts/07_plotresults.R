@@ -17,7 +17,7 @@ library(RColorBrewer)
 ## Loading results ##
 
 ebola_samples <- read_latest(here("results"), "res_ebola_samples")
-res_ebola_id <- read_latest(here("results"), "res_ebola2_id")
+res_ebola_id <- read_latest(here("results"), "res_ebola_id")
 ebola_sim_data <- read_latest(here("data"), "ebola_sim_data")
 rt_ebola <- readRDS(here("data", "rt_ebola.rds"))
 
@@ -25,7 +25,8 @@ rt_ebola <- readRDS(here("data", "rt_ebola.rds"))
 
 plot_crps_ebola <- plotcrps(ebola_samples, 
                             res_ebola_id, 
-                            ebola_sim_data)
+                            ebola_sim_data,
+                            forecast_freq=4)
 
 ## Forecasts by parameter ##
 
@@ -85,13 +86,20 @@ plot_forecasts_cholera <- plotforecasts(cholera_samples,
 
 ## Forecasts by timepoint ##
 
-plots_timepoint_cholera <- plotbytime(cholera_samples,
+cholera_samples <- cholera_samples |> 
+  # add info
+  left_join(res_cholera_id, by="result_list")
+
+for(i in c(1:max(cholera_samples$timepoint))){
+
+  cholera_samples_timepoint <- cholera_samples |> filter(timepoint==i)
+  
+  plots_timepoint_cholera <- plotbytime(cholera_samples_timepoint,
                                     res_cholera_id,
                                     cholera_sim_data,
                                     disease="cholera")
-
-for(i in 1:max(res_cholera_id$timepoint)){
-  ggsave(here("results", paste0("plots_timepoint_cholera", i, ".png")), plots_timepoint_cholera[[i]], width=12, height=7.65, units="in")
+  ggsave(here("results", paste0("plots_timepoint_cholera", i, ".png")), plots_timepoint_cholera, width=12, height=7.65, units="in")
+  rm(plots_timepoint_cholera)
 }
 
 # Focussing on forecasts

@@ -210,25 +210,18 @@ plotforecasts <- function(res_samples,
 #### Plots by timepoint ####
 ############################
 
-plotbytime <- function(res_samples,
+plotbytime <- function(res_samples_timepoint,
                        res_id,
                        sim_data,
                        disease,
                        forecastonly=FALSE){
   
-  ## Getting ready to plot ##
-  
-  res_samples <- res_samples |> 
-    # add info
-    left_join(res_id, by="result_list")
-  
-  
   # Make factors so that ordering of facets is right
-  res_samples$gen_time <- factor(res_samples$gen_time, levels=c("very low", "low", "correct", "high", "very high"))
-  res_samples$inc_period <- factor(res_samples$inc_period, levels=c("very high", "high", "correct", "low", "very low"))
+  res_samples_timepoint$gen_time <- factor(res_samples_timepoint$gen_time, levels=c("very low", "low", "correct", "high", "very high"))
+  res_samples_timepoint$inc_period <- factor(res_samples_timepoint$inc_period, levels=c("very high", "high", "correct", "low", "very low"))
   
   # Get quantiles
-  res_samples_plot <- sample_to_quantile(res_samples, quantiles = c(0.05, 0.25, 0.5, 0.75, 0.95), type = 7)
+  res_samples_plot <- sample_to_quantile(res_samples_timepoint, quantiles = c(0.05, 0.25, 0.5, 0.75, 0.95), type = 7)
   
   res_samples_plot <- res_samples_plot |>
     pivot_wider(names_from="quantile",
@@ -259,10 +252,8 @@ plotbytime <- function(res_samples,
   results_list <- list()
   
   if(forecastonly==FALSE){
-  for(i in 1:max(res_samples_plot$timepoint)){
-    bytimepoint <- res_samples_plot |>
-      filter(timepoint==i)
-    plot_timepoint <- ggplot(bytimepoint) +
+
+    plot_timepoint <- ggplot(res_samples_plot) +
       geom_col(aes(x=date, y=true_value), alpha=0.5) +
       geom_line(aes(x=date, y=median, colour=type)) +
       geom_ribbon(aes(x=date, ymin=lower50, ymax=upper50, fill=type), alpha=0.5) +
@@ -271,19 +262,16 @@ plotbytime <- function(res_samples,
       ylab("Observed cases") +
       xlab("Date") +
       lshtm_theme() +
-      scale_x_continuous(breaks= bytimepoint$date[grepl("-01$", bytimepoint$date)],
+      scale_x_continuous(breaks= res_samples_plot$date[grepl("-01$", res_samples_plot$date)],
                          sec.axis = sec_axis(~ . , name = "Generation time", breaks = NULL, labels = NULL)) +
       scale_y_continuous(sec.axis = sec_axis(~ . , name = "Incubation period", breaks = NULL, labels = NULL)) 
     
-    results_list[[i]] <- assign(paste0("plot_", disease, "timepoint", i), plot_timepoint)
   }
-  }
+
   
   if(forecastonly==TRUE){
-    for(i in 1:max(res_samples_plot$timepoint)){
-      bytimepoint <- res_samples_plot |>
-        filter(timepoint==i)
-      plot_timepoint <- ggplot(bytimepoint) +
+    
+      plot_timepoint <- ggplot(res_samples_plot) +
         geom_col(aes(x=date, y=true_value), alpha=0.5) +
         geom_line(aes(x=date, y=median), colour="#619CFF") +
         geom_ribbon(aes(x=date, ymin=lower50, ymax=upper50), alpha=0.5, fill="#619CFF") +
@@ -292,16 +280,16 @@ plotbytime <- function(res_samples,
         ylab("Observed cases") +
         xlab("Date") +
         lshtm_theme() +
-        scale_x_continuous(breaks= bytimepoint$date[grepl("-01$", bytimepoint$date)],
+        scale_x_continuous(breaks= res_samples_plot$date[grepl("-01$", res_samples_plot$date)],
                            sec.axis = sec_axis(~ . , name = "Generation time", breaks = NULL, labels = NULL)) +
         scale_y_continuous(sec.axis = sec_axis(~ . , name = "Incubation period", breaks = NULL, labels = NULL)) 
       
-      results_list[[i]] <- assign(paste0("plot_", disease, "timepoint", i), plot_timepoint)
     }
     
-  }
-  return(results_list)
+return(plot_timepoint)
 }
+
+
 
 #################################################
 #### "Correct" forecasts across time horizon ####

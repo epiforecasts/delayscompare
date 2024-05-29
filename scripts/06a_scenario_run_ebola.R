@@ -28,7 +28,7 @@ res_ebola <- sim_scenarios(case_data=ebola_sim_data_cases,
                            rep_meanlog=ebola_rep_params$meanlog,
                            rep_sdlog=ebola_rep_params$sdlog,
                            rep_max=50,
-                           freq_fc=2,
+                           freq_fc=4,
                            weeks_inc=12,
                            obs_scale=0.83)
 
