@@ -15,8 +15,8 @@ sim_scenarios <- function(case_data,
   
   ## Scenarios
   
-  scen_values <- c(0.25, 0.75, 1, 1.25, 1.75) # no delay needed + removed the extremes to test
-  names(scen_values) <- c("very low", "low", "correct", "high", "very high") # removed extremes to test
+  scen_values <- c(0, 0.25, 0.75, 1, 1.25, 1.75) 
+  names(scen_values) <- c("no delay", "very low", "low", "correct", "high", "very high") 
   
   scen_timepoints <- case_data$date[c(1:(nrow(case_data) %/% (freq_fc*7)))*freq_fc*7]
   names(scen_timepoints) <- c(1:length(scen_timepoints))
@@ -40,25 +40,53 @@ sim_scenarios <- function(case_data,
         print(nrow(case_segment))
         
         # Generation interval
+        if(i!=1){
         gen_time <- Gamma(mean=gen_mean*scen_values[i],
                           sd=gen_sd,
-                          max=gen_max)
-
+                          max=gen_max)}
+        
         # Incubation period
+        if(j!=1){
         inc_period <- LogNormal(mean=inc_mean*scen_values[j],
                                 sd=inc_mean*scen_values[j],
-                                max=inc_max)
+                                max=inc_max)}
         
         reporting_delay <- LogNormal(meanlog=rep_meanlog,
                                      sdlog=rep_sdlog,
                                      max=rep_max)
-
+        
+        if(i!=1 & j!=1){
         def <- estimate_infections(case_segment,
                                    generation_time = generation_time_opts(gen_time),
                                    delays = delay_opts(inc_period + reporting_delay),
                                    obs=obs_opts(family="poisson", scale=obs_scale),
                                    stan = stan_opts(),
-                                   horizon=14)
+                                   horizon=14)}
+        # if setting generation time to 1 day
+        if(i==1 & j!=1){
+          def <- estimate_infections(case_segment,
+                                     delays = delay_opts(inc_period + reporting_delay),
+                                     obs=obs_opts(family="poisson", scale=obs_scale),
+                                     stan = stan_opts(),
+                                     horizon=14)
+        }
+        
+        # if setting inc period to "no delay"
+        if(i!=1 & j==1){
+          def <- estimate_infections(case_segment,
+                                     generation_time = generation_time_opts(gen_time),
+                                     delays = delay_opts(reporting_delay),
+                                     obs=obs_opts(family="poisson", scale=obs_scale),
+                                     stan = stan_opts(),
+                                     horizon=14)}
+        
+        # if setting generation time to 1 day and inc period to no delay
+        if(i==1 & j==1){
+          def <- estimate_infections(case_segment,
+                                     delays = delay_opts(reporting_delay),
+                                     obs=obs_opts(family="poisson", scale=obs_scale),
+                                     stan = stan_opts(),
+                                     horizon=14)}
         
         res_samples[[length(res_samples)+1]] <- def$samples[variable=="reported_cases"]
         
