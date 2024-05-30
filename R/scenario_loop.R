@@ -22,6 +22,7 @@ sim_scenarios <- function(case_data,
   names(scen_timepoints) <- c(1:length(scen_timepoints))
 
   res_samples <- list()
+  res_R <- list()
   results_id <- list()
 
  for(i in 1:length(scen_values)){
@@ -60,6 +61,8 @@ sim_scenarios <- function(case_data,
         
         res_samples[[length(res_samples)+1]] <- def$samples[variable=="reported_cases"]
         
+        res_R[[length(res_R)+1]] <- def$samples[variable=="R"]
+        
         results_id[[length(results_id)+1]] <- data.frame(result_list=length(res_samples),
                               timepoint=k,
                               gen_time=names(scen_values)[i],
@@ -86,10 +89,25 @@ sim_scenarios <- function(case_data,
     
   })
   
+  res_R <- lapply(seq_along(res_R), function(i) {
+    samples_scen <- res_R[[i]] |>
+      mutate(model="EpiNow2")
+    
+    # Add ID
+    samples_scen$result_list <- i
+    
+    # Bind to dataframe
+    return(samples_scen)
+    
+  })
+  
   res_samples <- bind_rows(res_samples) |>
     rename(prediction=value)
   
+  res_R <- bind_rows(res_R)
+  
   return(list(res_samples,
               results_id,
-              save_warnings))
+              save_warnings,
+              res_R))
 }
