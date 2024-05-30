@@ -38,4 +38,6 @@ save_latest(res_ebola[[3]], here("results"), "res_ebola_warnings")
 
 ## Saving samples only ##
 save_latest(res_ebola[[1]], here("results"), "res_ebola_samples")
+save_latest(res_ebola[[4]], here("results"), "res_ebola_R")
+
 

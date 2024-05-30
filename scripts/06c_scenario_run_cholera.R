@@ -37,5 +37,6 @@ save_latest(res_cholera[[3]], here("results"), "res_cholera_warnings")
 
 ## Saving samples only ##
 save_latest(res_cholera[[1]], here("results"), "res_cholera_samples")
+save_latest(res_cholera[[4]], here("results"), "res_cholera_R")
 
 

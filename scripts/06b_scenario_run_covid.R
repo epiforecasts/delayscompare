@@ -38,5 +38,6 @@ save_latest(res_covid[[3]], here("results"), "res_covid_warnings")
 
 ## Saving samples only ##
 save_latest(res_covid[[1]], here("results"), "res_covid_samples")
+save_latest(res_covid[[4]], here("results"), "res_covid_R")
 
 
