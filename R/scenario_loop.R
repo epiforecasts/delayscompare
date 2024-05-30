@@ -57,7 +57,8 @@ sim_scenarios <- function(case_data,
                                    generation_time = generation_time_opts(gen_time),
                                    delays = delay_opts(inc_period + reporting_delay),
                                    obs=obs_opts(family="poisson", scale=obs_scale),
-                                   stan = stan_opts())
+                                   stan = stan_opts(),
+                                   horizon=14)
         
         res_samples[[length(res_samples)+1]] <- def$samples[variable=="reported_cases"]
         
