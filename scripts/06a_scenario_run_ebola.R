@@ -4,6 +4,11 @@ source(here("scripts", "01_packages.R"))
 source(here("R", "funcs_data.R"))
 source(here("R", "scenario_loop.R"))
 
+## Load argument(s) ##
+var <- commandArgs(trailingOnly = T)
+gt <- as.numeric(var[1])
+print(gt)
+
 ## Load data ##
 
 ebola_sim_data <- read_latest(here("data"), "ebola_sim_data")
@@ -19,6 +24,7 @@ ebola_sim_data_cases <- ebola_sim_data_cases |>
 ## Run scenarios ##
 ebola_rep_params <- get_parameters(fix_dist(ebola_reporting_delay))
 res_ebola <- sim_scenarios(case_data=ebola_sim_data_cases,
+                           gt,
                            gen_mean=16.2,
                            gen_sd=9.40, # from Park et al. 2019
                            gen_max=50,
@@ -33,11 +39,11 @@ res_ebola <- sim_scenarios(case_data=ebola_sim_data_cases,
                            obs_scale=0.83)
 
 #save_latest(res_ebola[[1]], here("results"), "res_ebola")
-save_latest(res_ebola[[2]], here("results"), "res_ebola_id")
-save_latest(res_ebola[[3]], here("results"), "res_ebola_warnings")
+save_latest(res_ebola[[2]], here("results"), paste0("res_ebola_id", gt))
+save_latest(res_ebola[[3]], here("results"), paste0("res_ebola_warnings", gt))
 
 ## Saving samples only ##
-save_latest(res_ebola[[1]], here("results"), "res_ebola_samples")
-save_latest(res_ebola[[4]], here("results"), "res_ebola_R")
+save_latest(res_ebola[[1]], here("results"), paste0("res_ebola_samples", gt))
+save_latest(res_ebola[[4]], here("results"), paste0("res_ebola_R", gt))
 
 

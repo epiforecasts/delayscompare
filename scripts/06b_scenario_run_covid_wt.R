@@ -4,18 +4,13 @@ source(here("scripts", "01_packages.R"))
 source(here("R", "funcs_data.R"))
 source(here("R", "scenario_loop.R"))
 
-## Load argument(s) ##
-var <- commandArgs(trailingOnly = T)
-gt <- as.numeric(var[1])
-print(gt)
-
 ## Load data ##
 
 covid_sim_data <- read_latest(here("data"), "covid_sim_data")
 
 ## Just wt and Alpha waves
 
-covid_sim_data <- covid_sim_data |> filter(date<="2021-04-30")
+covid_sim_data <- covid_sim_data |> filter(date<"2021-01-01")
 
 # In required format for EpiNow2
 
@@ -27,7 +22,6 @@ covid_sim_data_cases <- covid_sim_data_cases |>
 ## Run scenarios ##
 
 res_covid <- sim_scenarios(case_data=covid_sim_data_cases,
-                           var=gt,
                            gen_mean=3.6,
                            gen_sd=3.1, # from Sherratt et al. 2021 - surveillance paper
                            gen_max=30,
@@ -43,11 +37,11 @@ res_covid <- sim_scenarios(case_data=covid_sim_data_cases,
 
 
 #save_latest(res_covid[[1]], here("results"), "res_covid")
-save_latest(res_covid[[2]], here("results"), paste0("res_covid_id", gt))
-save_latest(res_covid[[3]], here("results"),  paste0("res_covid_warnings", gt))
+save_latest(res_covid[[2]], here("results"), "res_covid_id")
+save_latest(res_covid[[3]], here("results"), "res_covid_warnings")
 
 ## Saving samples only ##
-save_latest(res_covid[[1]], here("results"),  paste0("res_covid_samples", gt))
-save_latest(res_covid[[4]], here("results"),  paste0("res_covid_R", gt))
+save_latest(res_covid[[1]], here("results"), "res_covid_samples")
+save_latest(res_covid[[4]], here("results"), "res_covid_R")
 
 

@@ -50,8 +50,8 @@ plotcrps <- function(res_samples,
   ### Heatmap by timepoint ###
   
   # Need to turn inc_period and gen_time into factors to make sure ordering is correct
-  scores_details$inc_period <- factor(scores_details$inc_period, levels=c("very low", "low", "correct", "high", "very high"))
-  scores_details$gen_time <- factor(scores_details$gen_time, levels=c("very low", "low", "correct", "high", "very high"))
+  scores_details$inc_period <- factor(scores_details$inc_period, levels=c("no delay", "very low", "low", "correct", "high", "very high"))
+  scores_details$gen_time <- factor(scores_details$gen_time, levels=c("no delay", "very low", "low", "correct", "high", "very high"))
   
   sim_data_cases <- sim_data |> 
     filter(variable=="reported_cases") 
@@ -85,11 +85,102 @@ plotcrps <- function(res_samples,
     theme(axis.text.x = element_text(angle=45, hjust=1)) +
     lshtm_theme()
   
+  heatmap_dis_space <- plot_grid(NULL, heatmap_dis, NULL, rel_widths=c(0.04, 1, 0.02), nrow=1)
+  
+  return(plot_grid(timeseries_dis, heatmap_dis_space, ncol=1))}
+
+########################
+#### Plot crps - Rt ####
+########################
+
+plotcrps_rt <- function(res_rt_samples, 
+                        res_id, 
+                        rt_dis,
+                        forecast_freq){
+  
+  dis_timepoints <- rt_dis$date[c(1:(nrow(rt_dis) %/% (forecast_freq*7)))*forecast_freq*7]
+  
+  ## Filter out Rt estimates at forecasting timepoint
+  res_rt_samples <- res_rt_samples |>
+    filter(date %in% (dis_timepoints-1)) # dis_timepoints gives time forecast starts, want time of last estimate
+  
+  res_rt_samples <- res_rt_samples |> 
+    filter(type=="estimate") |>
+    rename(prediction=value) |>
+    # add info
+    left_join(res_id, by="result_list")
+  
+  # Add simulated data
+  res_rt_samples <- rt_dis |> 
+    rename(true_value=R) |>
+    right_join(res_rt_samples, by="date") 
+  
+  #check_forecasts(res_samples)
+  
+  # Get rid of all columns that aren't date, true_value, prediction, sample
+  
+  res_rt_samples <- res_rt_samples |>
+    select(date, true_value, prediction, sample, model, result_list, type)
+  
+  # Log transform observations and predicted values
+  
+  res_rt_samples <- transform_forecasts(res_rt_samples, fun = log_shift, offset=1, label="log")
+  
+  #res_samples |>
+  #  check_forecasts()
+  
+  scores <- res_rt_samples |>
+    # filtering out what I don't need to save memory
+    filter(type=="estimate", scale=="log") |>
+    set_forecast_unit(c("date", "model", "result_list", "type")) |>
+    score() |>
+    summarise_scores(by=c("model", "type", "result_list", "date"))
+  
+  ## Add the info for each scenario to the plot
+  scores_details <- scores |>
+    left_join(res_id, by="result_list") |>
+    group_by(result_list) |>
+    filter(date == max(date)) |>  # filtering for latest estimate
+    ungroup()
+  
+  ### Heatmap by timepoint ###
+  
+  # Need to turn inc_period and gen_time into factors to make sure ordering is correct
+  scores_details$inc_period <- factor(scores_details$inc_period, levels=c("no delay", "very low", "low", "correct", "high", "very high"))
+  scores_details$gen_time <- factor(scores_details$gen_time, levels=c("no delay", "very low", "low", "correct", "high", "very high"))
+  
+  rt_timepoints <- rt_dis |> filter(date %in% dis_timepoints)
+  
+  timeseries_dis <- ggplot() + 
+    geom_line(rt_dis, mapping=aes(x=date, y=R)) + 
+    geom_point(rt_timepoints, mapping=aes(x=date,y=R), color="red") +
+    xlab("Date") +
+    ylab("Rt") +
+    scale_x_continuous(breaks=rt_dis$date[grepl("-01$", rt_dis$date)]) +
+    lshtm_theme()
+  
+  timepoints_lab <- data.frame(timepoint=c(1:length(dis_timepoints)),
+                               timepoint_lab=dis_timepoints)
+  
+  scores_details <- scores_details |>
+    left_join(timepoints_lab, by="timepoint")
+  
+  heatmap_dis <- 
+    ggplot(scores_details, aes(x=gen_time, y=inc_period)) +
+    geom_tile(aes(fill=crps)) +
+    facet_wrap(~timepoint_lab, nrow=1) +
+    xlab("Generation time") +
+    ylab("Incubation period") +
+    scale_fill_gradientn(colours = terrain.colors(50), name="CRPS for Rt estimate") +
+    theme_classic() +
+    theme(axis.text.x = element_text(angle=45, hjust=1)) +
+    lshtm_theme()
+  
   heatmap_dis_space <- plot_grid(NULL, heatmap_dis, NULL, rel_widths=c(0.08, 1, 0.05), nrow=1)
   
   return(plot_grid(timeseries_dis, heatmap_dis_space, ncol=1))}
 
-  
+
 #####################################
 #### Forecasts by parameter plot ####
 #####################################

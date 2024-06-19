@@ -1,7 +1,7 @@
 library(here)
 
 source(here("scripts", "01_packages.R"))
-source(here("R", "scenario_loop.R"))
+#source(here("R", "scenario_loop.R"))
 source(here("R", "funcs_plots.R"))
 source(here("R", "funcs_data.R"))
 source(here("R", "lshtm_theme.R"))
@@ -14,12 +14,30 @@ library(RColorBrewer)
 #### EBOLA-LIKE ####
 ####################
 
-## Loading results ##
+## Loading data ##
 
-ebola_samples <- read_latest(here("results"), "res_ebola_samples")
-res_ebola_id <- read_latest(here("results"), "res_ebola_id")
 ebola_sim_data <- read_latest(here("data"), "ebola_sim_data")
 rt_ebola <- readRDS(here("data", "rt_ebola.rds"))
+
+## Loading results ##
+
+ebola_samples <- list()
+res_ebola_id <- list()
+ebola_rt_samples <- list()
+
+for(gt in c(1:6)){
+  ebola_samples[[gt]] <- read_latest(here("results"), paste0("res_ebola_samples", gt))
+  res_ebola_id[[gt]] <- read_latest(here("results"), paste0("res_ebola_id", gt))
+  # ebola_rt_samples[[gt]] <- read_latest(here("results"), paste0("res_ebola_R", gt))
+  # Need to add extra id for generation time #
+  ebola_samples[[gt]]$gt <- gt
+  res_ebola_id[[gt]]$gt <- gt
+  #ebola_rt_samples[[gt]] <- gt
+}
+
+ebola_samples <- bind_rows(ebola_samples)
+res_ebola_id <- bind_rows(res_ebola_id)
+#ebola_rt_samples <- bind_rows(ebola_rt_samples)
 
 ## CRPS ##
 
@@ -27,6 +45,23 @@ plot_crps_ebola <- plotcrps(ebola_samples,
                             res_ebola_id, 
                             ebola_sim_data,
                             forecast_freq=4)
+
+ggsave(here("results", paste0("plot_crps_ebola.png")), plot_crps_ebola, width=40, height=15, units="cm")
+
+## Rt estimates
+
+plot_crps_rt_ebola <- plotcrps_rt(ebola_rt_samples,
+                               res_ebola_id,
+                               rt_ebola,
+                               forecast_freq=4)
+
+ggsave(here("results", paste0("plot_rt_ebola.png")), plot_crps_rt_ebola, width=40, height=15, units="cm")
+
+## plotrankings 
+
+plot_rankings_ebola <- plotrankings(ebola_samples,
+                                    res_ebola_id,
+                                    res_sim_data)
 
 ## Forecasts by parameter ##
 
@@ -70,13 +105,21 @@ cholera_samples <- read_latest(here("results"), "res_cholera_samples")
 res_cholera_id <- read_latest(here("results"), "res_cholera_id")
 cholera_sim_data <- read_latest(here("data"), "cholera_sim_data")
 rt_cholera <- readRDS(here("data", "rt_cholera.rds"))
+cholera_rt_samples <- read_latest(here("results"), "res_cholera_R")
 
 ## CRPS ##
 
 plot_crps_cholera <- plotcrps(cholera_samples, 
                             res_cholera_id, 
                             cholera_sim_data,
-                            forecast_freq=2)
+                            forecast_freq=4)
+
+## Rt estimates
+
+plot_crps_rt_cholera <- plotcrps_rt(cholera_rt_samples,
+                                  res_cholera_id,
+                                  rt_cholera,
+                                  forecast_freq=4)
 
 ## Forecasts by parameter ##
 
@@ -123,3 +166,24 @@ plot_rankings <-plotrankings(cholera_samples,
                              cholera_sim_data)
 
 ggsave(here("results", paste0("plot_cholera_rankings.png")), plot_rankings)
+
+####################
+#### COVID-LIKE ####
+####################
+
+## Loading results ##
+
+covid_samples <- read_latest(here("results"), "res_covid_samples")
+res_covid_id <- read_latest(here("results"), "res_covid_id")
+covid_sim_data <- read_latest(here("data"), "covid_sim_data")
+rt_covid <- readRDS(here("data", "rt_covid.rds"))
+covid_rt_samples <- read_latest(here("results"), "res_covid_R")
+
+## CRPS ##
+
+plot_crps_covid <- plotcrps(covid_samples, 
+                            res_covid_id, 
+                            covid_sim_data,
+                            forecast_freq=4)
+
+ggsave(here("results", paste0("plot_crps_covid.png")), plot_crps_covid, width=40, height=15, units="cm")
