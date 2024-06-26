@@ -26,18 +26,18 @@ res_ebola_id <- list()
 ebola_rt_samples <- list()
 
 for(gt in c(1:6)){
-  ebola_samples[[gt]] <- read_latest(here("results"), paste0("res_ebola_samples", gt))
+  #ebola_samples[[gt]] <- read_latest(here("results"), paste0("res_ebola_samples", gt))
   res_ebola_id[[gt]] <- read_latest(here("results"), paste0("res_ebola_id", gt))
-  # ebola_rt_samples[[gt]] <- read_latest(here("results"), paste0("res_ebola_R", gt))
+  ebola_rt_samples[[gt]] <- read_latest(here("results"), paste0("res_ebola_R", gt))
   # Need to add extra id for generation time #
-  ebola_samples[[gt]]$gt <- gt
+  #ebola_samples[[gt]]$gt <- gt
   res_ebola_id[[gt]]$gt <- gt
-  #ebola_rt_samples[[gt]] <- gt
+  ebola_rt_samples[[gt]]$gt <- gt
 }
 
-ebola_samples <- bind_rows(ebola_samples)
+#ebola_samples <- bind_rows(ebola_samples)
 res_ebola_id <- bind_rows(res_ebola_id)
-#ebola_rt_samples <- bind_rows(ebola_rt_samples)
+ebola_rt_samples <- bind_rows(ebola_rt_samples)
 
 ## CRPS ##
 
@@ -51,6 +51,11 @@ ggsave(here("results", paste0("plot_crps_ebola.png")), plot_crps_ebola, width=40
 ## Rt estimates
 
 plot_crps_rt_ebola <- plotcrps_rt(ebola_rt_samples,
+                               res_ebola_id,
+                               rt_ebola,
+                               forecast_freq=4)
+
+plotrankrt_ebola <- plotrankrt(ebola_rt_samples,
                                res_ebola_id,
                                rt_ebola,
                                forecast_freq=4)
@@ -89,9 +94,10 @@ plot_correct <- plotcorrect(ebola_samples,
 
 ggsave(here("results", paste0("plot_ebola_correct.png")), plot_correct, width=12, height=7.65, units="in")
 
-plot_rankings <- plotrankings(ebola_samples,
+plot_rankings <- plotrankcase(ebola_samples,
                               res_ebola_id,
-                              ebola_sim_data)
+                              ebola_sim_data,
+                              forecast_freq=4)
 
 ggsave(here("results", paste0("plot_ebola_rankings.png")), plot_rankings)
 
@@ -171,13 +177,30 @@ ggsave(here("results", paste0("plot_cholera_rankings.png")), plot_rankings)
 #### COVID-LIKE ####
 ####################
 
+## Loading data ##
+
+covid_sim_data <- read_latest(here("data"), "covid_sim_data") |> filter(date < "2021-04-30")
+rt_covid <- readRDS(here("data", "rt_covid.rds"))
+
 ## Loading results ##
 
-covid_samples <- read_latest(here("results"), "res_covid_samples")
-res_covid_id <- read_latest(here("results"), "res_covid_id")
-covid_sim_data <- read_latest(here("data"), "covid_sim_data")
-rt_covid <- readRDS(here("data", "rt_covid.rds"))
-covid_rt_samples <- read_latest(here("results"), "res_covid_R")
+covid_samples <- list()
+res_covid_id <- list()
+covid_rt_samples <- list()
+
+for(gt in c(1:6)){
+  #covid_samples[[gt]] <- read_latest(here("results"), paste0("res_covid_samples", gt))
+  res_covid_id[[gt]] <- read_latest(here("results"), paste0("res_covid_id", gt))
+  covid_rt_samples[[gt]] <- read_latest(here("results"), paste0("res_covid_R", gt))
+  # Need to add extra id for generation time #
+  #covid_samples[[gt]]$gt <- gt
+  res_covid_id[[gt]]$gt <- gt
+  covid_rt_samples[[gt]]$gt <- gt
+}
+
+covid_samples <- bind_rows(covid_samples)
+res_covid_id <- bind_rows(res_covid_id)
+covid_rt_samples <- bind_rows(covid_rt_samples)
 
 ## CRPS ##
 
@@ -187,3 +210,14 @@ plot_crps_covid <- plotcrps(covid_samples,
                             forecast_freq=4)
 
 ggsave(here("results", paste0("plot_crps_covid.png")), plot_crps_covid, width=40, height=15, units="cm")
+
+plot_rankings <- plotrankcase(covid_samples,
+                              res_covid_id,
+                              covid_sim_data,
+                              forecast_freq=4)
+
+plotrankrt_covid <- plotrankrt(covid_rt_samples,
+                               res_covid_id,
+                               rt_covid,
+                               forecast_freq=4)
+
