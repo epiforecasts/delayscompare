@@ -24,20 +24,24 @@ rt_ebola <- readRDS(here("data", "rt_ebola.rds"))
 ebola_samples <- list()
 res_ebola_id <- list()
 ebola_rt_samples <- list()
+ebola_R_est <- list()
 
 for(gt in c(1:6)){
   #ebola_samples[[gt]] <- read_latest(here("results"), paste0("res_ebola_samples", gt))
   res_ebola_id[[gt]] <- read_latest(here("results"), paste0("res_ebola_id", gt))
   ebola_rt_samples[[gt]] <- read_latest(here("results"), paste0("res_ebola_R", gt))
+  #ebola_R_est[[gt]] <- read_latest(here("results"), paste0("res_ebola_R_est", gt))
   # Need to add extra id for generation time #
   #ebola_samples[[gt]]$gt <- gt
   res_ebola_id[[gt]]$gt <- gt
   ebola_rt_samples[[gt]]$gt <- gt
+ # ebola_R_est[[gt]]$gt <- gt
 }
 
 #ebola_samples <- bind_rows(ebola_samples)
 res_ebola_id <- bind_rows(res_ebola_id)
 ebola_rt_samples <- bind_rows(ebola_rt_samples)
+ebola_R_est <- bind_rows(ebola_R_est)
 
 ## CRPS ##
 

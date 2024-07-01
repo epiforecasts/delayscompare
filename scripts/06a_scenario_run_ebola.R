@@ -46,4 +46,18 @@ save_latest(res_ebola[[3]], here("results"), paste0("res_ebola_warnings", gt))
 save_latest(res_ebola[[1]], here("results"), paste0("res_ebola_samples", gt))
 save_latest(res_ebola[[4]], here("results"), paste0("res_ebola_R", gt))
 
+## Saving Rt estimates only 
+res_R_estimates <- res_ebola[[4]] |>
+  filter(type=="estimate")
+save_latest(res_R_estimates, here("results"), paste0("res_ebola_R_est", gt))
+
+ebola_rt_samples <- list()
+for(gt in c(1:6)){
+  ebola_rt_samples[[gt]] <- read_latest(here("results"), paste0("res_ebola_R", gt)) |>
+    filter(type=="estimate")
+  ebola_rt_samples[[gt]]$gt <- gt
+  save_latest(ebola_rt_samples[[gt]], here("results"), paste0("res_ebola_R_est", gt))
+}
+
+
 

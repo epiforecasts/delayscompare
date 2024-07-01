@@ -664,7 +664,7 @@ plotrankings <- function(res_samples,
   return(rank_plot)
 }
 
-plotrankrt <- function(res_rt_samples, 
+plotrankrt <- function(res_rt_est, 
                        res_id, 
                        rt_dis,
                        forecast_freq){
@@ -672,37 +672,36 @@ plotrankrt <- function(res_rt_samples,
   dis_timepoints <- rt_dis$date[c(1:(nrow(rt_dis) %/% (forecast_freq*7)))*forecast_freq*7]
   
   ## Filter out Rt estimates at forecasting timepoint
-  res_rt_samples <- res_rt_samples |>
-    filter(date %in% (dis_timepoints-1)) # dis_timepoints gives time forecast starts, want time of last estimate
+  res_rt_est <- res_rt_est |>
+    filter(date %in% dis_timepoints) # dis_timepoints gives time forecast starts, want time of last estimate
   
-  res_rt_samples <- res_rt_samples |> 
-    filter(type=="estimate") |>
+  res_rt_est <- res_rt_est |> 
     rename(prediction=value) |>
     # add info
     left_join(res_id, by=c("result_list", "gt"))
   
   # Add simulated data
-  res_rt_samples <- rt_dis |> 
+  res_rt_est <- rt_dis |> 
     rename(true_value=R) |>
-    right_join(res_rt_samples, by="date") 
+    right_join(res_rt_est, by="date") 
   
   #check_forecasts(res_samples)
   
   # Get rid of all columns that aren't date, true_value, prediction, sample
   
-  res_rt_samples <- res_rt_samples |>
+  res_rt_est <- res_rt_est |>
     select(date, true_value, prediction, sample, model, result_list, gt, type)
   
   # Log transform observations and predicted values
   
-  res_rt_samples <- transform_forecasts(res_rt_samples, fun = log_shift, offset=1, label="log")
+  res_rt_est <- transform_forecasts(res_rt_est, fun = log_shift, offset=1, label="log")
   
   #res_samples |>
   #  check_forecasts()
   
-  scores <- res_rt_samples |>
+  scores <- res_rt_est |>
     # filtering out what I don't need to save memory
-    filter(type=="estimate", scale=="log") |>
+    filter(scale=="log") |>
     set_forecast_unit(c("date", "model", "result_list", "gt", "type")) |>
     score() |>
     summarise_scores(by=c("model", "type", "result_list", "gt", "date"))
@@ -710,7 +709,7 @@ plotrankrt <- function(res_rt_samples,
   ## Add the info for each scenario to the plot
   rankings <- scores |>
     left_join(res_id, by = c("result_list", "gt")) |>
-    group_by(timepoint, ) |>
+    group_by(timepoint) |>
     filter(date == max(date)) |>
     mutate(rank = order(crps)) |>
     ungroup()
