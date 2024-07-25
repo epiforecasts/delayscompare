@@ -52,11 +52,11 @@ res_R_estimates <- res_ebola[[4]] |>
 save_latest(res_R_estimates, here("results"), paste0("res_ebola_R_est", gt))
 
 ebola_rt_samples <- list()
-for(gt in c(1:6)){
+for(i in c(1:6)){
   ebola_rt_samples[[gt]] <- read_latest(here("results"), paste0("res_ebola_R", gt)) |>
     filter(type=="estimate")
-  ebola_rt_samples[[gt]]$gt <- gt
-  save_latest(ebola_rt_samples[[gt]], here("results"), paste0("res_ebola_R_est", gt))
+  ebola_rt_samples[[i]]$gt <- i
+  save_latest(ebola_rt_samples[[i]], here("results"), paste0("res_ebola_R_est", i))
 }
 
 

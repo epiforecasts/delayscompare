@@ -2,12 +2,17 @@ plotrankrt <- function(res_rt_est,
                        res_id, 
                        rt_dis,
                        forecast_freq){
-
+  
+  dis_timepoints <- rt_dis$date[c(1:(nrow(rt_dis) %/% (forecast_freq*7)))*forecast_freq*7]
+ 
+  gc()
   res_rt_est <- res_rt_est |> 
     rename(prediction=value) |>
     # add info
-    left_join(res_id, by=c("result_list", "gt"))
+    left_join(res_id, by=c("result_list", "gt")) |>
+    filter(timepoint<=10)
   
+  gc()
   # Filter out Rt estimate at last point without partial data
   
   #res_rt_est <- res_rt_est |>
@@ -21,32 +26,45 @@ plotrankrt <- function(res_rt_est,
   
   #check_forecasts(res_samples)
   
+  gc()
+  
+  
   # Get rid of all columns that aren't date, true_value, prediction, sample
   
   res_rt_est <- res_rt_est |>
     select(date, true_value, prediction, sample, model, result_list, gt, type)
   
+  
+  gc()
+  
   # Log transform observations and predicted values
   
-  res_rt_est <- transform_forecasts(res_rt_est, fun = log_shift, offset=1, label="log")
+  res_rt_est <- transform_forecasts(res_rt_est, fun = log_shift, offset=1, label="log") |> 
+    filter(scale=='log')
   
   #res_samples |>
   #  check_forecasts()
   
   scores <- res_rt_est |>
-    # filtering out what I don't need to save memory
-    filter(scale=="log") |>
-    set_forecast_unit(c("date", "model", "result_list", "gt", "type")) |>
+    set_forecast_unit(c("date", "model", "result_list", "gt", "type")) 
+  
+  gc()
+  
+  scores <- scores |>
     score() |>
-    summarise_scores(by=c("model", "type", "result_list", "gt", "date"))
+    summarise_scores(by=c("model", "type", "result_list", "gt"))
+  
+  gc()
   
   ## Add the info for each scenario to the plot
   rankings <- scores |>
     left_join(res_id, by = c("result_list", "gt")) |>
-    group_by(timepoint, date) |>
+    group_by(timepoint) |>
     #filter(date == max(date)) |>
     mutate(rank = order(crps)) |>
     ungroup()
+  
+  gc()
   ##
   
   rankings <- rankings |>
@@ -64,10 +82,10 @@ plotrankrt <- function(res_rt_est,
   
   ### Heatmap by timepoint ###
   
-  rt_timepoints <- rt_dis |> filter(date %in% rankings$date)
-  
-  timepoint_labels <- setNames(as.character(rt_timepoints$date), 
-                               c(1:length(rt_timepoints$date)))
+   rt_timepoints <- rt_dis |> filter(date %in% dis_timepoints)
+
+  timepoint_labels <- setNames(as.character(dis_timepoints), 
+                               c(1:length(dis_timepoints)))
   
   timeseries_dis <- ggplot() + 
     geom_line(rt_dis, mapping=aes(x=date, y=R)) + 

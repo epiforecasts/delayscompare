@@ -10,7 +10,7 @@ plotcrps <- function(res_samples,
   res_samples <- res_samples |> 
     filter(type=="forecast") |>
     # add info
-    left_join(res_id, by="result_list")
+    left_join(res_id, by=c("gt", "result_list"))
   
   # Add simulated data
   res_samples <- sim_data |> 
@@ -24,26 +24,31 @@ plotcrps <- function(res_samples,
   # Get rid of all columns that aren't date, true_value, prediction, sample
   
   res_samples <- res_samples |>
-    select(date, true_value, prediction, sample, model, result_list, type)
+    select(date, true_value, prediction, sample, model, result_list, type, gt)
   
   # Log transform observations and predicted values
   
-  res_samples <- transform_forecasts(res_samples, fun = log_shift, offset=1, label="log")
+  gc()
+  
+  res_samples <- transform_forecasts(res_samples, fun = log_shift, offset=1, label="log") |>
+    filter(scale=="log")
   
   #res_samples |>
   #  check_forecasts()
   
+  gc()
+  
   scores <- res_samples |>
-    # filtering out what I don't need to save memory
-    filter(type=="forecast", scale=="log") |>
-    set_forecast_unit(c("date", "model", "result_list", "type")) |>
+    set_forecast_unit(c("date", "model", "result_list", "type", "gt")) |>
     score() |>
-    summarise_scores(by=c("model", "type", "result_list", "date"))
+    summarise_scores(by=c("model", "type", "result_list", "date", "gt"))
+  
+  gc()
   
   ## Add the info for each scenario to the plot
   scores_details <- scores |>
-    left_join(res_id, by="result_list") |>
-    group_by(result_list) |>
+    left_join(res_id, by=c("result_list", "gt")) |>
+    group_by(result_list, gt) |>
     filter(date == max(date)) |>
     ungroup()
   
@@ -67,7 +72,7 @@ plotcrps <- function(res_samples,
     ylab("Reported cases") +
     scale_x_continuous(breaks=sim_data_cases$date[grepl("-01$",sim_data_cases$date)]) +
     lshtm_theme()
-  
+
   timepoints_lab <- data.frame(timepoint=c(1:length(dis_timepoints)),
                                timepoint_lab=dis_timepoints)
   
@@ -80,7 +85,7 @@ plotcrps <- function(res_samples,
     facet_wrap(~timepoint_lab, nrow=1) +
     xlab("Generation time") +
     ylab("Incubation period") +
-    scale_fill_gradientn(colours = terrain.colors(50), name="CRPS for one-week forecast") +
+    scale_fill_gradientn(colours = terrain.colors(50), name="CRPS for two-week forecast") +
     theme_classic() +
     theme(axis.text.x = element_text(angle=45, hjust=1)) +
     lshtm_theme()
@@ -146,19 +151,6 @@ plotrankcase <- function(res_samples,
         gen_time, levels=c("no delay", "very low", "low", "correct", "high", "very high")
       ))
   
-  
-  mean_rankings <- rankings |>
-    group_by(gen_time, inc_period) |>
-    summarise(mean_rank = mean(rank), .groups = "drop") |>
-    mutate(
-      inc_period = factor(
-        inc_period, levels=c("very low", "low", "correct", "high", "very high")
-      ),
-      gen_time = factor(
-        gen_time, levels=c("very low", "low", "correct", "high", "very high")
-      )
-    )
-  
   ## Add cases 
   
   sim_data_cases <- sim_data |> 
@@ -183,7 +175,7 @@ plotrankcase <- function(res_samples,
     geom_tile(aes(fill=rank)) +
     xlab("Generation time") +
     ylab("Incubation period") +
-    scale_fill_gradientn(colours = terrain.colors(50), name="Ranking of one-week forecast") +
+    scale_fill_gradientn(colours = terrain.colors(50), name="Ranking of two-week forecast") +
     theme_classic() +
     theme(axis.text.x = element_text(angle=45, hjust=1)) +
     lshtm_theme() +
@@ -194,7 +186,8 @@ plotrankcase <- function(res_samples,
 }
 
 
-########################
+
+#######################
 #### Plot crps - Rt ####
 ########################
 
@@ -579,7 +572,15 @@ plotcorrect <- function(
 
 plotrankings <- function(res_samples,
                          res_id,
-                         sim_data) {
+                         sim_data,
+                         oneweek) {
+  
+  if(oneweek==TRUE){
+    res_samples <- res_samples |> 
+      group_by(result_list, gt, sample) |>
+      slice_head(n=7) |> 
+      ungroup()
+  }
 
   res_samples <- res_samples |>
     filter(type=="forecast") |>
@@ -635,31 +636,34 @@ plotrankings <- function(res_samples,
     summarise(mean_rank = mean(rank), .groups = "drop") |>
     mutate(
       inc_period = factor(
-        inc_period, levels=c("very low", "low", "correct", "high", "very high")
+        inc_period, levels=c("no delay", "very low", "low", "correct", "high", "very high")
       ),
       gen_time = factor(
-        gen_time, levels=c("very low", "low", "correct", "high", "very high")
+        gen_time, levels=c("no delay", "very low", "low", "correct", "high", "very high")
       )
     )
+  
+  forecastlength <- ifelse(oneweek==TRUE, "Ranking of one-week forecast",
+                           "Ranking of two-week forecast")
 
   rank_plot <- ggplot(mean_rankings, aes(x=gen_time, y=inc_period)) +
     geom_tile(aes(fill=mean_rank)) +
     xlab("Generation time") +
     ylab("Incubation period") +
-    scale_fill_gradientn(colours = terrain.colors(50), name="Ranking of one-week forecast") +
+    scale_fill_gradientn(colours = terrain.colors(50), name=forecastlength) +
     theme_classic() +
     theme(axis.text.x = element_text(angle=45, hjust=1)) +
     lshtm_theme()
   
-  rank_plot <- ggplot(rankings, aes(x=gen_time, y=inc_period)) +
-    geom_tile(aes(fill=rank)) +
-    xlab("Generation time") +
-    ylab("Incubation period") +
-    scale_fill_gradientn(colours = terrain.colors(50), name="Ranking of one-week forecast") +
-    theme_classic() +
-    theme(axis.text.x = element_text(angle=45, hjust=1)) +
-    lshtm_theme() +
-    facet_wrap(~timepoint)
+ # rank_plot <- ggplot(rankings, aes(x=gen_time, y=inc_period)) +
+ #   geom_tile(aes(fill=rank)) +
+ #   xlab("Generation time") +
+ #   ylab("Incubation period") +
+ #   scale_fill_gradientn(colours = terrain.colors(50), name="Ranking of one-week forecast") +
+ #   theme_classic() +
+ #   theme(axis.text.x = element_text(angle=45, hjust=1)) +
+ #   lshtm_theme() +
+ #   facet_wrap(~timepoint)
 
   return(rank_plot)
 }
@@ -672,8 +676,8 @@ plotrankrt <- function(res_rt_est,
   dis_timepoints <- rt_dis$date[c(1:(nrow(rt_dis) %/% (forecast_freq*7)))*forecast_freq*7]
   
   ## Filter out Rt estimates at forecasting timepoint
-  res_rt_est <- res_rt_est |>
-    filter(date %in% dis_timepoints) # dis_timepoints gives time forecast starts, want time of last estimate
+  #res_rt_est <- res_rt_est |>
+  #  filter(date %in% dis_timepoints) # dis_timepoints gives time forecast starts, want time of last estimate
   
   res_rt_est <- res_rt_est |> 
     rename(prediction=value) |>
@@ -704,13 +708,13 @@ plotrankrt <- function(res_rt_est,
     filter(scale=="log") |>
     set_forecast_unit(c("date", "model", "result_list", "gt", "type")) |>
     score() |>
-    summarise_scores(by=c("model", "type", "result_list", "gt", "date"))
+    summarise_scores(by=c("model", "type", "result_list", "gt"))
   
   ## Add the info for each scenario to the plot
   rankings <- scores |>
     left_join(res_id, by = c("result_list", "gt")) |>
     group_by(timepoint) |>
-    filter(date == max(date)) |>
+    #filter(date == max(date)) |>
     mutate(rank = order(crps)) |>
     ungroup()
   ##

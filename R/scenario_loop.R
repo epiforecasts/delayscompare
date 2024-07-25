@@ -16,7 +16,7 @@ sim_scenarios <- function(case_data,
   
   ## Scenarios
   
-  scen_values <- c(0, 0.25, 0.75, 1, 1.25, 1.75) 
+  scen_values <- c(0, 0.25, 0.8, 1, 1.25, 2) 
   names(scen_values) <- c("no delay", "very low", "low", "correct", "high", "very high") 
   
   scen_timepoints <- case_data$date[c(1:(nrow(case_data) %/% (freq_fc*7)))*freq_fc*7]
@@ -26,7 +26,7 @@ sim_scenarios <- function(case_data,
   res_R <- list()
   results_id <- list()
 
-   for(j in 1:length(scen_values)){
+   for(j in c(1:length(scen_values))){
       for(k in 1:length(scen_timepoints)){
      
         # Case data 
