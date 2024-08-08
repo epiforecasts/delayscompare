@@ -139,7 +139,7 @@ plotrankcase <- function(res_samples,
     left_join(res_id, by = c("result_list", "gt")) |>
     group_by(timepoint) |>
     filter(date == max(date)) |>
-    mutate(rank = order(crps)) |>
+    mutate(rank = rank(crps)) |>
     ungroup()
   
   rankings <- rankings |>

@@ -26,16 +26,16 @@ rt_dec <- data.frame(date=seq.Date(from=startdate, to=enddate, by=1),
                      R=rev(seq(from=0.5, to=2.5, length.out=difftime(enddate, startdate-1))))
 
 covid_sim_data <- simulate_infections(
-  R=rt_constant,
+  R=rt_inc,
   initial_infections=5,
   generation_time=generation_time_opts(covid_gen_time),
   delays=delay_opts(fix_dist(covid_inc_period + covid_rep_delay)),
   obs=obs_opts(family="poisson", scale=1)
 )
 
-# save_latest(covid_sim_data, here("data"), "covid_sim_data_const")
+save_latest(covid_sim_data, here("data"), "covid_sim_data_inc")
 
-covid_sim_data <- read_latest("data", "covid_sim_data_const")
+covid_sim_data <- read_latest("data", "covid_sim_data_inc")
 
 # In required format for EpiNow2
 
@@ -46,8 +46,7 @@ covid_sim_data_cases <- covid_sim_data_cases |>
 
 covid_rep_params <- get_parameters(fix_dist(covid_rep_delay))
 
-
-for(gt in c(2:6)){
+for(gt in c(6)){
 
 ## Run scenarios ##
 res_covid <- sim_scenarios(case_data=covid_sim_data_cases,
@@ -65,10 +64,10 @@ res_covid <- sim_scenarios(case_data=covid_sim_data_cases,
                            weeks_inc=12,
                            obs_scale=1)
 
-save_latest(res_covid[[2]], here("results"), paste0("res_const_covid_id", gt))
-save_latest(res_covid[[3]], here("results"), paste0("res_const_covid_warnings", gt))
+save_latest(res_covid[[2]], here("results"), paste0("res_inc_covid_id", gt))
+save_latest(res_covid[[3]], here("results"), paste0("res_inc_covid_warnings", gt))
 
 ## Saving samples only ##
-save_latest(res_covid[[1]], here("results"), paste0("res_const_covid_samples", gt))
-save_latest(res_covid[[4]], here("results"), paste0("res_const_covid_R", gt)) }
+save_latest(res_covid[[1]], here("results"), paste0("res_inc_covid_samples", gt))
+save_latest(res_covid[[4]], here("results"), paste0("res_inc_covid_R", gt)) }
 
