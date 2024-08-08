@@ -12,6 +12,7 @@ sim_scenarios <- function(case_data,
                           rep_max,
                           freq_fc=4,
                           weeks_inc=12,
+                          rt_opts_choice,
                           obs_scale){
   
   ## Scenarios
@@ -60,6 +61,7 @@ sim_scenarios <- function(case_data,
                                    generation_time = generation_time_opts(gen_time),
                                    delays = delay_opts(inc_period + reporting_delay),
                                    obs=obs_opts(family="poisson", scale=obs_scale),
+                                   rt=rt_opts(future=rt_opts_choice),
                                    stan = stan_opts(),
                                    horizon=14)}
         # if setting generation time to 1 day
