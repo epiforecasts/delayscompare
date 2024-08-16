@@ -10,66 +10,7 @@ var <- commandArgs(trailingOnly = T)
 gt <- as.numeric(var[1])
 print(gt)
 
-gt <- 1
-
-#####################
-#### Constant Rt ####
-#####################
-
-startdate <- as.Date("2014-05-23") # Same start date as data
-enddate <- as.Date("2014-05-23") + 6*4*7 # Long enough time horizon to have six forecast timepoints with forecasts every 4 weeks
-
-##### Simulate data - low Rt ######
-
-rt_const_low <- data.frame(date=seq.Date(from=startdate, to=enddate, by=1),
-                          R=0.8)
-
-ebola_sim_data_const_low <- simulate_infections(
-  R=rt_const_low,
-  initial_infections=5,
-  generation_time=generation_time_opts(ebola_gen_time),
-  delays=delay_opts(fix_dist(combined_delay_ebola)),
-  obs=obs_opts(family="poisson", scale=1)
-)
-
-ebola_sim_data_const_low_ur <- simulate_infections(
-  R=rt_const_low,
-  initial_infections=5,
-  generation_time=generation_time_opts(ebola_gen_time),
-  delays=delay_opts(fix_dist(combined_delay_ebola)),
-  obs=obs_opts(family="poisson", scale=0.83)
-)
-
-save_latest(ebola_sim_data_const_low, here("data"), "ebola_sim_data_const_low")
-save_latest(ebola_sim_data_const_low_ur, here("data"), "ebola_sim_data_const_low_ur")
-
-##### Simulate data - high Rt ######
-
-rt_const_hi <- data.frame(date=seq.Date(from=startdate, to=enddate, by=1),
-                          R=1.2)
-
-ebola_sim_data_const_hi <- simulate_infections(
-  R=rt_const_hi,
-  initial_infections=5,
-  generation_time=generation_time_opts(ebola_gen_time),
-  delays=delay_opts(fix_dist(combined_delay_ebola)),
-  obs=obs_opts(family="poisson", scale=1)
-)
-
-ebola_sim_data_const_hi_ur <- simulate_infections(
-  R=rt_const_hi,
-  initial_infections=5,
-  generation_time=generation_time_opts(ebola_gen_time),
-  delays=delay_opts(fix_dist(combined_delay_ebola)),
-  obs=obs_opts(family="poisson", scale=0.83)
-)
-
-save_latest(ebola_sim_data_const_hi, here("data"), "ebola_sim_data_const_hi")
-save_latest(ebola_sim_data_const_hi_ur, here("data"), "ebola_sim_data_const_hi_ur")
-
 ############### SCENARIOS #################
-
-for(gt in c(3:6)){
 
 ## Loading data ##
 

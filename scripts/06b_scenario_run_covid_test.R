@@ -6,6 +6,7 @@ source(here("R", "scenario_loop.R"))
 
 ## Load data ##
 
+
 covid_sim_data <- read_latest(here("data"), "covid_sim_data")
 
 ## Just wt and Alpha waves

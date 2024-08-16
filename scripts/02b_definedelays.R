@@ -40,9 +40,11 @@ covid_inc_period <- LogNormal(mean=5.2,
 
 ## Reporting delay
 
-covid_rep_delay <- LogNormal(mean=4.4,
+covid_reporting_delay <- LogNormal(mean=4.4,
                              sd=5.6,
                              max=30) # MAXIMUM IS JUST A PLACEHOLDER # from Sherratt et al. 2021 - surveillance paper
+
+combined_delay_covid <- covid_inc_period + covid_reporting_delay
 
 #### cholera-like ####
 
@@ -64,8 +66,8 @@ cholera_inc_period <- LogNormal(mean=1.4,
 
 ## Reporting delay
 
-cholera_rep_delay <- LogNormal(mean=1.88,
+cholera_reporting_delay <- LogNormal(mean=1.88,
                                sd=4.4,
                                max=30) # max is placeholder # https://tbiomed.biomedcentral.com/articles/10.1186/s12976-017-0061-x 
 
-combined_delay_cholera <- cholera_inc_period + cholera_rep_delay
+combined_delay_cholera <- cholera_inc_period + cholera_reporting_delay

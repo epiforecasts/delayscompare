@@ -97,7 +97,7 @@ rt_cholera_epinow <- rt_cholera |>
 
 cholera_sim_data <- simulate_infections(
   R=rt_cholera_epinow,
-  initial_infections=5,
+  initial_infections=75,
   generation_time=generation_time_opts(cholera_gen_time),
   delays=delay_opts(combined_delay_cholera),
   obs=obs_opts(family="poisson", scale=0.28)

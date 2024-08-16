@@ -70,6 +70,7 @@ sim_scenarios <- function(case_data,
                                      delays = delay_opts(inc_period + reporting_delay),
                                      obs=obs_opts(family="poisson", scale=obs_scale),
                                      stan = stan_opts(),
+                                     rt=rt_opts(future=rt_opts_choice),
                                      horizon=14)
         }
         
@@ -79,6 +80,7 @@ sim_scenarios <- function(case_data,
                                      generation_time = generation_time_opts(gen_time),
                                      delays = delay_opts(reporting_delay),
                                      obs=obs_opts(family="poisson", scale=obs_scale),
+                                     rt=rt_opts(future=rt_opts_choice),
                                      stan = stan_opts(),
                                      horizon=14)}
         
@@ -87,6 +89,7 @@ sim_scenarios <- function(case_data,
           def <- estimate_infections(case_segment,
                                      delays = delay_opts(reporting_delay),
                                      obs=obs_opts(family="poisson", scale=obs_scale),
+                                     rt=rt_opts(future=rt_opts_choice),
                                      stan = stan_opts(),
                                      horizon=14)}
         
