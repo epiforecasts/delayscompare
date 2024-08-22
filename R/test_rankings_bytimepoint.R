@@ -4,18 +4,27 @@ plotrankrt_tp <- function(res_rt_samples,
                        forecast_freq){
   
   dis_timepoints <- rt_dis$date[c(1:(nrow(rt_dis) %/% (forecast_freq*7)))*forecast_freq*7]
+  
+  # Take forecasts only
+  
+  res_rt_samples <- res_rt_samples |>
+    filter(type=="forecast") 
+  
+  # Take 14th day only 
+  res_rt_samples <- res_rt_samples |>
+    group_by(variable, parameter, sample, type, model, result_list, gt) |>
+    filter(date==max(date))
  
   res_rt_samples <- res_rt_samples |> 
     # add info
-    left_join(res_id, by=c("result_list", "gt")) |>
-    # add try values
+    left_join(res_id, by=c("result_list", "gt"))
+  
+  res_rt_samples <- res_rt_samples |>
     left_join(rt_dis, by="date")
   
-  ## 
-
   res_rt_samples <- as_forecast_sample(
     data=res_rt_samples,
-    forecast_unit=c("date", "type", "timepoint", "result_list", "gen_time", "inc_period", "model"),
+    forecast_unit=c("date", "type", "timepoint", "gen_time", "inc_period", "model"),
     observed='R',
     predicted='value',
     model='model',
@@ -34,7 +43,7 @@ plotrankrt_tp <- function(res_rt_samples,
   
   scores <- res_rt_samples |>
     score() |>
-    summarise_scores(by=c("date", "type", "timepoint", "result_list", "gen_time", "inc_period", "model"))
+    summarise_scores(by=c("date", "type", "timepoint", "gen_time", "inc_period", "model"))
   
   gc()
   
