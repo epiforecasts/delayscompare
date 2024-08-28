@@ -34,105 +34,105 @@ ebola_sim_data_inc_cases_ur <- ebola_sim_data_inc_cases_ur |>
 ebola_rep_params <- get_parameters(fix_dist(ebola_reporting_delay))
 
 ## Run scenario 9 - rt_opts=latest, under-reporting=no ##
-
-res_ebola <- sim_scenarios(case_data=ebola_sim_data_inc_cases,
-                           gt,
-                           gen_mean=16.2,
-                           gen_sd=9.40, # from Park et al. 2019
-                           gen_max=50,
-                           inc_mean=11.4,
-                           inc_sd=8.1, # from Aylward et al. 2014 
-                           inc_max=60,
-                           rep_meanlog=ebola_rep_params$meanlog,
-                           rep_sdlog=ebola_rep_params$sdlog,
-                           rep_max=50,
-                           freq_fc=4,
-                           weeks_inc=12,
-                           rt_opts_choice="latest",
-                           obs_scale=1)
-
-save_latest(res_ebola[[2]], here("results"), paste0("res_ebolascen9_id", gt))
-save_latest(res_ebola[[3]], here("results"), paste0("res_ebolascen9_warnings", gt))
+# 
+# res_ebola <- sim_scenarios(case_data=ebola_sim_data_inc_cases,
+#                            gt,
+#                            gen_mean=16.2,
+#                            gen_sd=9.40, # from Park et al. 2019
+#                            gen_max=50,
+#                            inc_mean=11.4,
+#                            inc_sd=8.1, # from Aylward et al. 2014 
+#                            inc_max=60,
+#                            rep_meanlog=ebola_rep_params$meanlog,
+#                            rep_sdlog=ebola_rep_params$sdlog,
+#                            rep_max=50,
+#                            freq_fc=4,
+#                            weeks_inc=12,
+#                            rt_opts_choice="latest",
+#                            obs_scale=1)
+# 
+# save_latest(res_ebola[[2]], here("results"), paste0("res_ebolascen9_id", gt))
+# save_latest(res_ebola[[3]], here("results"), paste0("res_ebolascen9_warnings", gt))
 
 ## Saving samples only ##
-save_latest(res_ebola[[1]], here("results"), paste0("res_ebolascen9_samples", gt))
-save_latest(res_ebola[[4]], here("results"), paste0("res_ebolascen9_R", gt)) 
+#save_latest(res_ebola[[1]], here("results"), paste0("res_ebolascen9_samples", gt))
+#save_latest(res_ebola[[4]], here("results"), paste0("res_ebolascen9_R", gt)) 
 
 ## Run scenario 10 - rt_opts=latest, under-reporting=yes ##
 
-  res_ebola <- sim_scenarios(case_data=ebola_sim_data_inc_cases_ur,
-                           gt,
-                           gen_mean=16.2,
-                           gen_sd=9.40, # from Park et al. 2019
-                           gen_max=50,
-                           inc_mean=11.4,
-                           inc_sd=8.1, # from Aylward et al. 2014 
-                           inc_max=60,
-                           rep_meanlog=ebola_rep_params$meanlog,
-                           rep_sdlog=ebola_rep_params$sdlog,
-                           rep_max=50,
-                           freq_fc=4,
-                           weeks_inc=12,
-                           rt_opts_choice="latest",
-                           obs_scale=0.83)
-
-save_latest(res_ebola[[2]], here("results"), paste0("res_ebolascen10_id", gt))
-save_latest(res_ebola[[3]], here("results"), paste0("res_ebolascen10_warnings", gt))
-
-## Saving samples only ##
-save_latest(res_ebola[[1]], here("results"), paste0("res_ebolascen10_samples", gt))
-save_latest(res_ebola[[4]], here("results"), paste0("res_ebolascen10_R", gt)) 
+#   res_ebola <- sim_scenarios(case_data=ebola_sim_data_inc_cases_ur,
+#                            gt,
+#                            gen_mean=16.2,
+#                            gen_sd=9.40, # from Park et al. 2019
+#                            gen_max=50,
+#                            inc_mean=11.4,
+#                            inc_sd=8.1, # from Aylward et al. 2014 
+#                            inc_max=60,
+#                            rep_meanlog=ebola_rep_params$meanlog,
+#                            rep_sdlog=ebola_rep_params$sdlog,
+#                            rep_max=50,
+#                            freq_fc=4,
+#                            weeks_inc=12,
+#                            rt_opts_choice="latest",
+#                            obs_scale=0.83)
+# 
+# save_latest(res_ebola[[2]], here("results"), paste0("res_ebolascen10_id", gt))
+# save_latest(res_ebola[[3]], here("results"), paste0("res_ebolascen10_warnings", gt))
+# 
+# ## Saving samples only ##
+# save_latest(res_ebola[[1]], here("results"), paste0("res_ebolascen10_samples", gt))
+# save_latest(res_ebola[[4]], here("results"), paste0("res_ebolascen10_R", gt)) 
 
 ## Run scenario 11 - rt_opts=project, under-reporting=no ##
-
-  res_ebola <- sim_scenarios(case_data=ebola_sim_data_inc_cases,
-                             gt,
-                             gen_mean=16.2,
-                             gen_sd=9.40, # from Park et al. 2019
-                             gen_max=50,
-                             inc_mean=11.4,
-                             inc_sd=8.1, # from Aylward et al. 2014 
-                             inc_max=60,
-                             rep_meanlog=ebola_rep_params$meanlog,
-                             rep_sdlog=ebola_rep_params$sdlog,
-                             rep_max=50,
-                             freq_fc=4,
-                             weeks_inc=12,
-                             rt_opts_choice="project",
-                             obs_scale=1)
-  
-  
-  save_latest(res_ebola[[2]], here("results"), paste0("res_ebolascen11_id", gt))
-  save_latest(res_ebola[[3]], here("results"), paste0("res_ebolascen11_warnings", gt))
-  
-  ## Saving samples only ##
-  save_latest(res_ebola[[1]], here("results"), paste0("res_ebolascen11_samples", gt))
-  save_latest(res_ebola[[4]], here("results"), paste0("res_ebolascen11_R", gt)) 
+#
+# res_ebola <- sim_scenarios(case_data=ebola_sim_data_inc_cases,
+#                            gt,
+#                            gen_mean=16.2,
+#                            gen_sd=9.40, # from Park et al. 2019
+#                            gen_max=50,
+#                            inc_mean=11.4,
+#                            inc_sd=8.1, # from Aylward et al. 2014 
+#                            inc_max=60,
+#                            rep_meanlog=ebola_rep_params$meanlog,
+#                            rep_sdlog=ebola_rep_params$sdlog,
+#                            rep_max=50,
+#                            freq_fc=4,
+#                            weeks_inc=12,
+#                            rt_opts_choice="project",
+#                            obs_scale=1)
+# 
+# 
+# save_latest(res_ebola[[2]], here("results"), paste0("res_ebolascen11_id", gt))
+# save_latest(res_ebola[[3]], here("results"), paste0("res_ebolascen11_warnings", gt))
+# 
+# ## Saving samples only ##
+# save_latest(res_ebola[[1]], here("results"), paste0("res_ebolascen11_samples", gt))
+# save_latest(res_ebola[[4]], here("results"), paste0("res_ebolascen11_R", gt)) 
 
 ## Run scenario 12 - rt_opts=project, under-reporting=yes ##
 
-res_ebola <- sim_scenarios(case_data=ebola_sim_data_inc_cases_ur,
-                             gt,
-                             gen_mean=16.2,
-                             gen_sd=9.40, # from Park et al. 2019
-                             gen_max=50,
-                             inc_mean=11.4,
-                             inc_sd=8.1, # from Aylward et al. 2014 
-                             inc_max=60,
-                             rep_meanlog=ebola_rep_params$meanlog,
-                             rep_sdlog=ebola_rep_params$sdlog,
-                             rep_max=50,
-                             freq_fc=4,
-                             weeks_inc=12,
-                             rt_opts_choice="project",
-                             obs_scale=0.83)
-  
-  save_latest(res_ebola[[2]], here("results"), paste0("res_ebolascen12_id", gt))
-  save_latest(res_ebola[[3]], here("results"), paste0("res_ebolascen12_warnings", gt))
-  
-  ## Saving samples only ##
-  save_latest(res_ebola[[1]], here("results"), paste0("res_ebolascen12_samples", gt))
-  save_latest(res_ebola[[4]], here("results"), paste0("res_ebolascen12_R", gt)) 
+#es_ebola <- sim_scenarios(case_data=ebola_sim_data_inc_cases_ur,
+#                            gt,
+#                            gen_mean=16.2,
+#                            gen_sd=9.40, # from Park et al. 2019
+#                            gen_max=50,
+#                            inc_mean=11.4,
+#                            inc_sd=8.1, # from Aylward et al. 2014 
+#                            inc_max=60,
+#                            rep_meanlog=ebola_rep_params$meanlog,
+#                            rep_sdlog=ebola_rep_params$sdlog,
+#                            rep_max=50,
+#                            freq_fc=4,
+#                            weeks_inc=12,
+#                            rt_opts_choice="project",
+#                            obs_scale=0.83)
+# 
+# save_latest(res_ebola[[2]], here("results"), paste0("res_ebolascen12_id", gt))
+# save_latest(res_ebola[[3]], here("results"), paste0("res_ebolascen12_warnings", gt))
+# 
+# ## Saving samples only ##
+# save_latest(res_ebola[[1]], here("results"), paste0("res_ebolascen12_samples", gt))
+# save_latest(res_ebola[[4]], here("results"), paste0("res_ebolascen12_R", gt)) 
   
   #### Decreasing Rt ####
   
@@ -143,42 +143,42 @@ res_ebola <- sim_scenarios(case_data=ebola_sim_data_inc_cases_ur,
   
 # In required format for EpiNow2
 
-ebola_sim_data_dec_cases <- ebola_sim_data_dec |> filter(variable=="reported_cases")
-ebola_sim_data_dec_cases <- ebola_sim_data_dec_cases |>
-  select(date, value) |>
-  rename(confirm=value)
-
-ebola_sim_data_dec_cases_ur <- ebola_sim_data_dec_ur |> filter(variable=="reported_cases")
-ebola_sim_data_dec_cases_ur <- ebola_sim_data_dec_cases_ur |>
-  select(date, value) |>
-  rename(confirm=value)
-
-ebola_rep_params <- get_parameters(fix_dist(ebola_reporting_delay))
-
-## Run scenario 13 - rt_opts=latest, under-reporting=no ##
-
-  res_ebola <- sim_scenarios(case_data=ebola_sim_data_dec_cases,
-                             gt,
-                             gen_mean=16.2,
-                             gen_sd=9.40, # from Park et al. 2019
-                             gen_max=50,
-                             inc_mean=11.4,
-                             inc_sd=8.1, # from Aylward et al. 2014 
-                             inc_max=60,
-                             rep_meanlog=ebola_rep_params$meanlog,
-                             rep_sdlog=ebola_rep_params$sdlog,
-                             rep_max=50,
-                             freq_fc=4,
-                             weeks_inc=12,
-                             rt_opts_choice="latest",
-                             obs_scale=1)
-  
-  save_latest(res_ebola[[2]], here("results"), paste0("res_ebolascen13_id", gt))
-  save_latest(res_ebola[[3]], here("results"), paste0("res_ebolascen13_warnings", gt))
-  
-  ## Saving samples only ##
-  save_latest(res_ebola[[1]], here("results"), paste0("res_ebolascen13_samples", gt))
-  save_latest(res_ebola[[4]], here("results"), paste0("res_ebolascen13_R", gt)) 
+ ebola_sim_data_dec_cases <- ebola_sim_data_dec |> filter(variable=="reported_cases")
+ ebola_sim_data_dec_cases <- ebola_sim_data_dec_cases |>
+   select(date, value) |>
+   rename(confirm=value)
+ 
+ ebola_sim_data_dec_cases_ur <- ebola_sim_data_dec_ur |> filter(variable=="reported_cases")
+ ebola_sim_data_dec_cases_ur <- ebola_sim_data_dec_cases_ur |>
+   select(date, value) |>
+   rename(confirm=value)
+ 
+ ebola_rep_params <- get_parameters(fix_dist(ebola_reporting_delay))
+# 
+# ## Run scenario 13 - rt_opts=latest, under-reporting=no ##
+# 
+#   res_ebola <- sim_scenarios(case_data=ebola_sim_data_dec_cases,
+#                              gt,
+#                              gen_mean=16.2,
+#                              gen_sd=9.40, # from Park et al. 2019
+#                              gen_max=50,
+#                              inc_mean=11.4,
+#                              inc_sd=8.1, # from Aylward et al. 2014 
+#                              inc_max=60,
+#                              rep_meanlog=ebola_rep_params$meanlog,
+#                              rep_sdlog=ebola_rep_params$sdlog,
+#                              rep_max=50,
+#                              freq_fc=4,
+#                              weeks_inc=12,
+#                              rt_opts_choice="latest",
+#                              obs_scale=1)
+#   
+#   save_latest(res_ebola[[2]], here("results"), paste0("res_ebolascen13_id", gt))
+#   save_latest(res_ebola[[3]], here("results"), paste0("res_ebolascen13_warnings", gt))
+#   
+#   ## Saving samples only ##
+#   save_latest(res_ebola[[1]], here("results"), paste0("res_ebolascen13_samples", gt))
+#   save_latest(res_ebola[[4]], here("results"), paste0("res_ebolascen13_R", gt)) 
 
 ## Run scenario 14 - rt_opts=latest, under-reporting=yes ##
 

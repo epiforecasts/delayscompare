@@ -19,13 +19,13 @@ cholera_sim_data_const_low_ur <- read_latest(here("data"), "cholera_sim_data_con
 
 # In required format for EpiNow2
 
-cholera_sim_data_cases <- cholera_sim_data_const_low |> filter(variable=="reported_cases")
-cholera_sim_data_cases <- cholera_sim_data_cases |>
+cholera_sim_data_low_cases <- cholera_sim_data_const_low |> filter(variable=="reported_cases")
+cholera_sim_data_low_cases <- cholera_sim_data_low_cases |>
   select(date, value) |>
   rename(confirm=value)
 
-cholera_sim_data_cases_ur <- cholera_sim_data_const_low_ur |> filter(variable=="reported_cases")
-cholera_sim_data_cases_ur <- cholera_sim_data_cases_ur |>
+cholera_sim_data_low_cases_ur <- cholera_sim_data_const_low_ur |> filter(variable=="reported_cases")
+cholera_sim_data_low_cases_ur <- cholera_sim_data_low_cases_ur |>
   select(date, value) |>
   rename(confirm=value)
 
@@ -33,7 +33,7 @@ cholera_rep_params <- get_parameters(fix_dist(cholera_reporting_delay))
 
 ## Run scenario 1 - rt_opts=latest, under-reporting=no ##
 
-res_cholera <- sim_scenarios(case_data=cholera_sim_data_cases,
+res_cholera <- sim_scenarios(case_data=cholera_sim_data_low_cases,
                            gt,
                            gen_mean=5,
                            gen_sd=8, 
@@ -58,7 +58,7 @@ save_latest(res_cholera[[4]], here("results"), paste0("res_cholerascen1_R", gt))
 
 ## Run scenario 2 - rt_opts=latest, under-reporting=yes ##
 
-  res_cholera <- sim_scenarios(case_data=cholera_sim_data_cases_ur,
+  res_cholera <- sim_scenarios(case_data=cholera_sim_data_low_cases_ur,
                            gt,
                            gen_mean=5,
                            gen_sd=8, 
@@ -83,7 +83,7 @@ save_latest(res_cholera[[4]], here("results"), paste0("res_cholerascen2_R", gt))
 
 ## Run scenario 3 - rt_opts=project, under-reporting=no ##
 
-  res_cholera <- sim_scenarios(case_data=cholera_sim_data_cases,
+  res_cholera <- sim_scenarios(case_data=cholera_sim_data_low_cases,
                              gt,
                              gen_mean=5,
                              gen_sd=8, 
@@ -109,8 +109,7 @@ save_latest(res_cholera[[4]], here("results"), paste0("res_cholerascen2_R", gt))
 
 ## Run scenario 4 - rt_opts=project, under-reporting=yes ##
 
-  
-  res_cholera <- sim_scenarios(case_data=cholera_sim_data_cases_ur,
+  res_cholera <- sim_scenarios(case_data=cholera_sim_data_low_cases_ur,
                              gt,
                              gen_mean=5,
                              gen_sd=8, 
@@ -140,13 +139,13 @@ save_latest(res_cholera[[4]], here("results"), paste0("res_cholerascen2_R", gt))
   
 # In required format for EpiNow2
 
-cholera_sim_data_cases <- cholera_sim_data_const_hi |> filter(variable=="reported_cases")
-cholera_sim_data_cases <- cholera_sim_data_cases |>
+cholera_sim_data_hi_cases <- cholera_sim_data_const_hi |> filter(variable=="reported_cases")
+cholera_sim_data_hi_cases <- cholera_sim_data_hi_cases |>
   select(date, value) |>
   rename(confirm=value)
 
-cholera_sim_data_cases_ur <- cholera_sim_data_const_hi_ur |> filter(variable=="reported_cases")
-cholera_sim_data_cases_ur <- cholera_sim_data_cases_ur |>
+cholera_sim_data_hi_cases_ur <- cholera_sim_data_const_hi_ur |> filter(variable=="reported_cases")
+cholera_sim_data_hi_cases_ur <- cholera_sim_data_hi_cases_ur |>
   select(date, value) |>
   rename(confirm=value)
 
@@ -154,7 +153,7 @@ cholera_rep_params <- get_parameters(fix_dist(cholera_reporting_delay))
 
 ## Run scenario 5 - rt_opts=latest, under-reporting=no ##
 
-  res_cholera <- sim_scenarios(case_data=cholera_sim_data_cases,
+  res_cholera <- sim_scenarios(case_data=cholera_sim_data_hi_cases,
                              gt,
                              gen_mean=5,
                              gen_sd=8, 
@@ -179,7 +178,7 @@ cholera_rep_params <- get_parameters(fix_dist(cholera_reporting_delay))
 
 ## Run scenario 6 - rt_opts=latest, under-reporting=yes ##
 
-  res_cholera <- sim_scenarios(case_data=cholera_sim_data_cases_ur,
+  res_cholera <- sim_scenarios(case_data=cholera_sim_data_hi_cases_ur,
                              gt,
                              gen_mean=5,
                              gen_sd=8, 
@@ -204,7 +203,7 @@ cholera_rep_params <- get_parameters(fix_dist(cholera_reporting_delay))
 
 ## Run scenario 7 - rt_opts=project, under-reporting=no ##
 
-  res_cholera <- sim_scenarios(case_data=cholera_sim_data_cases,
+  res_cholera <- sim_scenarios(case_data=cholera_sim_data_hi_cases,
                              gt,
                              gen_mean=5,
                              gen_sd=8,
@@ -229,7 +228,7 @@ cholera_rep_params <- get_parameters(fix_dist(cholera_reporting_delay))
 
 ## Run scenario 8 - rt_opts=project, under-reporting=yes ##
 
-  res_cholera <- sim_scenarios(case_data=cholera_sim_data_cases_ur,
+  res_cholera <- sim_scenarios(case_data=cholera_sim_data_hi_cases_ur,
                              gt,
                              gen_mean=5,
                              gen_sd=8, 

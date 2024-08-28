@@ -34,58 +34,58 @@ covid_sim_data_inc_cases_ur <- covid_sim_data_inc_cases_ur |>
 covid_rep_params <- get_parameters(fix_dist(covid_reporting_delay))
 
 ## Run scenario 9 - rt_opts=latest, under-reporting=no ##
-
-res_covid <- sim_scenarios(case_data=covid_sim_data_inc_cases,
-                           gt,
-                           gen_mean=3.6,
-                           gen_sd=3.1, 
-                           gen_max=30,
-                           inc_mean=5.2,
-                           inc_sd=1.52, 
-                           inc_max=30,
-                           rep_meanlog=covid_rep_params$meanlog,
-                           rep_sdlog=covid_rep_params$sdlog,
-                           rep_max=30,
-                           freq_fc=4,
-                           weeks_inc=12,
-                           rt_opts_choice="latest",
-                           obs_scale=1)
-
-save_latest(res_covid[[2]], here("results"), paste0("res_covidscen9_id", gt))
-save_latest(res_covid[[3]], here("results"), paste0("res_covidscen9_warnings", gt))
-
-## Saving samples only ##
-save_latest(res_covid[[1]], here("results"), paste0("res_covidscen9_samples", gt))
-save_latest(res_covid[[4]], here("results"), paste0("res_covidscen9_R", gt)) 
-
-## Run scenario 10 - rt_opts=latest, under-reporting=yes ##
-
-  res_covid <- sim_scenarios(case_data=covid_sim_data_inc_cases_ur,
-                           gt,
-                           gen_mean=3.6,
-                           gen_sd=3.1, 
-                           gen_max=30,
-                           inc_mean=5.2,
-                           inc_sd=1.52, 
-                           inc_max=30,
-                           rep_meanlog=covid_rep_params$meanlog,
-                           rep_sdlog=covid_rep_params$sdlog,
-                           rep_max=30,
-                           freq_fc=4,
-                           weeks_inc=12,
-                           rt_opts_choice="latest",
-                           obs_scale=0.3)
-
-save_latest(res_covid[[2]], here("results"), paste0("res_covidscen10_id", gt))
-save_latest(res_covid[[3]], here("results"), paste0("res_covidscen10_warnings", gt))
-
-## Saving samples only ##
-save_latest(res_covid[[1]], here("results"), paste0("res_covidscen10_samples", gt))
-save_latest(res_covid[[4]], here("results"), paste0("res_covidscen10_R", gt)) 
+ 
+ res_covid <- sim_scenarios(case_data=covid_sim_data_inc_cases,
+                            gt,
+                            gen_mean=3.6,
+                            gen_sd=3.1, 
+                            gen_max=30,
+                            inc_mean=5.2,
+                            inc_sd=1.52, 
+                            inc_max=30,
+                            rep_meanlog=covid_rep_params$meanlog,
+                            rep_sdlog=covid_rep_params$sdlog,
+                            rep_max=30,
+                            freq_fc=4,
+                            weeks_inc=12,
+                            rt_opts_choice="latest",
+                            obs_scale=1)
+ 
+ save_latest(res_covid[[2]], here("results"), paste0("res_covidscen9_id", gt))
+ save_latest(res_covid[[3]], here("results"), paste0("res_covidscen9_warnings", gt))
+ 
+ ## Saving samples only ##
+ save_latest(res_covid[[1]], here("results"), paste0("res_covidscen9_samples", gt))
+ save_latest(res_covid[[4]], here("results"), paste0("res_covidscen9_R", gt)) 
+ 
+ ## Run scenario 10 - rt_opts=latest, under-reporting=yes ##
+ 
+   res_covid <- sim_scenarios(case_data=covid_sim_data_inc_cases_ur,
+                            gt,
+                            gen_mean=3.6,
+                            gen_sd=3.1, 
+                            gen_max=30,
+                            inc_mean=5.2,
+                            inc_sd=1.52, 
+                            inc_max=30,
+                            rep_meanlog=covid_rep_params$meanlog,
+                            rep_sdlog=covid_rep_params$sdlog,
+                            rep_max=30,
+                            freq_fc=4,
+                            weeks_inc=12,
+                            rt_opts_choice="latest",
+                            obs_scale=0.3)
+ 
+ save_latest(res_covid[[2]], here("results"), paste0("res_covidscen10_id", gt))
+ save_latest(res_covid[[3]], here("results"), paste0("res_covidscen10_warnings", gt))
+ 
+ ## Saving samples only ##
+ save_latest(res_covid[[1]], here("results"), paste0("res_covidscen10_samples", gt))
+ save_latest(res_covid[[4]], here("results"), paste0("res_covidscen10_R", gt)) 
 
 ## Run scenario 11 - rt_opts=project, under-reporting=no ##
 
-  res_covid <- sim_scenarios(case_data=covid_sim_data_cases,
+  res_covid <- sim_scenarios(case_data=covid_sim_data_inc_cases,
                              gt,
                              gen_mean=3.6,
                              gen_sd=3.1, 
