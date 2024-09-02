@@ -230,7 +230,7 @@ cholera_rep_params <- get_parameters(fix_dist(cholera_reporting_delay))
   save_latest(res_cholera[[1]], here("results"), paste0("res_cholerascen15_samples", gt))
   save_latest(res_cholera[[4]], here("results"), paste0("res_cholerascen15_R", gt)) 
 
-## Run scenario 8 - rt_opts=project, under-reporting=yes ##
+## Run scenario 16 - rt_opts=project, under-reporting=yes ##
 
   res_cholera <- sim_scenarios(case_data=cholera_sim_data_dec_cases_ur,
                              gt,

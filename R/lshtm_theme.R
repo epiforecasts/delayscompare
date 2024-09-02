@@ -24,7 +24,7 @@ lshtm_theme <- function() {
     strip.background = element_rect(
       color="#01454F", fill="#01454F", size=1.5, linetype="solid"
     ),
-    legend.position = "bottom",
+    #legend.position = "bottom",
     legend.title = element_text(colour = "#01454F", face = "bold"),
     legend.text = element_text(colour = "#01454F")
   )

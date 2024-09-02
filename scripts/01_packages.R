@@ -7,10 +7,10 @@ pkgs <- c("EpiNow2",
           "ggplot2",
           "gh",
           "readr",
-          "cowplot")
-#          "scoringutils",
-#          "viridis",
-#          "RColorBrewer")
+          "cowplot",
+          "scoringutils",
+          "viridis",
+          "RColorBrewer")
 
 # install.packages(setdiff(pkgs, rownames(installed.packages())), repos = c("https://epiforecasts.r-universe.dev", getOption("repos")))
 
