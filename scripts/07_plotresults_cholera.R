@@ -1,7 +1,6 @@
 library(here)
 
 source(here("scripts", "01_packages.R"))
-#source(here("R", "scenario_loop.R"))
 source(here("R", "funcs_plots.R"))
 source(here("R", "funcs_data.R"))
 source(here("R", "lshtm_theme.R"))
@@ -14,7 +13,7 @@ enddate <- as.Date("2017-04-23") + 6*4*7 + 14  # Long enough time horizon to hav
 rt_traj <- read_latest(here("data"), "rt_traj_list_cholera")
 sim_data <- read_latest(here("data"), "sim_data_list_cholera")
 
-for(i in 2:20){
+for(i in 1:20){
   
   ## Loading data ##
   rt_traj_scen <- rt_traj[[i]]
