@@ -156,6 +156,64 @@ legend_rank <- get_legend(
           legend.text = element_text(size = 10))
 )
 
-final_heatmaps <- plot_grid(rank_all_plot, rank_rtopts_plot, rank_ur_plot, legend_rank, ncol=4, rel_widths=c(0.55, 1, 1, 0.5))
+final_heatmaps <- plot_grid(rank_all_plot, rank_rtopts_plot, rank_ur_plot, legend_rank, ncol=4, rel_widths=c(0.6, 1, 1, 0.5))
 
 return(final_heatmaps)}
+
+plot_boxplots <- function(scores){
+  
+  ## Add factors for plotting (same as original)
+  scores <- scores |>
+    mutate(
+      inc_period = factor(
+        inc_period, levels=c("no delay", "very low", "low", "correct", "high", "very high")
+      ),
+      gen_time = factor(
+        gen_time, levels=c("no delay", "very low", "low", "correct", "high", "very high")
+      )
+    )
+  
+  ## Overall plot (replacing heatmap with boxplot)
+  rank_all <- scores |>
+    summarise_scores(by=c("gen_time", "inc_period", "rt_traj"))
+  
+  rank_all_plot <- ggplot(rank_all, aes(x=gen_time, y=dispersion)) +
+    geom_boxplot() +
+    xlab("Generation time") +
+    ylab("dispersion") +
+    theme_classic() +
+    theme(axis.text.x = element_text(angle=45, hjust=1)) +
+    facet_wrap(~rt_traj, strip.position="right", ncol=1) +
+    lshtm_theme()
+  
+  ## By rt_opts (replacing heatmap with boxplot)
+  rank_rtopts <- scores |>
+    summarise_scores(by=c("gen_time", "inc_period", "rt_opts", "rt_traj"))
+  
+  rank_rtopts_plot <- ggplot(rank_rtopts, aes(x=gen_time, y=dispersion)) +
+    geom_boxplot() +
+    xlab("Generation time") +
+    ylab("dispersion") +
+    theme_classic() +
+    theme(axis.text.x = element_text(angle=45, hjust=1)) +
+    facet_grid(rt_traj~rt_opts) +
+    lshtm_theme()
+  
+  ## By under-reporting status (replacing heatmap with boxplot)
+  rank_ur <- scores |>
+    summarise_scores(by=c("gen_time", "inc_period", "ur", "rt_traj"))
+  
+  rank_ur_plot <- ggplot(rank_ur, aes(x=gen_time, y=dispersion)) +
+    geom_boxplot() +
+    xlab("Generation time") +
+    ylab("dispersion") +
+    theme_classic() +
+    theme(axis.text.x = element_text(angle=45, hjust=1)) +
+    facet_grid(rt_traj~ur) +
+    lshtm_theme()
+  
+  # Combine plots
+  final_boxplots <- plot_grid(rank_all_plot, rank_rtopts_plot, rank_ur_plot, ncol=3, rel_widths=c(0.6, 1, 1))
+  
+  return(final_boxplots)
+}

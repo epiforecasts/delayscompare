@@ -3,6 +3,7 @@ library(here)
 source(here("scripts", "01_packages.R"))
 source(here("R", "funcs_plots.R"))
 source(here("R", "funcs_data.R"))
+source(here("R", "generate_scores_func.R"))
 source(here("R", "lshtm_theme.R"))
 
 startdate <- as.Date("2017-04-23") # Same start date as data
@@ -66,6 +67,26 @@ scores_rt <- scores_rt |>
 heatmaps_cases <- plot_heatmaps(scores_cases)
 heatmaps_rt <- plot_heatmaps(scores_rt)
 
-# ggsave(paste0("results/plotcholerascen", i, "_rt_tp.png"), cholera_rt_tp, width=32, height=17, units="cm")
-# ggsave(paste0("results/plotcholerascen", i, "_cases_tp.png"), cholera_cases_tp, width=34, height=17, units="cm")
+box_overpredict_cases <- plot_boxplots(scores_cases)
+box_overpredict_rt <- plot_boxplots(scores_rt)
 
+ggsave(paste0("results/plotcholera_cases_overprediction_boxplot.png"), box_overpredict_cases, width=33, height=15, units="cm")
+ggsave(paste0("results/plotcholera_rt_overprediction_boxplot.png"), box_overpredict_rt, width=33, height=15, units="cm")
+
+box_underpredict_cases <- plot_boxplots(scores_cases)
+box_underpredict_rt <- plot_boxplots(scores_rt)
+
+ggsave(paste0("results/plotcholera_cases_underprediction_boxplot.png"), box_underpredict_cases, width=33, height=15, units="cm")
+ggsave(paste0("results/plotcholera_rt_underprediction_boxplot.png"), box_underpredict_rt, width=33, height=15, units="cm")
+
+box_crps_cases <- plot_boxplots(scores_cases)
+box_crps_rt <- plot_boxplots(scores_rt)
+
+ggsave(paste0("results/plotcholera_cases_crps_boxplot.png"), box_crps_cases, width=33, height=15, units="cm")
+ggsave(paste0("results/plotcholera_rt_crps_boxplot.png"), box_crps_rt, width=33, height=15, units="cm")
+
+box_disp_cases <- plot_boxplots(scores_cases)
+box_disp_rt <- plot_boxplots(scores_rt)
+
+ggsave(paste0("results/plotcholera_cases_disp_boxplot.png"), box_disp_cases, width=33, height=15, units="cm")
+ggsave(paste0("results/plotcholera_rt_disp_boxplot.png"), box_disp_rt, width=33, height=15, units="cm")
