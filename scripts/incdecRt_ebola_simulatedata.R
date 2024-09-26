@@ -19,7 +19,7 @@ rt_inc <- data.frame(date=seq.Date(from=startdate, to=enddate, by=1),
 
 ebola_sim_data_inc <- simulate_infections(
   R=rt_inc,
-  initial_infections=5,
+  initial_infections=50,
   generation_time=generation_time_opts(ebola_gen_time),
   delays=delay_opts(fix_dist(combined_delay_ebola)),
   obs=obs_opts(family="poisson", scale=1)
@@ -27,7 +27,7 @@ ebola_sim_data_inc <- simulate_infections(
 
 ebola_sim_data_inc_ur <- simulate_infections(
   R=rt_inc,
-  initial_infections=5,
+  initial_infections=50,
   generation_time=generation_time_opts(ebola_gen_time),
   delays=delay_opts(fix_dist(combined_delay_ebola)),
   obs=obs_opts(family="poisson", scale=0.83)
@@ -43,7 +43,7 @@ rt_dec <- data.frame(date=seq.Date(from=startdate, to=enddate, by=1),
 
 ebola_sim_data_dec <- simulate_infections(
   R=rt_dec,
-  initial_infections=5,
+  initial_infections=50,
   generation_time=generation_time_opts(ebola_gen_time),
   delays=delay_opts(fix_dist(combined_delay_ebola)),
   obs=obs_opts(family="poisson", scale=1)
@@ -51,7 +51,7 @@ ebola_sim_data_dec <- simulate_infections(
 
 ebola_sim_data_dec_ur <- simulate_infections(
   R=rt_dec,
-  initial_infections=5,
+  initial_infections=50,
   generation_time=generation_time_opts(ebola_gen_time),
   delays=delay_opts(fix_dist(combined_delay_ebola)),
   obs=obs_opts(family="poisson", scale=0.83)
