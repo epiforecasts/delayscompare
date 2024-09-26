@@ -8,7 +8,7 @@ res_samples <- res_samples |>
 # Get 2-week forecast only
 res_samples <- res_samples |>
   group_by(timepoint) |>
-  filter(date == max(date))                                                                     
+  filter(date == max(date))                                                                           
 
 # Add simulated data to samples for rankings
 res_samples <- sim_data_scen |>
