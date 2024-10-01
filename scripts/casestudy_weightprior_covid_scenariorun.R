@@ -31,7 +31,7 @@ covid_rep_params <- get_parameters(fix_dist(covid_reporting_delay))
 
 ## Run scenario 25 - rt_opts=latest, under-reporting=no, weight_prior=FALSE ##
 
-res_covid <- sim_scenarios(case_data=covid_eng,
+res_covid <- sim_weightprior(case_data=covid_eng,
                            gt,
                            gen_mean=3.6,
                            gen_sd=3.1, # from Park et al. 2019
@@ -56,7 +56,7 @@ save_latest(res_covid[[4]], here("results"), paste0("res_covidscen25_R", gt))
 
 ## Run scenario 26 - rt_opts=latest, under-reporting=yes, weight_prior=FALSE ##
 
-  res_covid <- sim_scenarios(case_data=covid_eng,
+  res_covid <- sim_weightprior(case_data=covid_eng,
                            gt,
                            gen_mean=3.6,
                            gen_sd=3.1, 
@@ -81,7 +81,7 @@ save_latest(res_covid[[4]], here("results"), paste0("res_covidscen26_R", gt))
 
 ## Run scenario 27 - rt_opts=project, under-reporting=no, weight_prior=FALSE ##
 
-  res_covid <- sim_scenarios(case_data=covid_eng,
+  res_covid <- sim_weightprior(case_data=covid_eng,
                              gt,
                              gen_mean=3.6,
                              gen_sd=3.1, 
@@ -107,7 +107,7 @@ save_latest(res_covid[[4]], here("results"), paste0("res_covidscen26_R", gt))
 
 ## Run scenario 28 - rt_opts=project, under-reporting=yes, weight_prior=FALSE ##
 
-  res_covid <- sim_scenarios(case_data=covid_eng,
+  res_covid <- sim_weightprior(case_data=covid_eng,
                              gt,
                              gen_mean=3.6,
                              gen_sd=3.1, 
