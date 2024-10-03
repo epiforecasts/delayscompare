@@ -149,11 +149,15 @@ sim_scenarios <- function(case_data,
 
 sim_weightprior <- function(case_data,
                           var,
-                          gen_mean,
-                          gen_sd,
+                          gen_mean_mean,
+                          gen_mean_sd,
+                          gen_sd_mean,
+                          ge_sd_sd,
                           gen_max,
-                          inc_mean,
-                          inc_sd,
+                          inc_mean_mean,
+                          inc_mean_sd,
+                          inc_sd_mean,
+                          inc_sd_sd,
                           inc_max,
                           rep_meanlog,
                           rep_sdlog,
@@ -184,13 +188,13 @@ sim_weightprior <- function(case_data,
       print(nrow(case_segment))
       
       # Generation interval
-        gen_time <- Gamma(mean=gen_mean,
-                          sd=gen_sd,
+        gen_time <- Gamma(mean=Normal(gen_mean_mean, gen_mean_sd),
+                          sd=Normal(gen_sd_mean, gen_sd_sd),
                           max=gen_max)
       
       # Incubation period
-        inc_period <- LogNormal(mean=inc_mean,
-                                sd=inc_mean,
+        inc_period <- LogNormal(mean=Normal(inc_mean_mean, inc_mean_sd),
+                                sd=Normal(inc_sd_mean, inc_sd_sd),
                                 max=inc_max)
       
       reporting_delay <- LogNormal(meanlog=rep_meanlog,
