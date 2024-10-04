@@ -23,14 +23,13 @@ sim_scenarios <- function(case_data,
   scen_timepoints <- case_data$date[c(1:(nrow(case_data) %/% (freq_fc*7)))*freq_fc*7]
   names(scen_timepoints) <- c(1:length(scen_timepoints))
 
-  res_samples <- list()
-  res_R <- list()
-  results_id <- list()
+  scenarios <- expand.grid(
+    j = seq_along(scen_values),
+    k = seq_along(scen_timepoints)
+  )
 
-   for(j in c(1:length(scen_values))){
-      for(k in 1:length(scen_timepoints)){
-     
-        # Case data 
+  res <- pmap(scenarios, \(j, k) {
+        # Case data
         case_segment <- case_data |>
           filter(date <= scen_timepoints[k])
         
@@ -44,75 +43,66 @@ sim_scenarios <- function(case_data,
         if(var!=1){
         gen_time <- Gamma(mean=gen_mean*scen_values[var],
                           sd=gen_sd,
-                          max=gen_max)}
+                          max=gen_max)
+        } else {
+          gen_time <- Fixed(1)
+        }
         
         # Incubation period
         if(j!=1){
         inc_period <- LogNormal(mean=inc_mean*scen_values[j],
                                 sd=inc_mean,
-                                max=inc_max)}
-        
+                                max=inc_max)
+        } else {
+          inc_period <- Fixed(0)
+        }
         reporting_delay <- LogNormal(meanlog=rep_meanlog,
                                      sdlog=rep_sdlog,
                                      max=rep_max)
+
         
-        if(var!=1 & j!=1){
-        def <- estimate_infections(case_segment,
-                                   generation_time = generation_time_opts(gen_time),
-                                   delays = delay_opts(inc_period + reporting_delay),
-                                   obs=obs_opts(family="poisson", scale=obs_scale),
-                                   rt=rt_opts(future=rt_opts_choice),
-                                   stan = stan_opts(),
-                                   horizon=14)}
-        # if setting generation time to 1 day
-        if(var==1 & j!=1){
-          def <- estimate_infections(case_segment,
-                                     delays = delay_opts(inc_period + reporting_delay),
-                                     obs=obs_opts(family="poisson", scale=obs_scale),
-                                     stan = stan_opts(),
-                                     rt=rt_opts(future=rt_opts_choice),
-                                     horizon=14)
-        }
-        
-        # if setting inc period to "no delay"
-        if(var!=1 & j==1){
           def <- estimate_infections(case_segment,
                                      generation_time = generation_time_opts(gen_time),
                                      delays = delay_opts(reporting_delay),
                                      obs=obs_opts(family="poisson", scale=obs_scale),
                                      rt=rt_opts(future=rt_opts_choice),
-                                     stan = stan_opts(),
-                                     horizon=14)}
+                                     stan = stan_opts(return_fit = FALSE),
+                                    horizon=14,
+                                    verbose = FALSE)
+
+         res_samples <-
+          def$samples[
+                variable=="reported_cases" & type != "estimate",
+                list(date, sample, value, type)
+              ]
         
-        # if setting generation time to 1 day and inc period to no delay
-        if(var==1 & j==1){
-          def <- estimate_infections(case_segment,
-                                     delays = delay_opts(reporting_delay),
-                                     obs=obs_opts(family="poisson", scale=obs_scale),
-                                     rt=rt_opts(future=rt_opts_choice),
-                                     stan = stan_opts(),
-                                     horizon=14)}
+        res_R <-
+          def$samples[
+                variable=="R" & type != "estimate",
+                list(date, sample, value, type)
+              ]
+
+        def$samples <- NULL
         
-        res_samples[[length(res_samples)+1]] <- def$samples[variable=="reported_cases"]
-        
-        res_R[[length(res_R)+1]] <- def$samples[variable=="R"]
-        
-        results_id[[length(results_id)+1]] <- data.frame(result_list=length(res_samples),
-                              timepoint=k,
-                              gen_time=names(scen_values)[var],
-                              inc_period=names(scen_values)[j])
+        res_id <- data.frame(timepoint=k,
+                             gen_time=names(scen_values)[var],
+                             inc_period=names(scen_values)[j])
         
         print(paste("timepoint =", k, "gen time =", var, "inc period =", j))
-     }
-    }
+        return(list(samples = res_samples,
+                    R = res_R,
+                    id = res_id,
+                    summary = def))
+  }, .progress = TRUE)
 
   
   save_warnings <- warnings()
+  res <- transpose(res)
   
-  results_id <- bind_rows(results_id)
+  results_id <- bind_rows(res$id)
   
-  res_samples <- lapply(seq_along(res_samples), function(i) {
-    samples_scen <- res_samples[[i]] |>
+  res_samples <- lapply(seq_along(res$samples), function(i) {
+    samples_scen <- res$samples[[i]] |>
       mutate(model="EpiNow2")
     
     # Add ID
@@ -123,8 +113,8 @@ sim_scenarios <- function(case_data,
     
   })
   
-  res_R <- lapply(seq_along(res_R), function(i) {
-    samples_scen <- res_R[[i]] |>
+  res_R <- lapply(seq_along(res$R), function(i) {
+    samples_scen <- res$R[[i]] |>
       mutate(model="EpiNow2")
     
     # Add ID
@@ -140,10 +130,11 @@ sim_scenarios <- function(case_data,
   
   res_R <- bind_rows(res_R)
   
-  return(list(res_samples,
-              results_id,
-              save_warnings,
-              res_R))
+  return(list(samples = res_samples,
+              id = results_id,
+              warnings = save_warnings,
+              R = res_R,
+              summary = res$summary))
 }
 
 
