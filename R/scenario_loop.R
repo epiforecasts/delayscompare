@@ -51,7 +51,7 @@ sim_scenarios <- function(case_data,
         # Incubation period
         if(j!=1){
         inc_period <- LogNormal(mean=inc_mean*scen_values[j],
-                                sd=inc_mean,
+                                sd=inc_sd,
                                 max=inc_max)
         } else {
           inc_period <- Fixed(0)
@@ -162,59 +162,70 @@ sim_weightprior <- function(case_data,
   scen_timepoints <- case_data$date[c(1:(nrow(case_data) %/% (freq_fc*7)))*freq_fc*7]
   names(scen_timepoints) <- c(1:length(scen_timepoints))
   
-  res_samples <- list()
-  res_R <- list()
-  results_id <- list()
-  
-    for(k in 1:length(scen_timepoints)){
-      
-      # Case data 
-      case_segment <- case_data |>
-        filter(date <= scen_timepoints[k])
-      
-      # Use previous 12 weeks of data for forecast
-      case_segment <- case_segment |>
-        filter(date > (case_segment$date[nrow(case_segment)] - weeks_inc*7))
-      
-      print(nrow(case_segment))
-      
-      # Generation interval
+res <- pmap(scen_timepoints, \(k) {
+        # Case data
+        case_segment <- case_data |>
+          filter(date <= scen_timepoints[k])
+        
+        # Use previous 12 weeks of data for forecast
+        case_segment <- case_segment |>
+          filter(date > (case_segment$date[nrow(case_segment)] - weeks_inc*7))
+        
+        print(nrow(case_segment))
+        
+        # Generation interval
         gen_time <- Gamma(mean=Normal(gen_mean_mean, gen_mean_sd),
                           sd=Normal(gen_sd_mean, gen_sd_sd),
                           max=gen_max)
-      
-      # Incubation period
+        
+        # Incubation period
         inc_period <- LogNormal(mean=Normal(inc_mean_mean, inc_mean_sd),
                                 sd=Normal(inc_sd_mean, inc_sd_sd),
                                 max=inc_max)
-      
-      reporting_delay <- LogNormal(meanlog=rep_meanlog,
-                                   sdlog=rep_sdlog,
-                                   max=rep_max)
-  
-        def <- estimate_infections(case_segment,
-                                   generation_time = generation_time_opts(gen_time, weight_prior=FALSE),
-                                   delays = delay_opts(inc_period + reporting_delay, weight_prior=FALSE),
-                                   obs=obs_opts(family="poisson", scale=obs_scale),
-                                   rt=rt_opts(future=rt_opts_choice),
-                                   stan = stan_opts(),
-                                   horizon=14)
+        
+        reporting_delay <- LogNormal(meanlog=rep_meanlog,
+                                     sdlog=rep_sdlog,
+                                     max=rep_max)
 
-      res_samples[[length(res_samples)+1]] <- def$samples[variable=="reported_cases"]
-      
-      res_R[[length(res_R)+1]] <- def$samples[variable=="R"]
-      
-      results_id[[length(results_id)+1]] <- data.frame(result_list=length(res_samples),
-                                                       timepoint=k)
-      print(paste("timepoint =", k))
-    }
-  
-  save_warnings <- warnings()
-  
-  results_id <- bind_rows(results_id)
-  
-  res_samples <- lapply(seq_along(res_samples), function(i) {
-    samples_scen <- res_samples[[i]] |>
+          def <- estimate_infections(case_segment,
+                                     generation_time = generation_time_opts(gen_time, weight_prior=TRUE),
+                                     delays = delay_opts(inc_period + reporting_delay, weight_prior=TRUE),
+                                     obs=obs_opts(family="poisson", scale=obs_scale),
+                                     rt=rt_opts(future=rt_opts_choice),
+                                     stan = stan_opts(return_fit = FALSE),
+                                    horizon=14,
+                                    verbose = FALSE)
+
+         res_samples <-
+          def$samples[
+                variable=="reported_cases" & type != "estimate",
+                list(date, sample, value, type)
+              ]
+        
+        res_R <-
+          def$samples[
+                variable=="R" & type != "estimate",
+                list(date, sample, value, type)
+              ]
+
+        def$samples <- NULL
+        
+        res_id <- data.frame(timepoint=k)
+        
+        print(paste("timepoint =", k))
+        return(list(samples = res_samples,
+                    R = res_R,
+                    id = res_id,
+                    summary = def))
+  }, .progress = TRUE)
+
+save_warnings <- warnings()
+res <- transpose(res)
+
+results_id <- bind_rows(res$id)
+
+res_samples <- lapply(seq_along(res$samples), function(i) {
+    samples_scen <- res$samples[[i]] |>
       mutate(model="EpiNow2")
     
     # Add ID
@@ -242,9 +253,10 @@ sim_weightprior <- function(case_data,
   
   res_R <- bind_rows(res_R)
   
-  return(list(res_samples,
-              results_id,
-              save_warnings,
-              res_R))
+  return(list(samples = res_samples,
+              id = results_id,
+              warnings = save_warnings,
+              R = res_R,
+              summary = res$summary))
 }
 
