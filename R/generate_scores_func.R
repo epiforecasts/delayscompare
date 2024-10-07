@@ -73,7 +73,7 @@ generate_scores_rt <- function(res_R, res_id, rt_traj_scen) {
   res_R <- transform_forecasts(res_R, fun = log_shift, offset=1, label="log")
   
   scores <- res_R |>
-    filter(type=="forecast", scale=="log") |>
+    filter(type=="forecast", scale=="natural") |>
     set_forecast_unit(c("date", "model", "gen_time", "inc_period", "type", "timepoint")) |>
     score() 
   
