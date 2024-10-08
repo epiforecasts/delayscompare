@@ -56,7 +56,7 @@ sim_scenarios <- function(case_data,
         } else {
           inc_period <- Fixed(0)
         }
-        reporting_delay <- LogNormal(meanlog=rep_meanlog,
+        reporting_delay <- LogNormal(meanlog=rep_meanlog*scen_values[j],
                                      sdlog=rep_sdlog,
                                      max=rep_max)
 
