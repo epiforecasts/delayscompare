@@ -9,8 +9,8 @@ source(here("R", "scenario_loop.R"))
 #### Constant Rt ####
 #####################
 
-startdate <- as.Date("2020-06-19") # Same start date as data
-enddate <- as.Date("2020-06-19") + 6*4*7 + 14 # Long enough time horizon to have six forecast time points with forecasts every 4 weeks, + two weeks data at the end for forecast
+startdate <- as.Date("2021-01-01") # Same start date as data
+enddate <-  as.Date("2021-01-01") + 6*4*7 + 14 # Long enough time horizon to have six forecast time points with forecasts every 4 weeks, + two weeks data at the end for forecast
 
 ##### Simulate data - low Rt ######
 

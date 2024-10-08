@@ -7,8 +7,8 @@ sim_scenarios <- function(case_data,
                           inc_mean,
                           inc_sd,
                           inc_max,
-                          rep_meanlog,
-                          rep_sdlog,
+                          rep_mean,
+                          rep_sd,
                           rep_max,
                           freq_fc=4,
                           weeks_inc=12,
@@ -56,8 +56,8 @@ sim_scenarios <- function(case_data,
         } else {
           inc_period <- Fixed(0)
         }
-        reporting_delay <- LogNormal(meanlog=rep_meanlog*scen_values[j],
-                                     sdlog=rep_sdlog,
+        reporting_delay <- LogNormal(mean=rep_mean*scen_values[j],
+                                     sd=rep_sd,
                                      max=rep_max)
 
         
@@ -150,8 +150,8 @@ sim_weightprior <- function(case_data,
                           inc_sd_mean,
                           inc_sd_sd,
                           inc_max,
-                          rep_meanlog,
-                          rep_sdlog,
+                          rep_mean,
+                          rep_sd,
                           rep_max,
                           freq_fc=4,
                           weeks_inc=12,
@@ -183,8 +183,8 @@ res <- pmap(scen_timepoints, \(k) {
                                 sd=Normal(inc_sd_mean, inc_sd_sd),
                                 max=inc_max)
         
-        reporting_delay <- LogNormal(meanlog=rep_meanlog,
-                                     sdlog=rep_sdlog,
+        reporting_delay <- LogNormal(mean==rep_mean,
+                                     sd=rep_sd,
                                      max=rep_max)
 
           def <- estimate_infections(case_segment,

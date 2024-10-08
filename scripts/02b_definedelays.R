@@ -50,13 +50,13 @@ combined_delay_covid <- covid_inc_period + covid_reporting_delay
 
 ## Generation time
 
-#cholera_gen_time <- Gamma(mean=8.51,
-#                          sd=0.54,
-#                          max=30) # max is placeholder # https://pubmed.ncbi.nlm.nih.gov/21752809/
+cholera_gen_time <- Gamma(mean=8.51,
+                          sd=0.54,
+                          max=30) # max is placeholder # https://pubmed.ncbi.nlm.nih.gov/21752809/
 
-cholera_gen_time <- Gamma(mean=5,
-                          sd=8,
-                          max=30) # https://www.thelancet.com/journals/langlo/article/PIIS2214-109X(18)30230-4
+# cholera_gen_time <- Gamma(mean=5,
+#                           sd=8,
+#                          max=30) # https://www.thelancet.com/journals/langlo/article/PIIS2214-109X(18)30230-4
 
 ## Incubation period 
 
@@ -66,8 +66,8 @@ cholera_inc_period <- LogNormal(mean=1.4,
 
 ## Reporting delay
 
-cholera_reporting_delay <- LogNormal(mean=1.88,
-                               sd=4.4,
+cholera_reporting_delay <- LogNormal(mean=4.4,
+                               sd=1.88,
                                max=30) # max is placeholder # https://tbiomed.biomedcentral.com/articles/10.1186/s12976-017-0061-x 
 
 combined_delay_cholera <- cholera_inc_period + cholera_reporting_delay
