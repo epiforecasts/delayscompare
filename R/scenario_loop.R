@@ -53,12 +53,15 @@ sim_scenarios <- function(case_data,
         inc_period <- LogNormal(mean=inc_mean*scen_values[j],
                                 sd=inc_sd,
                                 max=inc_max)
-        } else {
-          inc_period <- Fixed(0)
-        }
         reporting_delay <- LogNormal(mean=rep_mean*scen_values[j],
                                      sd=rep_sd,
                                      max=rep_max)
+        } else {
+          inc_period <- Fixed(0)
+          reporting_delay <- Fixed(0)
+        }
+
+    
 
         
           def <- estimate_infections(case_segment,

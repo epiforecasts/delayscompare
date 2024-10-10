@@ -60,8 +60,8 @@ cholera_gen_time <- Gamma(mean=8.51,
 
 ## Incubation period 
 
-cholera_inc_period <- LogNormal(mean=1.4,
-                                sd=1.98,
+cholera_inc_period <- LogNormal(mean=1.77,
+                                sd=1.08,
                                 max=30) # max is a placeholder # Azman et al. 2013
 
 ## Reporting delay
