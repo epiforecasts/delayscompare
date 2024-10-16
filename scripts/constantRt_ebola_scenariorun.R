@@ -29,7 +29,7 @@ ebola_sim_data_cases_ur <- ebola_sim_data_cases_ur |>
   select(date, value) |>
   rename(confirm=value)
 
-ebola_rep_params <- get_parameters(fix_dist(ebola_reporting_delay))
+# ebola_rep_params <- get_parameters(fix_dist(ebola_reporting_delay))
 
 ## Run scenario 1 - rt_opts=latest, under-reporting=no ##
 
@@ -41,9 +41,9 @@ res_ebola <- sim_scenarios(case_data=ebola_sim_data_cases,
                            inc_mean=11.4,
                            inc_sd=8.1, # from Aylward et al. 2014 
                            inc_max=60,
-                           rep_meanlog=ebola_rep_params$meanlog,
-                           rep_sdlog=ebola_rep_params$sdlog,
-                           rep_max=50,
+                           rep_mean=1,
+                           rep_sd=1,
+                           rep_max=0,
                            freq_fc=4,
                            weeks_inc=12,
                            rt_opts_choice="latest",
@@ -66,9 +66,9 @@ save_latest(res_ebola[[4]], here("results"), paste0("res_ebolascen1_R", gt))
                            inc_mean=11.4,
                            inc_sd=8.1, # from Aylward et al. 2014 
                            inc_max=60,
-                           rep_meanlog=ebola_rep_params$meanlog,
-                           rep_sdlog=ebola_rep_params$sdlog,
-                           rep_max=50,
+                           rep_mean=1,
+                           rep_sd=1,
+                           rep_max=0,
                            freq_fc=4,
                            weeks_inc=12,
                            rt_opts_choice="latest",
@@ -91,9 +91,9 @@ save_latest(res_ebola[[4]], here("results"), paste0("res_ebolascen2_R", gt))
                              inc_mean=11.4,
                              inc_sd=8.1, # from Aylward et al. 2014 
                              inc_max=60,
-                             rep_meanlog=ebola_rep_params$meanlog,
-                             rep_sdlog=ebola_rep_params$sdlog,
-                             rep_max=50,
+                             rep_mean=1,
+                             rep_sd=1,
+                             rep_max=0,
                              freq_fc=4,
                              weeks_inc=12,
                              rt_opts_choice="project",
@@ -118,9 +118,9 @@ save_latest(res_ebola[[4]], here("results"), paste0("res_ebolascen2_R", gt))
                              inc_mean=11.4,
                              inc_sd=8.1, # from Aylward et al. 2014 
                              inc_max=60,
-                             rep_meanlog=ebola_rep_params$meanlog,
-                             rep_sdlog=ebola_rep_params$sdlog,
-                             rep_max=50,
+                             rep_mean=1,
+                             rep_sd=1,
+                             rep_max=0,
                              freq_fc=4,
                              weeks_inc=12,
                              rt_opts_choice="project",
@@ -150,8 +150,6 @@ ebola_sim_data_cases_ur <- ebola_sim_data_cases_ur |>
   select(date, value) |>
   rename(confirm=value)
 
-ebola_rep_params <- get_parameters(fix_dist(ebola_reporting_delay))
-
 ## Run scenario 5 - rt_opts=latest, under-reporting=no ##
 
   res_ebola <- sim_scenarios(case_data=ebola_sim_data_cases,
@@ -162,9 +160,9 @@ ebola_rep_params <- get_parameters(fix_dist(ebola_reporting_delay))
                              inc_mean=11.4,
                              inc_sd=8.1, # from Aylward et al. 2014 
                              inc_max=60,
-                             rep_meanlog=ebola_rep_params$meanlog,
-                             rep_sdlog=ebola_rep_params$sdlog,
-                             rep_max=50,
+                             rep_mean=1,
+                             rep_sd=1,
+                             rep_max=0,
                              freq_fc=4,
                              weeks_inc=12,
                              rt_opts_choice="latest",
@@ -187,9 +185,9 @@ ebola_rep_params <- get_parameters(fix_dist(ebola_reporting_delay))
                              inc_mean=11.4,
                              inc_sd=8.1, # from Aylward et al. 2014 
                              inc_max=60,
-                             rep_meanlog=ebola_rep_params$meanlog,
-                             rep_sdlog=ebola_rep_params$sdlog,
-                             rep_max=50,
+                             rep_mean=1,
+                             rep_sd=1,
+                             rep_max=0,
                              freq_fc=4,
                              weeks_inc=12,
                              rt_opts_choice="latest",
@@ -212,9 +210,9 @@ ebola_rep_params <- get_parameters(fix_dist(ebola_reporting_delay))
                              inc_mean=11.4,
                              inc_sd=8.1, # from Aylward et al. 2014 
                              inc_max=60,
-                             rep_meanlog=ebola_rep_params$meanlog,
-                             rep_sdlog=ebola_rep_params$sdlog,
-                             rep_max=50,
+                             rep_mean=1,
+                             rep_sd=1,
+                             rep_max=0,
                              freq_fc=4,
                              weeks_inc=12,
                              rt_opts_choice="project",
@@ -237,9 +235,9 @@ ebola_rep_params <- get_parameters(fix_dist(ebola_reporting_delay))
                              inc_mean=11.4,
                              inc_sd=8.1, # from Aylward et al. 2014 
                              inc_max=60,
-                             rep_meanlog=ebola_rep_params$meanlog,
-                             rep_sdlog=ebola_rep_params$sdlog,
-                             rep_max=50,
+                             rep_mean=1,
+                             rep_sd=1,
+                             rep_max=0,
                              freq_fc=4,
                              weeks_inc=12,
                              rt_opts_choice="project",

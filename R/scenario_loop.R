@@ -146,15 +146,17 @@ sim_weightprior <- function(case_data,
                           gen_mean_mean,
                           gen_mean_sd,
                           gen_sd_mean,
-                          ge_sd_sd,
+                          gen_sd_sd,
                           gen_max,
                           inc_mean_mean,
                           inc_mean_sd,
                           inc_sd_mean,
                           inc_sd_sd,
                           inc_max,
-                          rep_mean,
-                          rep_sd,
+                          rep_mean_mean,
+                          rep_mean_sd,
+                          rep_sd_mean,
+                          rep_sd_sd,
                           rep_max,
                           freq_fc=4,
                           weeks_inc=12,
@@ -165,7 +167,11 @@ sim_weightprior <- function(case_data,
   scen_timepoints <- case_data$date[c(1:(nrow(case_data) %/% (freq_fc*7)))*freq_fc*7]
   names(scen_timepoints) <- c(1:length(scen_timepoints))
   
-res <- pmap(scen_timepoints, \(k) {
+  scenarios <- expand.grid(
+    k = seq_along(scen_timepoints)
+  )
+  
+res <- pmap(scenarios, \(k) {
         # Case data
         case_segment <- case_data |>
           filter(date <= scen_timepoints[k])
@@ -186,9 +192,9 @@ res <- pmap(scen_timepoints, \(k) {
                                 sd=Normal(inc_sd_mean, inc_sd_sd),
                                 max=inc_max)
         
-        reporting_delay <- LogNormal(mean==rep_mean,
-                                     sd=rep_sd,
-                                     max=rep_max)
+        if(rep_max>0) {reporting_delay <- LogNormal(mean=Normal(rep_mean_mean, rep_mean_sd),
+                                     sd=Normal(rep_sd_mean, rep_sd_sd),
+                                     max=rep_max)} else {reporting_delay <- Fixed(0)}
 
           def <- estimate_infections(case_segment,
                                      generation_time = generation_time_opts(gen_time, weight_prior=TRUE),

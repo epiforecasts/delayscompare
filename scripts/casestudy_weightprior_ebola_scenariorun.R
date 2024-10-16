@@ -30,23 +30,51 @@ ebola_confirmed <- right_join(ebola_confirmed, extra_dates, by="date")
 
 ebola_confirmed$confirm[is.na(ebola_confirmed$confirm)] <- 0
 
-############### SCENARIOS #################
+## Param values
 
-ebola_rep_params <- get_parameters(fix_dist(ebola_reporting_delay))
+# Generation time
+gen_mean_mean=16.2
+gen_mean_sd=0.16
+gen_sd_mean=9.40
+gen_sd_sd=0.11
+gen_max=50
+
+# Incubation period
+inc_mean_mean=11.4
+inc_mean_sd=0.14
+inc_sd_mean=8.1
+inc_sd_sd=0.1
+inc_max=60
+
+# Reporting delay
+rep_mean_mean=1
+rep_mean_sd=0.1
+rep_sd_mean=1
+rep_sd_sd=0.1
+rep_max=0 # Setting this to zero as no reporting delay in the data
+
+
+############### SCENARIOS #################
 
 ## Run scenario 25 - rt_opts=latest, under-reporting=no, weightprior=FALSE ##
 
 res_ebola <- sim_weightprior(case_data=ebola_confirmed,
                            gt,
-                           gen_mean=16.2,
-                           gen_sd=9.40, # from Park et al. 2019
-                           gen_max=50,
-                           inc_mean=11.4,
-                           inc_sd=8.1, # from Aylward et al. 2014 
-                           inc_max=60,
-                           rep_meanlog=ebola_rep_params$meanlog,
-                           rep_sdlog=ebola_rep_params$sdlog,
-                           rep_max=50,
+                           gen_mean_mean=gen_mean_mean,
+                           gen_mean_sd=gen_mean_sd,
+                           gen_sd_mean=gen_sd_mean,
+                           gen_sd_sd=gen_sd_sd,
+                           gen_max=gen_max,
+                           inc_mean_mean=inc_mean_mean,
+                           inc_mean_sd=inc_mean_sd,
+                           inc_sd_mean=inc_sd_mean,
+                           inc_sd_sd=inc_sd_sd,
+                           inc_max=inc_max,
+                           rep_mean_mean=rep_mean_mean,
+                           rep_mean_sd=rep_mean_sd,
+                           rep_sd_mean=rep_sd_mean,
+                           rep_sd_sd=rep_sd_sd,
+                           rep_max=rep_max,
                            freq_fc=4,
                            weeks_inc=12,
                            rt_opts_choice="latest",
@@ -63,15 +91,21 @@ save_latest(res_ebola[[4]], here("results"), paste0("res_ebolascen25_R", gt))
 
   res_ebola <- sim_weightprior(case_data=ebola_confirmed,
                            gt,
-                           gen_mean=16.2,
-                           gen_sd=9.40, # from Park et al. 2019
-                           gen_max=50,
-                           inc_mean=11.4,
-                           inc_sd=8.1, # from Aylward et al. 2014 
-                           inc_max=60,
-                           rep_meanlog=ebola_rep_params$meanlog,
-                           rep_sdlog=ebola_rep_params$sdlog,
-                           rep_max=50,
+                           gen_mean_mean=gen_mean_mean,
+                           gen_mean_sd=gen_mean_sd,
+                           gen_sd_mean=gen_sd_mean,
+                           gen_sd_sd=gen_sd_sd,
+                           gen_max=gen_max,
+                           inc_mean_mean=inc_mean_mean,
+                           inc_mean_sd=inc_mean_sd,
+                           inc_sd_mean=inc_sd_mean,
+                           inc_sd_sd=inc_sd_sd,
+                           inc_max=inc_max,
+                           rep_mean_mean=rep_mean_mean,
+                           rep_mean_sd=rep_mean_sd,
+                           rep_sd_mean=rep_sd_mean,
+                           rep_sd_sd=rep_sd_sd,
+                           rep_max=rep_max,
                            freq_fc=4,
                            weeks_inc=12,
                            rt_opts_choice="latest",
@@ -88,15 +122,21 @@ save_latest(res_ebola[[4]], here("results"), paste0("res_ebolascen26_R", gt))
 
   res_ebola <- sim_weightprior(case_data=ebola_confirmed,
                              gt,
-                             gen_mean=16.2,
-                             gen_sd=9.40, # from Park et al. 2019
-                             gen_max=50,
-                             inc_mean=11.4,
-                             inc_sd=8.1, # from Aylward et al. 2014 
-                             inc_max=60,
-                             rep_meanlog=ebola_rep_params$meanlog,
-                             rep_sdlog=ebola_rep_params$sdlog,
-                             rep_max=50,
+                             gen_mean_mean=gen_mean_mean,
+                             gen_mean_sd=gen_mean_sd,
+                             gen_sd_mean=gen_sd_mean,
+                             gen_sd_sd=gen_sd_sd,
+                             gen_max=gen_max,
+                             inc_mean_mean=inc_mean_mean,
+                             inc_mean_sd=inc_mean_sd,
+                             inc_sd_mean=inc_sd_mean,
+                             inc_sd_sd=inc_sd_sd,
+                             inc_max=inc_max,
+                             rep_mean_mean=rep_mean_mean,
+                             rep_mean_sd=rep_mean_sd,
+                             rep_sd_mean=rep_sd_mean,
+                             rep_sd_sd=rep_sd_sd,
+                             rep_max=rep_max,
                              freq_fc=4,
                              weeks_inc=12,
                              rt_opts_choice="project",
@@ -114,15 +154,21 @@ save_latest(res_ebola[[4]], here("results"), paste0("res_ebolascen26_R", gt))
 
   res_ebola <- sim_weightprior(case_data=ebola_confirmed,
                              gt,
-                             gen_mean=16.2,
-                             gen_sd=9.40, # from Park et al. 2019
-                             gen_max=50,
-                             inc_mean=11.4,
-                             inc_sd=8.1, # from Aylward et al. 2014 
-                             inc_max=60,
-                             rep_meanlog=ebola_rep_params$meanlog,
-                             rep_sdlog=ebola_rep_params$sdlog,
-                             rep_max=50,
+                             gen_mean_mean=gen_mean_mean,
+                             gen_mean_sd=gen_mean_sd,
+                             gen_sd_mean=gen_sd_mean,
+                             gen_sd_sd=gen_sd_sd,
+                             gen_max=gen_max,
+                             inc_mean_mean=inc_mean_mean,
+                             inc_mean_sd=inc_mean_sd,
+                             inc_sd_mean=inc_sd_mean,
+                             inc_sd_sd=inc_sd_sd,
+                             inc_max=inc_max,
+                             rep_mean_mean=rep_mean_mean,
+                             rep_mean_sd=rep_mean_sd,
+                             rep_sd_mean=rep_sd_mean,
+                             rep_sd_sd=rep_sd_sd,
+                             rep_max=rep_max,
                              freq_fc=4,
                              weeks_inc=12,
                              rt_opts_choice="project",

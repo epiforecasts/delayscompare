@@ -27,8 +27,6 @@ covid_eng <- covid_eng |> filter(date >= "2021-06-01" & date < "2021-12-01")
 
 ############### SCENARIOS #################
 
-covid_rep_params <- get_parameters(fix_dist(covid_reporting_delay))
-
 ## Run scenario 21 - rt_opts=latest, under-reporting=no ##
 
 res_covid <- sim_scenarios(case_data=covid_eng,
@@ -39,8 +37,8 @@ res_covid <- sim_scenarios(case_data=covid_eng,
                            inc_mean=5.2,
                            inc_sd=1.52, # from Aylward et al. 2014 
                            inc_max=30,
-                           rep_meanlog=covid_rep_params$meanlog,
-                           rep_sdlog=covid_rep_params$sdlog,
+                           rep_mean=4.4,
+                           rep_sd=5.6,
                            rep_max=30,
                            freq_fc=4,
                            weeks_inc=12,
@@ -64,8 +62,8 @@ save_latest(res_covid[[4]], here("results"), paste0("res_covidscen21_R", gt))
                            inc_mean=5.2,
                            inc_sd=1.52, # from Aylward et al. 2014 
                            inc_max=30,
-                           rep_meanlog=covid_rep_params$meanlog,
-                           rep_sdlog=covid_rep_params$sdlog,
+                           rep_mean=4.4,
+                           rep_sd=5.6,
                            rep_max=30,
                            freq_fc=4,
                            weeks_inc=12,
@@ -89,8 +87,8 @@ save_latest(res_covid[[4]], here("results"), paste0("res_covidscen22_R", gt))
                              inc_mean=5.2,
                              inc_sd=1.52, # from Aylward et al. 2014 
                              inc_max=30,
-                             rep_meanlog=covid_rep_params$meanlog,
-                             rep_sdlog=covid_rep_params$sdlog,
+                             rep_mean=4.4,
+                             rep_sd=5.6,
                              rep_max=30,
                              freq_fc=4,
                              weeks_inc=12,
@@ -115,8 +113,8 @@ save_latest(res_covid[[4]], here("results"), paste0("res_covidscen22_R", gt))
                              inc_mean=5.2,
                              inc_sd=1.52, # from Aylward et al. 2014 
                              inc_max=30,
-                             rep_meanlog=covid_rep_params$meanlog,
-                             rep_sdlog=covid_rep_params$sdlog,
+                             rep_mean=4.4,
+                             rep_sd=5.6,
                              rep_max=30,
                              freq_fc=4,
                              weeks_inc=12,

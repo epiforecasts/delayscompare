@@ -20,9 +20,9 @@ ebola_inc_period <- LogNormal(mean=11.4,
 
 ## Reporting delay
 
-ebola_reporting_delay <- readRDS(here("data", "ebolareportingdelay.RDS")) # estimated from Fang et al. 2016 linelist
+# ebola_reporting_delay <- readRDS(here("data", "ebolareportingdelay.RDS")) # estimated from Fang et al. 2016 linelist - no longer need, as using date of symptom onset.
 
-combined_delay_ebola <- ebola_inc_period + ebola_reporting_delay
+# combined_delay_ebola <- ebola_inc_period + ebola_reporting_delay
 
 #### SARS-CoV-2-like ####
 

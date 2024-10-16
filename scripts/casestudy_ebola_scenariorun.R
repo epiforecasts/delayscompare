@@ -17,7 +17,7 @@ ebola_confirmed_linelist <- read_xlsx(here("data", "ebola_linelist.xlsx"), "lab-
 # Formating for EpiNow2
 
 ebola_confirmed <- incidence(ebola_confirmed_linelist,
-                             date_index="Date of sample tested",
+                             date_index="Date of symptom onset",
                              interval="day")
 
 ebola_confirmed <- ebola_confirmed |>
@@ -32,8 +32,6 @@ ebola_confirmed$confirm[is.na(ebola_confirmed$confirm)] <- 0
 
 ############### SCENARIOS #################
 
-ebola_rep_params <- get_parameters(fix_dist(ebola_reporting_delay))
-
 ## Run scenario 21 - rt_opts=latest, under-reporting=no ##
 
 res_ebola <- sim_scenarios(case_data=ebola_confirmed,
@@ -44,9 +42,9 @@ res_ebola <- sim_scenarios(case_data=ebola_confirmed,
                            inc_mean=11.4,
                            inc_sd=8.1, # from Aylward et al. 2014 
                            inc_max=60,
-                           rep_meanlog=ebola_rep_params$meanlog,
-                           rep_sdlog=ebola_rep_params$sdlog,
-                           rep_max=50,
+                           rep_mean=1,
+                           rep_sd=1,
+                           rep_max=0,
                            freq_fc=4,
                            weeks_inc=12,
                            rt_opts_choice="latest",
@@ -69,9 +67,9 @@ save_latest(res_ebola[[4]], here("results"), paste0("res_ebolascen21_R", gt))
                            inc_mean=11.4,
                            inc_sd=8.1, # from Aylward et al. 2014 
                            inc_max=60,
-                           rep_meanlog=ebola_rep_params$meanlog,
-                           rep_sdlog=ebola_rep_params$sdlog,
-                           rep_max=50,
+                           rep_mean=1,
+                           rep_sd=1,
+                           rep_max=0,
                            freq_fc=4,
                            weeks_inc=12,
                            rt_opts_choice="latest",
@@ -94,9 +92,9 @@ save_latest(res_ebola[[4]], here("results"), paste0("res_ebolascen22_R", gt))
                              inc_mean=11.4,
                              inc_sd=8.1, # from Aylward et al. 2014 
                              inc_max=60,
-                             rep_meanlog=ebola_rep_params$meanlog,
-                             rep_sdlog=ebola_rep_params$sdlog,
-                             rep_max=50,
+                             rep_mean=1,
+                             rep_sd=1,
+                             rep_max=0,
                              freq_fc=4,
                              weeks_inc=12,
                              rt_opts_choice="project",
@@ -120,9 +118,9 @@ save_latest(res_ebola[[4]], here("results"), paste0("res_ebolascen22_R", gt))
                              inc_mean=11.4,
                              inc_sd=8.1, # from Aylward et al. 2014 
                              inc_max=60,
-                             rep_meanlog=ebola_rep_params$meanlog,
-                             rep_sdlog=ebola_rep_params$sdlog,
-                             rep_max=50,
+                             rep_mean=1,
+                             rep_sd=1,
+                             rep_max=0,
                              freq_fc=4,
                              weeks_inc=12,
                              rt_opts_choice="project",

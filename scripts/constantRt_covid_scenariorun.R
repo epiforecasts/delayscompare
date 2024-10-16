@@ -36,10 +36,10 @@ covid_rep_params <- get_parameters(fix_dist(covid_reporting_delay))
 res_covid <- sim_scenarios(case_data=covid_sim_data_cases,
                            gt,
                            gen_mean=3.6,
-                           gen_sd=3.1, # from Park et al. 2019
+                           gen_sd=3.1,
                            gen_max=30,
                            inc_mean=5.2,
-                           inc_sd=1.52, # from Aylward et al. 2014 
+                           inc_sd=1.52,
                            inc_max=30,
                            rep_mean=4.4,
                            rep_sd=5.6,
@@ -64,7 +64,7 @@ save_latest(res_covid[[4]], here("results"), paste0("res_covidscen1_R", gt))
                            gen_sd=3.1, 
                            gen_max=30,
                            inc_mean=5.2,
-                           inc_sd=1.52, # from Aylward et al. 2014 
+                           inc_sd=1.52, 
                            inc_max=30,
                            rep_mean=4.4,
                            rep_sd=5.6,
@@ -89,7 +89,7 @@ save_latest(res_covid[[4]], here("results"), paste0("res_covidscen2_R", gt))
                              gen_sd=3.1, 
                              gen_max=30,
                              inc_mean=5.2,
-                             inc_sd=1.52, # from Aylward et al. 2014 
+                             inc_sd=1.52, 
                              inc_max=30,
                              rep_mean=4.4,
                              rep_sd=5.6,
@@ -116,7 +116,7 @@ save_latest(res_covid[[4]], here("results"), paste0("res_covidscen2_R", gt))
                              gen_sd=3.1, 
                              gen_max=30,
                              inc_mean=5.2,
-                             inc_sd=1.52, # from Aylward et al. 2014 
+                             inc_sd=1.52, 
                              inc_max=30,
                              rep_mean=4.4,
                              rep_sd=5.6,
@@ -160,7 +160,7 @@ covid_rep_params <- get_parameters(fix_dist(covid_reporting_delay))
                              gen_sd=3.1, 
                              gen_max=30,
                              inc_mean=5.2,
-                             inc_sd=1.52, # from Aylward et al. 2014 
+                             inc_sd=1.52, 
                              inc_max=30,
                              rep_mean=4.4,
                              rep_sd=5.6,
@@ -182,10 +182,10 @@ covid_rep_params <- get_parameters(fix_dist(covid_reporting_delay))
   res_covid <- sim_scenarios(case_data=covid_sim_data_cases_ur,
                              gt,
                              gen_mean=3.6,
-                             gen_sd=3.1, # from Park et al. 2019
+                             gen_sd=3.1, 
                              gen_max=30,
                              inc_mean=5.2,
-                             inc_sd=1.52, # from Aylward et al. 2014 
+                             inc_sd=1.52,  
                              inc_max=30,
                              rep_mean=4.4,
                              rep_sd=5.6,
@@ -210,7 +210,7 @@ covid_rep_params <- get_parameters(fix_dist(covid_reporting_delay))
                              gen_sd=3.1,
                              gen_max=30,
                              inc_mean=5.2,
-                             inc_sd=1.52, # from Aylward et al. 2014 
+                             inc_sd=1.52, 
                              inc_max=30,
                              rep_mean=4.4,
                              rep_sd=5.6,
@@ -232,10 +232,10 @@ covid_rep_params <- get_parameters(fix_dist(covid_reporting_delay))
   res_covid <- sim_scenarios(case_data=covid_sim_data_cases_ur,
                              gt,
                              gen_mean=3.6,
-                             gen_sd=3.1, # from Park et al. 2019
+                             gen_sd=3.1, 
                              gen_max=30,
                              inc_mean=5.2,
-                             inc_sd=1.52, # from Aylward et al. 2014 
+                             inc_sd=1.52,  
                              inc_max=30,
                              rep_mean=4.4,
                              rep_sd=5.6,
