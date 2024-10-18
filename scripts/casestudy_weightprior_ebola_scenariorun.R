@@ -56,6 +56,8 @@ rep_max=0 # Setting this to zero as no reporting delay in the data
 
 ############### SCENARIOS #################
 
+
+
 ## Run scenario 25 - rt_opts=latest, under-reporting=no, weightprior=FALSE ##
 
 res_ebola <- sim_weightprior(case_data=ebola_confirmed,

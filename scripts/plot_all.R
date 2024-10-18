@@ -7,9 +7,12 @@ source(here("R", "generate_scores_func.R"))
 
 source(here("R", "lshtm_theme.R"))
 
-#generate_plots("ebola")
-generate_plots("cholera")
-generate_plots("covid", "inc_period")
+generate_plots("cholera", "gen_time", "2017-04-23")
+generate_plots("cholera", "inc_period", "2017-04-23")
 
-generate_plots("ebola", "gen_time")
-generate_plots("ebola", "inc_period")
+generate_plots("covid", "gen_time", "2021-01-01")
+generate_plots("covid", "inc_period", "2021-01-01")
+
+# Ebola - not ready b/c need to wait for 15, 16 to re-run and download results
+generate_plots("ebola", "gen_time", "2014-05-18")
+generate_plots("ebola", "inc_period", "2014-05-18")

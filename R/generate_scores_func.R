@@ -1,5 +1,11 @@
 ## Need to generate scores as we go, in order to save memory ##
 generate_scores_cases <- function(res_samples, res_id, sim_data_scen) {
+  
+  # Need to add result_list to res_id
+  res_id <- res_id |> 
+    group_by(gt) |>
+    mutate(result_list=1:n())
+    
 
 # Add info to res_samples
 res_samples <- res_samples |>
@@ -43,6 +49,11 @@ return(scores)
 
 ## Need to generate scores as we go, in order to save memory ##
 generate_scores_rt <- function(res_R, res_id, rt_traj_scen) {
+  
+  # Need to add result_list to res_id
+  res_id <- res_id |> 
+    group_by(gt) |>
+    mutate(result_list=1:n())
   
   # Add info to res_R
   res_R <- res_R |>
@@ -258,7 +269,7 @@ plot_boxplots <- function(scores, predictor, measure){
 }
 
 
-generate_plots <- function(disease, predictor){
+generate_plots <- function(disease, predictor, startdate){
   
   ## Loading all data - collect Rt trajectories and simulated data in a list ##
   
@@ -288,12 +299,12 @@ generate_plots <- function(disease, predictor){
       mutate(scen=i)
     
     ## Loading results & generating scores as we go in order to save memory ##
-    res_samples <- read_latest(here(paste0("results/", disease)), paste0("res_", disease, "scen", i, "_all_samples"))
-    res_R <- read_latest(here(paste0("results/", disease)), paste0("res_", disease, "scen", i, "_all_R"))
-    res_id <- read_latest(here(paste0("results/", disease)), paste0("res_", disease, "scen", i, "_all_id")) 
+    res_samples <- read_latest(here(paste0("results/", disease, "/", disease)), paste0("res_", disease, "scen", i, "_all_samples"))
+    res_R <- read_latest(here(paste0("results/", disease, "/", disease)), paste0("res_", disease, "scen", i, "_all_R"))
+    res_id <- read_latest(here(paste0("results/", disease, "/",  disease)), paste0("res_", disease, "scen", i, "_all_id")) 
     
-    res_samples <- res_samples |> filter(date <= as.Date("2014-05-23") + 6*4*7)
-    res_R <- res_R |> filter(date <= as.Date("2014-05-23") + 6*4*7)
+    res_samples <- res_samples |> filter(date <= as.Date(startdate) + 6*4*7)
+    res_R <- res_R |> filter(date <= as.Date(startdate) + 6*4*7)
     
     scores_cases[[i]] <- generate_scores_cases(res_samples, res_id, sim_data_scen[[i]]) |> mutate(scen=i)
     scores_rt[[i]] <- generate_scores_rt(res_R, res_id, rt_traj_scen[[i]]) |> mutate(scen=i)
