@@ -7,7 +7,7 @@ source(here("R", "funcs_data.R"))
 #### EBOLA-LIKE ####
 ####################
 
-for(i in 2:16){
+for(i in 1:16){
 
 ebola_id <- list()
 ebola_R <- list()
@@ -30,10 +30,10 @@ ebola_id <- bind_rows(ebola_id)
 ebola_R <- bind_rows(ebola_R)
 ebola_samples <- bind_rows(ebola_samples)
 
-save_latest(ebola_id, here("results"), paste0("res_ebolascen", i, "_all_id"))
-save_latest(ebola_R, here("results"), paste0("res_ebolascen", i, "_all_R"))
-save_latest(ebola_samples, here("results"), paste0("res_ebolascen", i, "_all_samples"))
-save_latest(ebola_warnings, here("results"), paste0("res_ebolascen", i, "_all_warnings"))
+save_latest(ebola_id, here("results/ebola"), paste0("res_ebolascen", i, "_all_id"))
+save_latest(ebola_R, here("results/ebola"), paste0("res_ebolascen", i, "_all_R"))
+save_latest(ebola_samples, here("results/ebola"), paste0("res_ebolascen", i, "_all_samples"))
+save_latest(ebola_warnings, here("results/ebola"), paste0("res_ebolascen", i, "_all_warnings"))
 
 }
 
