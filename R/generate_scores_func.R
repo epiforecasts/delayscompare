@@ -6,7 +6,6 @@ generate_scores_cases <- function(res_samples, res_id, sim_data_scen) {
     group_by(gt) |>
     mutate(result_list=1:n())
     
-
 # Add info to res_samples
 res_samples <- res_samples |>
   left_join(res_id, by=c("result_list", "gt"))
@@ -32,15 +31,13 @@ res_samples <- as_forecast_sample(
   forecast_unit=c("date", "type", "gen_time", "inc_period", "model", "timepoint"),
   observed="true_value",
   predicted="prediction",
-  model='model',
   sample_id='sample'
 )
 
-res_samples <- transform_forecasts(res_samples, fun = log_shift, offset=1, label="log")
+res_samples <- transform_forecasts(res_samples, fun = log_shift, offset = 1, label="log")
 
 scores <- res_samples |>
   filter(type=="forecast", scale=="log") |>
-  set_forecast_unit(c("date", "model", "gen_time", "inc_period", "type", "timepoint")) |>
   score() 
 
 return(scores)
@@ -77,7 +74,6 @@ generate_scores_rt <- function(res_R, res_id, rt_traj_scen) {
     forecast_unit=c("date", "type", "gen_time", "inc_period", "model", "timepoint"),
     observed="R",
     predicted="value",
-    model='model',
     sample_id='sample'
   )
   
@@ -85,7 +81,6 @@ generate_scores_rt <- function(res_R, res_id, rt_traj_scen) {
   
   scores <- res_R |>
     filter(type=="forecast", scale=="natural") |>
-    set_forecast_unit(c("date", "model", "gen_time", "inc_period", "type", "timepoint")) |>
     score() 
   
   return(scores)
@@ -329,17 +324,17 @@ generate_plots <- function(disease, predictor, startdate){
   scores_rt <- scores_rt |>
     left_join(scen_labs, by="scen")
   
- # box_overpredict_cases <- plot_boxplots(scores_cases, predictor, "overprediction")
-#  box_overpredict_rt <- plot_boxplots(scores_rt, predictor, "overprediction")
+  box_overpredict_cases <- plot_boxplots(scores_cases, predictor, "overprediction")
+  box_overpredict_rt <- plot_boxplots(scores_rt, predictor, "overprediction")
   
-#  ggsave(paste0("results/plot", disease, predictor, "_cases_overprediction_boxplot.png"), box_overpredict_cases, width=33, height=15, units="cm")
-#  ggsave(paste0("results/plot", disease, predictor,"_rt_overprediction_boxplot.png"), box_overpredict_rt, width=33, height=15, units="cm")
+  ggsave(paste0("results/plot", disease, predictor, "_cases_overprediction_boxplot.png"), box_overpredict_cases, width=33, height=15, units="cm")
+  ggsave(paste0("results/plot", disease, predictor,"_rt_overprediction_boxplot.png"), box_overpredict_rt, width=33, height=15, units="cm")
   
-#  box_underpredict_cases <- plot_boxplots(scores_cases, predictor, "underprediction")
-#  box_underpredict_rt <- plot_boxplots(scores_rt, predictor, "underprediction")
+  box_underpredict_cases <- plot_boxplots(scores_cases, predictor, "underprediction")
+  box_underpredict_rt <- plot_boxplots(scores_rt, predictor, "underprediction")
   
-#  ggsave(paste0("results/plot", disease, predictor, "_cases_underprediction_boxplot.png"), box_underpredict_cases, width=33, height=15, units="cm")
-#  ggsave(paste0("results/plot", disease, predictor,"_rt_underprediction_boxplot.png"), box_underpredict_rt, width=33, height=15, units="cm")
+  ggsave(paste0("results/plot", disease, predictor, "_cases_underprediction_boxplot.png"), box_underpredict_cases, width=33, height=15, units="cm")
+  ggsave(paste0("results/plot", disease, predictor,"_rt_underprediction_boxplot.png"), box_underpredict_rt, width=33, height=15, units="cm")
   
   box_crps_cases <- plot_boxplots(scores_cases, predictor, "crps")
   box_crps_rt <- plot_boxplots(scores_rt, predictor, "crps")
@@ -347,9 +342,9 @@ generate_plots <- function(disease, predictor, startdate){
   ggsave(paste0("results/plot", disease, predictor, "_cases_crps_boxplot.png"), box_crps_cases, width=33, height=15, units="cm")
   ggsave(paste0("results/plot", disease, predictor, "_rt_crps_boxplot.png"), box_crps_rt, width=33, height=15, units="cm")
   
-#  box_disp_cases <- plot_boxplots(scores_cases, predictor, "dispersion")
- # box_disp_rt <- plot_boxplots(scores_rt, predictor, "dispersion")
+  box_disp_cases <- plot_boxplots(scores_cases, predictor, "dispersion")
+  box_disp_rt <- plot_boxplots(scores_rt, predictor, "dispersion")
   
-#  ggsave(paste0("results/plot", disease, predictor, "_cases_disp_boxplot.png"), box_disp_cases, width=33, height=15, units="cm")
-#  ggsave(paste0("results/plot", disease, predictor, "_rt_disp_boxplot.png"), box_disp_rt, width=33, height=15, units="cm")
+  ggsave(paste0("results/plot", disease, predictor, "_cases_disp_boxplot.png"), box_disp_cases, width=33, height=15, units="cm")
+  ggsave(paste0("results/plot", disease, predictor, "_rt_disp_boxplot.png"), box_disp_rt, width=33, height=15, units="cm")
 }
