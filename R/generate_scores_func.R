@@ -277,21 +277,25 @@ generate_plots <- function(disease, predictor, startdate){
                           rt_opts=rep(c("latest", "latest", "project", "project"), 4),
                           ur=rep(c("No under-reporting", "Under-reporting", "No under-reporting", "Under-reporting"), 4))
   
-  rt_traj_scen <- list()
-  sim_data_scen <- list()
   scores_cases <- list()
   scores_rt <- list()
   
-  for(i in 1:16){
-    
-    ## Loading data ##
-    rt_traj_scen[[i]] <- rt_traj[[i]] |> 
-      as.data.frame() |> 
-      mutate(scen=i)
-    
-    sim_data_scen[[i]] <- sim_data[[i]] |> 
-      as.data.frame()|> 
-      mutate(scen=i)
+# Loading data
+
+rt_traj_scen <- lapply(c(1:16), function(i){
+  rt_traj[[i]] |> 
+    as.data.frame() |> 
+    mutate(scen=i)
+})
+
+sim_data_scen <- lapply(c(1:16), function(i){
+  sim_data[[i]] |> 
+    as.data.frame()|> 
+    mutate(scen=i)
+})
+
+
+test_results <- lapply(c(1:16), function(i){
     
     ## Loading results & generating scores as we go in order to save memory ##
     res_samples <- read_latest(here(paste0("results/", disease, "/", disease)), paste0("res_", disease, "scen", i, "_all_samples"))
@@ -301,15 +305,19 @@ generate_plots <- function(disease, predictor, startdate){
     res_samples <- res_samples |> filter(date <= as.Date(startdate) + 6*4*7)
     res_R <- res_R |> filter(date <= as.Date(startdate) + 6*4*7)
     
-    scores_cases[[i]] <- generate_scores_cases(res_samples, res_id, sim_data_scen[[i]]) |> mutate(scen=i)
-    scores_rt[[i]] <- generate_scores_rt(res_R, res_id, rt_traj_scen[[i]]) |> mutate(scen=i)
+    scores_cases <- generate_scores_cases(res_samples, res_id, sim_data_scen[[i]]) |> mutate(scen=i)
+    scores_rt <- generate_scores_rt(res_R, res_id, rt_traj_scen[[i]]) |> mutate(scen=i)
     
-  }
-  
+    return(list(scores_cases,
+                scores_rt))
+    
+  })
+
   rt_traj_scen <- bind_rows(rt_traj_scen)
   sim_data_scen <- bind_rows(sim_data_scen)
-  scores_cases <- bind_rows(scores_cases)
-  scores_rt <- bind_rows(scores_rt)
+  
+  scores_cases <- lapply(test_results, function(x) x[[1]]) |> bind_rows()
+  scores_rt <- lapply(test_results, function(x) x[[2]]) |> bind_rows()
   
   # Add scenario labels
   rt_traj_scen <- rt_traj_scen |> 
