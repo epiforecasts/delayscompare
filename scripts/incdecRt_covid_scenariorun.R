@@ -51,12 +51,11 @@ covid_rep_params <- get_parameters(fix_dist(covid_reporting_delay))
                             rt_opts_choice="latest",
                             obs_scale=1)
  
- save_latest(res_covid[[2]], here("results"), paste0("res_covidscen9_id", gt))
- save_latest(res_covid[[3]], here("results"), paste0("res_covidscen9_warnings", gt))
- 
- ## Saving samples only ##
  save_latest(res_covid[[1]], here("results"), paste0("res_covidscen9_samples", gt))
- save_latest(res_covid[[4]], here("results"), paste0("res_covidscen9_R", gt)) 
+ save_latest(res_covid[[2]], here("results"), paste0("res_covidscen9_id", gt))
+ save_latest(res_covid[[3]], here("results"), paste0("res_covidscen9_R", gt))
+ save_latest(res_covid[[4]], here("results"), paste0("res_covidscen9_summary", gt))
+ save_latest(res_covid[[5]], here("results"), paste0("res_covidscen9_warnings", gt))
  
  ## Run scenario 10 - rt_opts=latest, under-reporting=yes ##
  
@@ -76,12 +75,11 @@ covid_rep_params <- get_parameters(fix_dist(covid_reporting_delay))
                             rt_opts_choice="latest",
                             obs_scale=0.3)
  
- save_latest(res_covid[[2]], here("results"), paste0("res_covidscen10_id", gt))
- save_latest(res_covid[[3]], here("results"), paste0("res_covidscen10_warnings", gt))
- 
- ## Saving samples only ##
- save_latest(res_covid[[1]], here("results"), paste0("res_covidscen10_samples", gt))
- save_latest(res_covid[[4]], here("results"), paste0("res_covidscen10_R", gt)) 
+   save_latest(res_covid[[1]], here("results"), paste0("res_covidscen10_samples", gt))
+   save_latest(res_covid[[2]], here("results"), paste0("res_covidscen10_id", gt))
+   save_latest(res_covid[[3]], here("results"), paste0("res_covidscen10_R", gt))
+   save_latest(res_covid[[4]], here("results"), paste0("res_covidscen10_summary", gt))
+   save_latest(res_covid[[5]], here("results"), paste0("res_covidscen10_warnings", gt))
 
 ## Run scenario 11 - rt_opts=project, under-reporting=no ##
 
@@ -101,13 +99,11 @@ covid_rep_params <- get_parameters(fix_dist(covid_reporting_delay))
                              rt_opts_choice="project",
                              obs_scale=1)
   
-  
-  save_latest(res_covid[[2]], here("results"), paste0("res_covidscen11_id", gt))
-  save_latest(res_covid[[3]], here("results"), paste0("res_covidscen11_warnings", gt))
-  
-  ## Saving samples only ##
   save_latest(res_covid[[1]], here("results"), paste0("res_covidscen11_samples", gt))
-  save_latest(res_covid[[4]], here("results"), paste0("res_covidscen11_R", gt)) 
+  save_latest(res_covid[[2]], here("results"), paste0("res_covidscen11_id", gt))
+  save_latest(res_covid[[3]], here("results"), paste0("res_covidscen11_R", gt))
+  save_latest(res_covid[[4]], here("results"), paste0("res_covidscen11_summary", gt))
+  save_latest(res_covid[[5]], here("results"), paste0("res_covidscen11_warnings", gt))
 
 ## Run scenario 12 - rt_opts=project, under-reporting=yes ##
 
@@ -127,12 +123,11 @@ covid_rep_params <- get_parameters(fix_dist(covid_reporting_delay))
                              rt_opts_choice="project",
                              obs_scale=0.3)
   
-  save_latest(res_covid[[2]], here("results"), paste0("res_covidscen12_id", gt))
-  save_latest(res_covid[[3]], here("results"), paste0("res_covidscen12_warnings", gt))
-  
-  ## Saving samples only ##
   save_latest(res_covid[[1]], here("results"), paste0("res_covidscen12_samples", gt))
-  save_latest(res_covid[[4]], here("results"), paste0("res_covidscen12_R", gt)) 
+  save_latest(res_covid[[2]], here("results"), paste0("res_covidscen12_id", gt))
+  save_latest(res_covid[[3]], here("results"), paste0("res_covidscen12_R", gt))
+  save_latest(res_covid[[4]], here("results"), paste0("res_covidscen12_summary", gt))
+  save_latest(res_covid[[5]], here("results"), paste0("res_covidscen12_warnings", gt)) 
   
   #### Decreasing Rt ####
   
@@ -173,12 +168,11 @@ covid_rep_params <- get_parameters(fix_dist(covid_reporting_delay))
                              rt_opts_choice="latest",
                              obs_scale=1)
   
-  save_latest(res_covid[[2]], here("results"), paste0("res_covidscen13_id", gt))
-  save_latest(res_covid[[3]], here("results"), paste0("res_covidscen13_warnings", gt))
-  
-  ## Saving samples only ##
   save_latest(res_covid[[1]], here("results"), paste0("res_covidscen13_samples", gt))
-  save_latest(res_covid[[4]], here("results"), paste0("res_covidscen13_R", gt)) 
+  save_latest(res_covid[[2]], here("results"), paste0("res_covidscen13_id", gt))
+  save_latest(res_covid[[3]], here("results"), paste0("res_covidscen13_R", gt))
+  save_latest(res_covid[[4]], here("results"), paste0("res_covidscen13_summary", gt))
+  save_latest(res_covid[[5]], here("results"), paste0("res_covidscen13_warnings", gt))
 
 ## Run scenario 14 - rt_opts=latest, under-reporting=yes ##
 
@@ -198,12 +192,11 @@ covid_rep_params <- get_parameters(fix_dist(covid_reporting_delay))
                              rt_opts_choice="latest",
                              obs_scale=0.3)
   
-  save_latest(res_covid[[2]], here("results"), paste0("res_covidscen14_id", gt))
-  save_latest(res_covid[[3]], here("results"), paste0("res_covidscen14_warnings", gt))
-  
-  ## Saving samples only ##
   save_latest(res_covid[[1]], here("results"), paste0("res_covidscen14_samples", gt))
-  save_latest(res_covid[[4]], here("results"), paste0("res_covidscen14_R", gt)) 
+  save_latest(res_covid[[2]], here("results"), paste0("res_covidscen14_id", gt))
+  save_latest(res_covid[[3]], here("results"), paste0("res_covidscen14_R", gt))
+  save_latest(res_covid[[4]], here("results"), paste0("res_covidscen14_summary", gt))
+  save_latest(res_covid[[5]], here("results"), paste0("res_covidscen14_warnings", gt))
 
 ## Run scenario 15 - rt_opts=project, under-reporting=no ##
 
@@ -223,12 +216,11 @@ covid_rep_params <- get_parameters(fix_dist(covid_reporting_delay))
                              rt_opts_choice="project",
                              obs_scale=1)
   
-  save_latest(res_covid[[2]], here("results"), paste0("res_covidscen15_id", gt))
-  save_latest(res_covid[[3]], here("results"), paste0("res_covidscen15_warnings", gt))
-  
-  ## Saving samples only ##
   save_latest(res_covid[[1]], here("results"), paste0("res_covidscen15_samples", gt))
-  save_latest(res_covid[[4]], here("results"), paste0("res_covidscen15_R", gt)) 
+  save_latest(res_covid[[2]], here("results"), paste0("res_covidscen15_id", gt))
+  save_latest(res_covid[[3]], here("results"), paste0("res_covidscen15_R", gt))
+  save_latest(res_covid[[4]], here("results"), paste0("res_covidscen15_summary", gt))
+  save_latest(res_covid[[5]], here("results"), paste0("res_covidscen15_warnings", gt))
 
 ## Run scenario 16 - rt_opts=project, under-reporting=yes ##
 
@@ -248,10 +240,8 @@ covid_rep_params <- get_parameters(fix_dist(covid_reporting_delay))
                              rt_opts_choice="project",
                              obs_scale=0.3)
   
-  save_latest(res_covid[[2]], here("results"), paste0("res_covidscen16_id", gt))
-  save_latest(res_covid[[3]], here("results"), paste0("res_covidscen16_warnings", gt))
-  
-  ## Saving samples only ##
   save_latest(res_covid[[1]], here("results"), paste0("res_covidscen16_samples", gt))
-  save_latest(res_covid[[4]], here("results"), paste0("res_covidscen16_R", gt)) 
-
+  save_latest(res_covid[[2]], here("results"), paste0("res_covidscen16_id", gt))
+  save_latest(res_covid[[3]], here("results"), paste0("res_covidscen16_R", gt))
+  save_latest(res_covid[[4]], here("results"), paste0("res_covidscen16_summary", gt))
+  save_latest(res_covid[[5]], here("results"), paste0("res_covidscen16_warnings", gt)) 

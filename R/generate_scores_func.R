@@ -1,11 +1,6 @@
 ## Need to generate scores as we go, in order to save memory ##
 generate_scores_cases <- function(res_samples, res_id, sim_data_scen) {
   
-  # Need to add result_list to res_id
-  res_id <- res_id |> 
-    group_by(gt) |>
-    mutate(result_list=1:n())
-    
 # Add info to res_samples
 res_samples <- res_samples |>
   left_join(res_id, by=c("result_list", "gt"))

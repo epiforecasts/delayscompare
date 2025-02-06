@@ -27,7 +27,7 @@ sim_scenarios <- function(case_data,
     j = seq_along(scen_values),
     k = seq_along(scen_timepoints)
   )
-
+  
   res <- pmap(scenarios, \(j, k) {
         # Case data
         case_segment <- case_data |>
@@ -61,17 +61,17 @@ sim_scenarios <- function(case_data,
           reporting_delay <- Fixed(0)
         }
 
-    
-
-        
           def <- estimate_infections(case_segment,
                                      generation_time = generation_time_opts(gen_time),
                                      delays = delay_opts(reporting_delay),
-                                     obs=obs_opts(family="poisson", scale=obs_scale),
+                                     obs=obs_opts(family="negbin", scale=obs_scale),
                                      rt=rt_opts(future=rt_opts_choice),
-                                     stan = stan_opts(return_fit = FALSE),
-                                    horizon=14,
-                                    verbose = FALSE)
+                                     stan = stan_opts(samples = 3000,
+                                                      return_fit = FALSE,
+                                                      control=list(adapt_delta=0.99,
+                                                                   max_treedepth=20)),
+                                     horizon=14,
+                                     verbose = FALSE)
 
          res_samples <-
           def$samples[
@@ -98,11 +98,8 @@ sim_scenarios <- function(case_data,
                     summary = def))
   }, .progress = TRUE)
 
-  
   save_warnings <- warnings()
   res <- transpose(res)
-  
-  results_id <- bind_rows(res$id)
   
   res_samples <- lapply(seq_along(res$samples), function(i) {
     samples_scen <- res$samples[[i]] |>
@@ -114,6 +111,12 @@ sim_scenarios <- function(case_data,
     # Bind to dataframe
     return(samples_scen)
     
+  })
+  
+  res_id <- lapply(seq_along(res$id), function(i){
+    res_id <- res$id[[i]] |>
+      mutate(result_list=i)
+    return(res_id)
   })
   
   res_R <- lapply(seq_along(res$R), function(i) {
@@ -131,13 +134,14 @@ sim_scenarios <- function(case_data,
   res_samples <- bind_rows(res_samples) |>
     rename(prediction=value)
   
+  res_id <- bind_rows(res_id)
   res_R <- bind_rows(res_R)
   
   return(list(samples = res_samples,
-              id = results_id,
-              warnings = save_warnings,
+              id = res_id,
               R = res_R,
-              summary = res$summary))
+              summary = res$summary,
+              warnings = save_warnings))
 }
 
 
@@ -161,6 +165,7 @@ sim_weightprior <- function(case_data,
                           freq_fc=4,
                           weeks_inc=12,
                           rt_opts_choice,
+                          weight_prior,
                           obs_scale){
   
 
@@ -197,11 +202,14 @@ res <- pmap(scenarios, \(k) {
                                      max=rep_max)} else {reporting_delay <- Fixed(0)}
 
           def <- estimate_infections(case_segment,
-                                     generation_time = generation_time_opts(gen_time, weight_prior=TRUE),
-                                     delays = delay_opts(inc_period + reporting_delay, weight_prior=TRUE),
-                                     obs=obs_opts(family="poisson", scale=obs_scale),
+                                     generation_time = generation_time_opts(gen_time, weight_prior=weight_prior),
+                                     delays = delay_opts(inc_period + reporting_delay, weight_prior=weight_prior),
+                                     obs=obs_opts(family="negbin", scale=obs_scale),
                                      rt=rt_opts(future=rt_opts_choice),
-                                     stan = stan_opts(return_fit = FALSE),
+                                     stan = stan_opts(samples = 3000,
+                                                      return_fit = FALSE,
+                                                      control=list(adapt_delta=0.99,
+                                                                   max_treedepth=20)),
                                     horizon=14,
                                     verbose = FALSE)
 
@@ -231,41 +239,46 @@ res <- pmap(scenarios, \(k) {
 save_warnings <- warnings()
 res <- transpose(res)
 
-results_id <- bind_rows(res$id)
-
 res_samples <- lapply(seq_along(res$samples), function(i) {
-    samples_scen <- res$samples[[i]] |>
-      mutate(model="EpiNow2")
-    
-    # Add ID
-    samples_scen$result_list <- i
-    
-    # Bind to dataframe
-    return(samples_scen)
-    
-  })
+  samples_scen <- res$samples[[i]] |>
+    mutate(model="EpiNow2")
   
-  res_R <- lapply(seq_along(res_R), function(i) {
-    samples_scen <- res_R[[i]] |>
-      mutate(model="EpiNow2")
-    
-    # Add ID
-    samples_scen$result_list <- i
-    
-    # Bind to dataframe
-    return(samples_scen)
-    
-  })
+  # Add ID
+  samples_scen$result_list <- i
   
-  res_samples <- bind_rows(res_samples) |>
-    rename(prediction=value)
+  # Bind to dataframe
+  return(samples_scen)
   
-  res_R <- bind_rows(res_R)
+})
+
+res_id <- lapply(seq_along(res$id), function(i){
+  res_id <- res$id[[i]] |>
+    mutate(result_list=i)
+  return(res_id)
+})
+
+res_R <- lapply(seq_along(res$R), function(i) {
+  samples_scen <- res$R[[i]] |>
+    mutate(model="EpiNow2")
   
+  # Add ID
+  samples_scen$result_list <- i
+  
+  # Bind to dataframe
+  return(samples_scen)
+  
+})
+
+res_samples <- bind_rows(res_samples) |>
+  rename(prediction=value)
+
+res_id <- bind_rows(res_id)
+res_R <- bind_rows(res_R)
+
   return(list(samples = res_samples,
-              id = results_id,
-              warnings = save_warnings,
+              id = res_id,
               R = res_R,
-              summary = res$summary))
+              summary = res$summary,
+              warnings = save_warnings))
 }
 
