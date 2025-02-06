@@ -55,7 +55,7 @@ rep_max=0 # Setting this to zero as no reporting delay in the data
 
 ############### SCENARIOS #################
 
-## Run scenario 25 - rt_opts=latest, under-reporting=no, weightprior=FALSE ##
+## Run scenario 25 - rt_opts=latest, under-reporting=no, weightprior=TRUE ##
 
 res_ebola <- sim_weightprior(case_data=ebola_confirmed,
                            gt,
@@ -77,6 +77,7 @@ res_ebola <- sim_weightprior(case_data=ebola_confirmed,
                            freq_fc=4,
                            weeks_inc=12,
                            rt_opts_choice="latest",
+                           weight_prior=TRUE,
                            obs_scale=1)
 
 save_latest(res_ebola[[1]], here("results"), paste0("res_ebolascen25_samples", gt))
@@ -85,7 +86,7 @@ save_latest(res_ebola[[3]], here("results"), paste0("res_ebolascen25_R", gt))
 save_latest(res_ebola[[4]], here("results"), paste0("res_ebolascen25_summary", gt))
 save_latest(res_ebola[[5]], here("results"), paste0("res_ebolascen25_warnings", gt))
 
-## Run scenario 26 - rt_opts=latest, under-reporting=yes, weightprior=FALSE ##
+## Run scenario 26 - rt_opts=latest, under-reporting=yes, weightprior=TRUE ##
 
   res_ebola <- sim_weightprior(case_data=ebola_confirmed,
                            gt,
@@ -107,6 +108,7 @@ save_latest(res_ebola[[5]], here("results"), paste0("res_ebolascen25_warnings", 
                            freq_fc=4,
                            weeks_inc=12,
                            rt_opts_choice="latest",
+                           weight_prior=TRUE,
                            obs_scale=0.83)
 
   save_latest(res_ebola[[1]], here("results"), paste0("res_ebolascen26_samples", gt))
@@ -115,7 +117,7 @@ save_latest(res_ebola[[5]], here("results"), paste0("res_ebolascen25_warnings", 
   save_latest(res_ebola[[4]], here("results"), paste0("res_ebolascen26_summary", gt))
   save_latest(res_ebola[[5]], here("results"), paste0("res_ebolascen26_warnings", gt))
 
-## Run scenario 27 - rt_opts=project, under-reporting=no, weightprior=FALSE ##
+## Run scenario 27 - rt_opts=project, under-reporting=no, weightprior=TRUE ##
 
   res_ebola <- sim_weightprior(case_data=ebola_confirmed,
                              gt,
@@ -137,6 +139,7 @@ save_latest(res_ebola[[5]], here("results"), paste0("res_ebolascen25_warnings", 
                              freq_fc=4,
                              weeks_inc=12,
                              rt_opts_choice="project",
+                             weight_prior=TRUE,
                              obs_scale=1)
 
   save_latest(res_ebola[[1]], here("results"), paste0("res_ebolascen27_samples", gt))
@@ -145,7 +148,7 @@ save_latest(res_ebola[[5]], here("results"), paste0("res_ebolascen25_warnings", 
   save_latest(res_ebola[[4]], here("results"), paste0("res_ebolascen27_summary", gt))
   save_latest(res_ebola[[5]], here("results"), paste0("res_ebolascen27_warnings", gt))
 
-## Run scenario 28 - rt_opts=project, under-reporting=yes, weightprior=FALSE ##
+## Run scenario 28 - rt_opts=project, under-reporting=yes, weightprior=TRUE ##
 
   res_ebola <- sim_weightprior(case_data=ebola_confirmed,
                              gt,
@@ -167,6 +170,7 @@ save_latest(res_ebola[[5]], here("results"), paste0("res_ebolascen25_warnings", 
                              freq_fc=4,
                              weeks_inc=12,
                              rt_opts_choice="project",
+                             weight_prior=TRUE,
                              obs_scale=0.83)
 
   save_latest(res_ebola[[1]], here("results"), paste0("res_ebolascen28_samples", gt))
@@ -174,4 +178,130 @@ save_latest(res_ebola[[5]], here("results"), paste0("res_ebolascen25_warnings", 
   save_latest(res_ebola[[3]], here("results"), paste0("res_ebolascen28_R", gt))
   save_latest(res_ebola[[4]], here("results"), paste0("res_ebolascen28_summary", gt))
   save_latest(res_ebola[[5]], here("results"), paste0("res_ebolascen28_warnings", gt))
+  
+  ## Run scenario 29 - rt_opts=latest, under-reporting=no, weightprior=FALSE ##
+  
+  res_ebola <- sim_weightprior(case_data=ebola_confirmed,
+                               gt,
+                               gen_mean_mean=gen_mean_mean,
+                               gen_mean_sd=gen_mean_sd,
+                               gen_sd_mean=gen_sd_mean,
+                               gen_sd_sd=gen_sd_sd,
+                               gen_max=gen_max,
+                               inc_mean_mean=inc_mean_mean,
+                               inc_mean_sd=inc_mean_sd,
+                               inc_sd_mean=inc_sd_mean,
+                               inc_sd_sd=inc_sd_sd,
+                               inc_max=inc_max,
+                               rep_mean_mean=rep_mean_mean,
+                               rep_mean_sd=rep_mean_sd,
+                               rep_sd_mean=rep_sd_mean,
+                               rep_sd_sd=rep_sd_sd,
+                               rep_max=rep_max,
+                               freq_fc=4,
+                               weeks_inc=12,
+                               rt_opts_choice="latest",
+                               weight_prior=FALSE,
+                               obs_scale=1)
+  
+  save_latest(res_ebola[[1]], here("results"), paste0("res_ebolascen29_samples", gt))
+  save_latest(res_ebola[[2]], here("results"), paste0("res_ebolascen29_id", gt))
+  save_latest(res_ebola[[3]], here("results"), paste0("res_ebolascen29_R", gt))
+  save_latest(res_ebola[[4]], here("results"), paste0("res_ebolascen29_summary", gt))
+  save_latest(res_ebola[[5]], here("results"), paste0("res_ebolascen29_warnings", gt))
+  
+  ## Run scenario 30 - rt_opts=latest, under-reporting=yes, weightprior=FALSE ##
+  
+  res_ebola <- sim_weightprior(case_data=ebola_confirmed,
+                               gt,
+                               gen_mean_mean=gen_mean_mean,
+                               gen_mean_sd=gen_mean_sd,
+                               gen_sd_mean=gen_sd_mean,
+                               gen_sd_sd=gen_sd_sd,
+                               gen_max=gen_max,
+                               inc_mean_mean=inc_mean_mean,
+                               inc_mean_sd=inc_mean_sd,
+                               inc_sd_mean=inc_sd_mean,
+                               inc_sd_sd=inc_sd_sd,
+                               inc_max=inc_max,
+                               rep_mean_mean=rep_mean_mean,
+                               rep_mean_sd=rep_mean_sd,
+                               rep_sd_mean=rep_sd_mean,
+                               rep_sd_sd=rep_sd_sd,
+                               rep_max=rep_max,
+                               freq_fc=4,
+                               weeks_inc=12,
+                               rt_opts_choice="latest",
+                               weight_prior=FALSE,
+                               obs_scale=0.83)
+  
+  save_latest(res_ebola[[1]], here("results"), paste0("res_ebolascen30_samples", gt))
+  save_latest(res_ebola[[2]], here("results"), paste0("res_ebolascen30_id", gt))
+  save_latest(res_ebola[[3]], here("results"), paste0("res_ebolascen30_R", gt))
+  save_latest(res_ebola[[4]], here("results"), paste0("res_ebolascen30_summary", gt))
+  save_latest(res_ebola[[5]], here("results"), paste0("res_ebolascen30_warnings", gt))
+  
+  ## Run scenario 31 - rt_opts=project, under-reporting=no, weightprior=FALSE ##
+  
+  res_ebola <- sim_weightprior(case_data=ebola_confirmed,
+                               gt,
+                               gen_mean_mean=gen_mean_mean,
+                               gen_mean_sd=gen_mean_sd,
+                               gen_sd_mean=gen_sd_mean,
+                               gen_sd_sd=gen_sd_sd,
+                               gen_max=gen_max,
+                               inc_mean_mean=inc_mean_mean,
+                               inc_mean_sd=inc_mean_sd,
+                               inc_sd_mean=inc_sd_mean,
+                               inc_sd_sd=inc_sd_sd,
+                               inc_max=inc_max,
+                               rep_mean_mean=rep_mean_mean,
+                               rep_mean_sd=rep_mean_sd,
+                               rep_sd_mean=rep_sd_mean,
+                               rep_sd_sd=rep_sd_sd,
+                               rep_max=rep_max,
+                               freq_fc=4,
+                               weeks_inc=12,
+                               rt_opts_choice="project",
+                               weight_prior=FALSE,
+                               obs_scale=1)
+  
+  save_latest(res_ebola[[1]], here("results"), paste0("res_ebolascen31_samples", gt))
+  save_latest(res_ebola[[2]], here("results"), paste0("res_ebolascen31_id", gt))
+  save_latest(res_ebola[[3]], here("results"), paste0("res_ebolascen31_R", gt))
+  save_latest(res_ebola[[4]], here("results"), paste0("res_ebolascen31_summary", gt))
+  save_latest(res_ebola[[5]], here("results"), paste0("res_ebolascen31_warnings", gt))
+  
+  ## Run scenario 32 - rt_opts=project, under-reporting=yes, weightprior=FALSE ##
+  
+  res_ebola <- sim_weightprior(case_data=ebola_confirmed,
+                               gt,
+                               gen_mean_mean=gen_mean_mean,
+                               gen_mean_sd=gen_mean_sd,
+                               gen_sd_mean=gen_sd_mean,
+                               gen_sd_sd=gen_sd_sd,
+                               gen_max=gen_max,
+                               inc_mean_mean=inc_mean_mean,
+                               inc_mean_sd=inc_mean_sd,
+                               inc_sd_mean=inc_sd_mean,
+                               inc_sd_sd=inc_sd_sd,
+                               inc_max=inc_max,
+                               rep_mean_mean=rep_mean_mean,
+                               rep_mean_sd=rep_mean_sd,
+                               rep_sd_mean=rep_sd_mean,
+                               rep_sd_sd=rep_sd_sd,
+                               rep_max=rep_max,
+                               freq_fc=4,
+                               weeks_inc=12,
+                               rt_opts_choice="project",
+                               weight_prior=FALSE,
+                               obs_scale=0.83)
+  
+  save_latest(res_ebola[[1]], here("results"), paste0("res_ebolascen32_samples", gt))
+  save_latest(res_ebola[[2]], here("results"), paste0("res_ebolascen32_id", gt))
+  save_latest(res_ebola[[3]], here("results"), paste0("res_ebolascen32_R", gt))
+  save_latest(res_ebola[[4]], here("results"), paste0("res_ebolascen32_summary", gt))
+  save_latest(res_ebola[[5]], here("results"), paste0("res_ebolascen32_warnings", gt))
+  
+  
 
