@@ -30,6 +30,10 @@ ebola_confirmed <- right_join(ebola_confirmed, extra_dates, by="date")
 
 ebola_confirmed$confirm[is.na(ebola_confirmed$confirm)] <- 0
 
+# Make sure days are in order
+ebola_confirmed <- ebola_confirmed |>
+  arrange(date)
+
 ## Param values
 
 # Generation time

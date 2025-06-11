@@ -34,7 +34,19 @@ cholera_yem_tot <- cholera_yem_tot |>
   rename(date=date_sunday, 
          confirm=cases)
 
-cholera_rep_params <- get_parameters(fix_dist(cholera_reporting_delay))
+## Parameters ##
+
+gen_mean=8.51
+gen_sd=0.54
+gen_max=30
+inc_mean=1.77
+inc_sd=1.08
+inc_max=30
+rep_mean=4.4
+rep_sd=0.67
+rep_max=30
+freq_fc=4
+weeks_inc=12
 
 ############### SCENARIOS #################
 
@@ -42,17 +54,17 @@ cholera_rep_params <- get_parameters(fix_dist(cholera_reporting_delay))
 
 res_cholera <- sim_scenarios(case_data=cholera_yem_tot,
                            gt,
-                           gen_mean=8.51,
-                           gen_sd=0.54, 
-                           gen_max=30,
-                           inc_mean=1.77,
-                           inc_sd=1.08, 
-                           inc_max=30,
-                           rep_mean=4.4,
-                           rep_sd=1.88,
-                           rep_max=30,
-                           freq_fc=4,
-                           weeks_inc=12,
+                           gen_mean=gen_mean,
+                           gen_sd=gen_sd, 
+                           gen_max=gen_max,
+                           inc_mean=inc_mean,
+                           inc_sd=inc_sd, 
+                           inc_max=inc_max,
+                           rep_mean=rep_mean,
+                           rep_sd=rep_sd,
+                           rep_max=rep_max,
+                           freq_fc=freq_fc,
+                           weeks_inc=weeks_inc,
                            rt_opts_choice="latest",
                            obs_scale=1)
 
@@ -67,17 +79,17 @@ save_latest(res_cholera[[4]], here("results"), paste0("res_cholerascen21_R", gt)
 
   res_cholera <- sim_scenarios(case_data=cholera_yem_tot,
                            gt,
-                           gen_mean=8.51,
-                           gen_sd=0.54, 
-                           gen_max=30,
-                           inc_mean=1.77,
-                           inc_sd=1.08, 
-                           inc_max=30,
-                           rep_mean=4.4,
-                           rep_sd=1.88,
-                           rep_max=30,
-                           freq_fc=4,
-                           weeks_inc=12,
+                           gen_mean=gen_mean,
+                           gen_sd=gen_sd, 
+                           gen_max=gen_max,
+                           inc_mean=inc_mean,
+                           inc_sd=inc_sd, 
+                           inc_max=inc_max,
+                           rep_mean=rep_mean,
+                           rep_sd=rep_sd,
+                           rep_max=rep_max,
+                           freq_fc=freq_fc,
+                           weeks_inc=weeks_inc,
                            rt_opts_choice="latest",
                            obs_scale=0.28)
 
@@ -92,17 +104,17 @@ save_latest(res_cholera[[4]], here("results"), paste0("res_cholerascen22_R", gt)
 
   res_cholera <- sim_scenarios(case_data=cholera_yem_tot,
                              gt,
-                             gen_mean=8.51,
-                             gen_sd=0.54, 
-                             gen_max=30,
-                             inc_mean=1.77,
-                             inc_sd=1.08, 
-                             inc_max=30,
-                             rep_mean=4.4,
-                             rep_sd=1.88,
-                             rep_max=30,
-                             freq_fc=4,
-                             weeks_inc=12,
+                             gen_mean=gen_mean,
+                             gen_sd=gen_sd, 
+                             gen_max=gen_max,
+                             inc_mean=inc_mean,
+                             inc_sd=inc_sd, 
+                             inc_max=inc_max,
+                             rep_mean=rep_mean,
+                             rep_sd=rep_sd,
+                             rep_max=rep_max,
+                             freq_fc=freq_fc,
+                             weeks_inc=weeks_inc,
                              rt_opts_choice="project",
                              obs_scale=1)
   
@@ -118,17 +130,17 @@ save_latest(res_cholera[[4]], here("results"), paste0("res_cholerascen22_R", gt)
 
   res_cholera <- sim_scenarios(case_data=cholera_yem_tot,
                              gt,
-                             gen_mean=8.51,
-                             gen_sd=0.54, 
-                             gen_max=30,
-                             inc_mean=1.77,
-                             inc_sd=1.08, 
-                             inc_max=30,
-                             rep_mean=4.4,
-                             rep_sd=1.88,
-                             rep_max=30,
-                             freq_fc=4,
-                             weeks_inc=12,
+                             gen_mean=gen_mean,
+                             gen_sd=gen_sd, 
+                             gen_max=gen_max,
+                             inc_mean=inc_mean,
+                             inc_sd=inc_sd, 
+                             inc_max=inc_max,
+                             rep_mean=rep_mean,
+                             rep_sd=rep_sd,
+                             rep_max=rep_max,
+                             freq_fc=freq_fc,
+                             weeks_inc=weeks_inc,
                              rt_opts_choice="project",
                              obs_scale=0.28)
   

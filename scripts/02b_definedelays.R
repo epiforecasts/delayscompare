@@ -52,7 +52,7 @@ combined_delay_covid <- covid_inc_period + covid_reporting_delay
 
 cholera_gen_time <- Gamma(mean=8.51,
                           sd=0.54,
-                          max=30) # max is placeholder # https://pubmed.ncbi.nlm.nih.gov/21752809/
+                          max=50) # max is placeholder # https://pubmed.ncbi.nlm.nih.gov/21752809/
 
 # cholera_gen_time <- Gamma(mean=5,
 #                           sd=8,
@@ -61,13 +61,20 @@ cholera_gen_time <- Gamma(mean=8.51,
 ## Incubation period 
 
 cholera_inc_period <- LogNormal(mean=1.77,
-                                sd=1.08,
-                                max=30) # max is a placeholder # Azman et al. 2013
+                                sd=1.08, max=30) # max is a placeholder # Azman et al. 2013
 
 ## Reporting delay
 
 cholera_reporting_delay <- LogNormal(mean=4.4,
-                               sd=1.88,
-                               max=30) # max is placeholder # https://tbiomed.biomedcentral.com/articles/10.1186/s12976-017-0061-x 
+                               sd=0.67, max=30) # max is placeholder # https://tbiomed.biomedcentral.com/articles/10.1186/s12976-017-0061-x 
 
-combined_delay_cholera <- cholera_inc_period + cholera_reporting_delay
+
+  
+
+cholera_inc_period <- discretise(cholera_inc_period)
+cholera_reporting_delay <- discretise(cholera_reporting_delay)
+cholera_combined_param <- cholera_inc_period + cholera_reporting_delay
+
+test_delay <- cholera_combined_param[[2]]$pmf
+cholera_combined_delay2 <- NonParametric(pmf = test_delay)
+

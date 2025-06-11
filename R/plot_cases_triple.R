@@ -46,10 +46,10 @@ plotrankcase_tp <- function(res_samples,
   rankings <- rankings |>
     mutate(
       inc_period = factor(
-        inc_period, levels=c("no delay", "very low", "low", "correct", "high", "very high")
+        inc_period, levels=c("no delay", "very low", "low", "correct", "high", "very high", "weight priors true", "weight priors false")
       ),
       gen_time = factor(
-        gen_time, levels=c("no delay", "very low", "low", "correct", "high", "very high")
+        gen_time, levels=c("no delay", "very low", "low", "correct", "high", "very high", "weight priors true", "weight priors false")
       ))
   
   ## Best and worst performing forecasts plot over time

@@ -1,0 +1,131 @@
+---
+title: "plotcasestudies"
+output: html_document
+date: "2024-11-20"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(here)
+source(here("scripts", "01_packages.R"))
+source(here("R", "funcs_plots.R"))
+source(here("R", "funcs_data.R"))
+source(here("R", "generate_scores_func.R"))
+source(here("R", "lshtm_theme.R"))
+
+```
+
+```{r load data}
+# Load data
+ebola_confirmed_linelist <- read_xlsx(here("data", "ebola_linelist.xlsx"), "lab-confirmed database")
+
+# Formating for EpiNow2
+
+ebola_confirmed <- incidence(ebola_confirmed_linelist,
+                             date_index="Date of symptom onset",
+                             interval="day")
+
+ebola_confirmed <- ebola_confirmed |>
+  select(date_index, count) |>
+  rename(date=date_index, confirm=count)
+
+# Assuming no data reported on missing days
+extra_dates <- data.frame(date=seq(ebola_confirmed$date[1], ebola_confirmed$date[nrow(ebola_confirmed)], by="day"))
+ebola_confirmed <- right_join(ebola_confirmed, extra_dates, by="date")
+
+ebola_confirmed$confirm[is.na(ebola_confirmed$confirm)] <- 0
+
+# Match variables to those in simulated data
+ebola_confirmed <- ebola_confirmed |>
+  rename(reported_cases=confirm) |>
+  pivot_longer(cols=c(reported_cases), names_to="variable", values_to="value")
+
+
+```
+
+```{r load results and generate scores}
+
+res_cases <- lapply(c(1:8), function(i){
+  
+    scen <- i+20
+    
+    ## Loading results & generating scores as we go in order to save memory ##
+    res_samples <- read_latest(here(paste0("results/", disease, "casestudy")), paste0("res_", disease, "scen", scen, "_all_samples"))
+    #res_R <- read_latest(here(paste0("results/", disease, "casestudy")), paste0("res_", disease, "scen", scen, "_all_R"))
+    res_id <- read_latest(here(paste0("results/", disease, "casestudy")), paste0("res_", disease, "scen", scen, "_all_id")) 
+    
+    ## Generate scores ##
+    scores_cases <- generate_scores_cases(res_samples, res_id, ebola_confirmed) |> mutate(scen=scen)
+   # scores_rt <- generate_scores_rt(res_R, res_id, rt_traj_scen[[scen]) |> mutate(scen=scen)
+    
+    return(scores_cases)
+  })
+
+res_cases <- bind_rows(res_cases)
+
+  # Scenario labels
+  scen_labs <- data.frame(scen=c(21:28),
+                          rt_opts=rep(c("latest", "latest", "project", "project"), 2),
+                          ur=rep(c("No under-reporting", "Under-reporting", "No under-reporting", "Under-reporting"), 2),
+                          weight_priors=c(rep("no_weighting", 4),
+                                          rep("weighting", 4)))
+  
+  res_cases <- left_join(res_cases, scen_labs, by="scen")
+
+```
+
+## Barchart showing the CRPS contributions from over, underprediction, dispersion - cases
+
+```{r barchart_cases, echo=FALSE}
+scores_cases_long <- res_cases |>
+  select(date, type, gen_time, inc_period, timepoint, scale, scen, weight_priors, rt_opts, ur, crps, overprediction, underprediction, dispersion) |>
+  pivot_longer(cols=c("crps", "overprediction", "underprediction", "dispersion"), names_to="measure", values_to="value")
+
+# Get the mean values across reporting assumptions, timepoints and GP methods
+
+mean_scores_cases_gen_time <- scores_cases_long |>
+  filter(inc_period=="correct") |>
+  group_by(gen_time, weight_priors, measure) |>
+  summarise(value=mean(value))
+
+mean_scores_cases_inc_period <- scores_cases_long |>
+  filter(gen_time=="correct") |>
+  group_by(inc_period, weight_priors, measure) |>
+  summarise(value=mean(value))
+
+# Need to make gen_time a factor so that ordering is correct:
+mean_scores_cases_gen_time$gen_time <- factor(mean_scores_cases_gen_time$gen_time, levels=c("no delay",
+                                                                                      "very low",
+                                                                                      "low",
+                                                                                      "correct",
+                                                                                      "high",
+                                                                                      "very high"))
+
+mean_scores_cases_inc_period$inc_period <- factor(mean_scores_cases_inc_period$inc_period, levels=c("no delay",
+                                                                                      "very low",
+                                                                                      "low",
+                                                                                      "correct",
+                                                                                      "high",
+                                                                                      "very high"))
+
+barchart_cases_gen_time <- ggplot(mean_scores_cases_gen_time |> filter(measure!="crps")) + 
+  geom_bar(aes(x=gen_time, y=value, fill=measure), stat="identity") +
+  facet_wrap(~weight_priors) +
+  xlab("Generation time") +
+  ylab("CRPS") +
+  lshtm_theme()  +
+  theme(axis.text.x=element_text(angle=45, hjust=1))
+
+barchart_cases_inc_period <- ggplot(mean_scores_cases_inc_period |> filter(measure!="crps")) +
+  geom_bar(aes(x=inc_period, y=value, fill=measure), stat="identity") +
+  facet_wrap(~weight_priors) +
+  xlab("Incubation period") +
+  ylab("CRPS") +
+  lshtm_theme()  +
+  theme(axis.text.x=element_text(angle=45, hjust=1))
+
+legend <- get_legend(barchart_cases_gen_time)
+
+plot_grid(barchart_cases_gen_time + theme(legend.position="none"), barchart_cases_inc_period + theme(legend.position="none"), legend, ncol=3, rel_widths=c(1, 1, 0.5))
+
+```

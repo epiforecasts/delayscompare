@@ -1,0 +1,190 @@
+---
+title: "plotoptions"
+output: html_document
+date: "2024-11-06"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(here)
+source(here("scripts", "01_packages.R"))
+source(here("R", "funcs_plots.R"))
+source(here("R", "funcs_data.R"))
+source(here("R", "generate_scores_func.R"))
+source(here("R", "lshtm_theme.R"))
+source("~/delayscompare/plots_baseline.R")
+
+# Make sure data lists are up-to-date
+source(here("scripts","datacollect_ebola.R"))
+source(here("scripts", "datacollect_cholera.R"))
+source(here("scripts", "datacollect_covid.R"))
+```
+
+## Plot option 1
+### Would be good to plot the CRPS contributions from over, underprediction, dispersion
+
+```{r load and score, cache=TRUE}
+# Loading all data and generating scores
+disease <- "cholera"
+
+  ## Loading all data - collect Rt trajectories and simulated data in a list ##
+  
+  rt_traj <- read_latest(here("data"), paste0("rt_traj_list_", disease))
+  sim_data <- read_latest(here("data"), paste0("sim_data_list_", disease))
+  
+  # Scenario labels
+  scen_labs <- data.frame(scen=c(1:16),
+                          rt_traj=c(rep("const_low", 4), rep("const_high", 4), rep("inc", 4), rep("dec", 4)),
+                          rt_opts=rep(c("latest", "latest", "project", "project"), 4),
+                          ur=rep(c("No under-reporting", "Under-reporting", "No under-reporting", "Under-reporting"), 4))
+  
+  ## Filter to just have baseline scenarios: 
+  # 3 (const low); 7 (const high); 11 (increasing); 15 (decreasing)
+  
+ # scen_labs <- scen_labs |> filter(scen %in% c(3,7,11,15))
+  
+  scores_cases <- list()
+  scores_rt <- list()
+  
+# Loading data
+
+rt_traj_scen <- lapply(scen_labs$scen, function(i){
+  rt_traj[[i]] |> 
+    as.data.frame() |> 
+    mutate(scen=i)
+})
+
+sim_data_scen <- lapply(scen_labs$scen, function(i){
+  sim_data[[i]] |> 
+    as.data.frame()|> 
+    mutate(scen=i)
+})
+
+
+test_results <- lapply( c(1:length(rt_traj_scen)), function(i){
+    
+    ## Loading results & generating scores as we go in order to save memory ##
+    res_samples <- read_latest(here(paste0("results/", disease)), paste0("res_", disease, "scen", i, "_all_samples"))
+    res_R <- read_latest(here(paste0("results/", disease)), paste0("res_", disease, "scen", i, "_all_R"))
+    res_id <- read_latest(here(paste0("results/", disease)), paste0("res_", disease, "scen", i, "_all_id")) 
+    
+    res_samples <- res_samples |> filter(date <= as.Date(startdate) + 6*4*7)
+    res_R <- res_R |> filter(date <= as.Date(startdate) + 6*4*7)
+    
+    scores_cases <- generate_scores_cases(res_samples, res_id, sim_data_scen[[i]]) |> mutate(scen=unique(rt_traj_scen[[i]]$scen))
+    scores_rt <- generate_scores_rt(res_R, res_id, rt_traj_scen[[i]]) |> mutate(scen=unique(rt_traj_scen[[i]]$scen))
+    
+    return(list(scores_cases,
+                scores_rt))
+    
+  })
+
+  rt_traj_scen <- bind_rows(rt_traj_scen)
+  sim_data_scen <- bind_rows(sim_data_scen)
+  
+  scores_cases <- lapply(test_results, function(x) x[[1]]) |> bind_rows()
+  scores_rt <- lapply(test_results, function(x) x[[2]]) |> bind_rows()
+  
+  # Add scenario labels
+  rt_traj_scen <- rt_traj_scen |> 
+    left_join(scen_labs, by="scen")
+  
+  sim_data_scen <- sim_data_scen |>
+    left_join(scen_labs, by="scen")
+  
+  scores_cases <- scores_cases |>
+    left_join(scen_labs, by="scen")
+  
+  scores_rt <- scores_rt |>
+    left_join(scen_labs, by="scen")
+```
+
+
+## Full Rt plots
+
+```{r timeseries_r, echo=FALSE}
+
+source(here("R", "plots_baseline.R"))
+
+# Get my baseline results - firstly for rt trajectory = constant low
+res_R_low <- read_latest(here(paste0("results/", disease)), paste0("res_", disease, "scen", 3, "_all_R"))
+res_id_low <- read_latest(here(paste0("results/", disease)), paste0("res_", disease, "scen", 3, "_all_id")) 
+rt_dis_low <- rt_traj_scen |> filter(scen==3)
+scores_scen_low <- scores_rt |> filter(scen==3)
+rtbaselineplot_low <- plot_baseline_rt(res_R_low, res_id_low, rt_dis_low, scores_scen_low, 4)
+
+ggsave(here("figures", paste0("rtbaselineplot_", disease, "_low.png")), rtbaselineplot_low, width=13.5, height=8.5)
+
+# Get my baseline results - rt trajectory = constant high
+res_R_hi <- read_latest(here(paste0("results/", disease)), paste0("res_", disease, "scen", 7, "_all_R"))
+res_id_hi <- read_latest(here(paste0("results/", disease)), paste0("res_", disease, "scen", 7, "_all_id"))
+rt_dis_hi <- rt_traj_scen |> filter(scen==7)
+scores_scen_hi <- scores_rt |> filter(scen==7)
+rtbaselineplot_high <- plot_baseline_rt(res_R_hi, res_id_hi, rt_dis_hi, scores_scen_hi, 4)
+
+ggsave(here("figures", paste0("rtbaselineplot_", disease,"_high.png")), rtbaselineplot_high, width=13.5, height=8.5)
+
+# Baseline results - rt trajectory = increasing
+res_R_inc <- read_latest(here(paste0("results/", disease)), paste0("res_", disease, "scen", 11, "_all_R"))
+res_id_inc <- read_latest(here(paste0("results/", disease)), paste0("res_", disease, "scen", 11, "_all_id"))
+rt_dis_inc <- rt_traj_scen |> filter(scen==11)
+scores_scen_inc <- scores_rt |> filter(scen==11)
+rtbaselineplot_inc <- plot_baseline_rt(res_R_inc, res_id_inc, rt_dis_inc, scores_scen_inc, 4)
+
+ggsave(here("figures", paste0("rtbaselineplot_", disease, "_inc.png")), rtbaselineplot_inc, width=13.5, height=8.5)
+
+# Baseline results - rt trajectory = decreasing
+res_R_dec <- read_latest(here(paste0("results/", disease)), paste0("res_", disease, "scen", 15, "_all_R"))
+res_id_dec <- read_latest(here(paste0("results/", disease)), paste0("res_", disease, "scen", 15, "_all_id"))
+rt_dis_dec <- rt_traj_scen |> filter(scen==15)
+scores_scen_dec <- scores_rt |> filter(scen==15)
+rtbaselineplot_dec <- plot_baseline_rt(res_R_dec, res_id_dec, rt_dis_dec, scores_scen_dec, 4)
+
+ggsave(here("figures", paste0("rtbaselineplot_", disease, "_dec.png")), rtbaselineplot_dec, width=13.5, height=8.5)
+
+
+```
+
+
+```{r timeseries_cases, echo=FALSE}
+
+# Get my baseline results - firstly for rt trajectory = constant low
+res_samples_low <- read_latest(here(paste0("results/", disease)), paste0("res_", disease, "scen", 3, "_all_samples"))
+res_id_low <- read_latest(here(paste0("results/", disease)), paste0("res_", disease, "scen", 3, "_all_id")) 
+sim_data_low <- sim_data_scen |> filter(scen==3)
+scores_scen_low <- scores_cases |> filter(scen==3)
+casebaselineplot_low <- plot_baseline_cases(res_samples_low, res_id_low, sim_data_low, scores_scen_low, 4)
+
+ggsave(here("figures", paste0("casebaselineplot_", disease, "_low.png")), casebaselineplot_low, width=13.5, height=8.5)
+
+# Rt trajectory = constant high
+res_samples_hi <- read_latest(here(paste0("results/", disease)), paste0("res_", disease, "scen", 7, "_all_samples"))
+res_id_hi <- read_latest(here(paste0("results/", disease)), paste0("res_", disease, "scen", 7, "_all_id"))
+sim_data_hi <- sim_data_scen |> filter(scen==7)
+scores_scen_hi <- scores_cases |> filter(scen==7)
+casebaselineplot_high <- plot_baseline_cases(res_samples_hi, res_id_hi, sim_data_hi, scores_scen_hi, 4)
+
+ggsave(here("figures", paste0("casebaselineplot_", disease, "_high.png")), casebaselineplot_high, width=13.5, height=8.5)
+
+# Baseline results - rt trajectory = increasing
+res_samples_inc <- read_latest(here(paste0("results/", disease)), paste0("res_", disease, "scen", 11, "_all_samples"))
+res_id_inc <- read_latest(here(paste0("results/", disease)), paste0("res_", disease, "scen", 11, "_all_id"))
+sim_data_inc <- sim_data_scen |> filter(scen==11)
+scores_scen_inc <- scores_cases |> filter(scen==11)
+casebaselineplot_inc <- plot_baseline_cases(res_samples_inc, res_id_inc, sim_data_inc, scores_scen_inc, 4)
+
+ggsave(here("figures", paste0("casebaselineplot_", disease, "_inc.png")), casebaselineplot_inc, width=13.5, height=8.5)
+
+# Baseline results - rt trajectory = decreasing
+res_samples_dec <- read_latest(here(paste0("results/", disease)), paste0("res_", disease, "scen", 15, "_all_samples"))
+res_id_dec <- read_latest(here(paste0("results/", disease)), paste0("res_", disease, "scen", 15, "_all_id"))
+sim_data_dec <- sim_data_scen |> filter(scen==15)
+scores_scen_dec <- scores_cases |> filter(scen==15)
+casebaselineplot_dec <- plot_baseline_cases(res_samples_dec, res_id_dec, sim_data_dec, scores_scen_dec, 4)
+
+ggsave(here("figures", paste0("casebaselineplot_", disease, "_dec.png")), casebaselineplot_dec, width=13.5, height=8.5)
+
+```
+
+### Case studies ###
+

@@ -1,0 +1,303 @@
+---
+title: "plotoptions"
+output: html_document
+date: "2024-11-06"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(here)
+source(here("scripts", "01_packages.R"))
+source(here("R", "funcs_plots.R"))
+source(here("R", "funcs_data.R"))
+source(here("R", "generate_scores_func.R"))
+source(here("R", "lshtm_theme.R"))
+
+# Make sure data lists are up-to-date
+source(here("scripts","datacollect_ebola.R"))
+source(here("scripts", "datacollect_cholera.R"))
+source(here("scripts", "datacollect_covid.R"))
+```
+
+## Plot option 1
+### Would be good to plot the CRPS contributions from over, underprediction, dispersion
+
+```{r load and score, cache=TRUE}
+# Loading all data and generating scores
+disease <- "covid"
+
+## Load data ##
+
+covid_eng <- read.csv(here("data", "newCasesBySpecimenDate_nation_2021.csv")) |>
+  filter(area_name=="England", metric=="newCasesBySpecimenDate")
+
+## Formatting data for EpiNow2
+covid_eng <- covid_eng |> 
+  select(date, value) |>
+  rename(confirm=value)
+
+covid_eng$date <- as.Date(covid_eng$date, "%Y-%m-%d" )
+
+## Delta wave only 
+covid_eng <- covid_eng |> filter(date >= "2021-06-01" & date < "2021-12-01")
+
+# change to format for plotting
+covid_eng <- covid_eng |>
+  pivot_longer(cols=c("confirm"), names_to="variable", values_to="value")
+
+covid_eng$variable <- "reported_cases"
+  
+  # Scenario labels
+  scen_labs <- data.frame(scen=c(21:32),
+                          rt_opts=rep(c("latest", "latest", "project", "project"), 3),
+                          ur=rep(c("No under-reporting", "Under-reporting", "No under-reporting", "Under-reporting"), 3),
+                          weight_priors=c(rep("fixed", 4), rep("vary_true", 4), rep("vary_false", 4)))
+  
+  scores_cases <- list()
+
+test_results_cs <- lapply(c(21:24), function(i){
+    
+    ## Loading results & generating scores as we go in order to save memory ##
+    res_samples <- read_latest(here(paste0("results/",  disease, "casestudy/")), paste0("res_", disease, "scen", i, "_all_samples"))
+ 
+    res_id <- read_latest(here(paste0("results/", disease, "casestudy/")), paste0("res_", disease, "scen", i, "_all_id")) 
+    
+    scores_cases <- generate_scores_cases(res_samples, res_id, covid_eng) |> mutate(scen=i, weight_priors="fixed")
+    return(scores_cases)
+    
+  })
+
+
+test_results_wp_no <- lapply(c(25:28), function(i){
+    
+    
+  ## Loading results & generating scores as we go in order to save memory ##
+  
+  res_samples <- read_latest(here(paste0("results/", disease, "casestudy/")), paste0("res_", disease, "scen", i, "_all_samples")) |>
+    filter(type=="forecast")
+  
+    res_id <- read_latest(here(paste0("results/", disease, "casestudy/")), paste0("res_", disease, "scen", i, "_all_id")) 
+    
+    ## Keep only version - these should all be equivalent because gt was estimated from the data in each instance.
+    
+    res_samples <- res_samples |> filter(gt==1)
+    res_id <- res_id |> filter(gt==1)
+    
+    # Add labels
+    res_id$gen_time <- "From the data - no weighting"
+    res_id$inc_period <- "From the data - no weighting"
+    
+    scores_cases <- generate_scores_cases(res_samples, res_id, covid_eng) |> mutate(scen=i, weight_priors="vary_true")
+    return(list(scores_cases))
+    
+  })
+
+test_results_wp_yes <- lapply(c(29:31), function(i){
+    
+    ## Loading results & generating scores as we go in order to save memory ##
+    res_samples <- read_latest(here(paste0("results/", disease, "casestudy/")), paste0("res_", disease, "scen", i, "_all_samples"))
+  
+    res_id <- read_latest(here(paste0("results/", disease, "casestudy/")), paste0("res_", disease, "scen", i, "_all_id")) 
+    
+    ## Keep only gt=correct
+    res_samples <- res_samples |> filter(gt==4)
+    res_id <- res_id |> filter(gt==4)
+    
+    # Add labels
+    res_id$gen_time <- "correct"
+    res_id$inc_period <- "correct"
+    
+    scores_cases <- generate_scores_cases(res_samples, res_id, covid_eng) |> mutate(scen=i, weight_priors="vary_false")
+    return(list(scores_cases))
+    
+  })
+
+  scores_cases <- test_results_cs |>
+    bind_rows()
+    scores_cases <- scores_cases |>
+    left_join(scen_labs, by=c("scen", "weight_priors"))
+    
+  scores_cases_wp_no <- test_results_wp_no |>
+    bind_rows()
+    scores_cases_wp_no <- scores_cases_wp_no |>
+    left_join(scen_labs, by=c("scen", "weight_priors"))
+    
+    scores_cases_wp_yes <- test_results_wp_yes |>
+    bind_rows()
+    scores_cases_wp_yes <- scores_cases_wp_yes |>
+    left_join(scen_labs, by=c("scen", "weight_priors"))
+    
+  # Put results together
+    scores_cases <- scores_cases |>
+      rbind(scores_cases_wp_no) |>
+      rbind(scores_cases_wp_yes)
+  
+```
+
+```{r timeseries_plot}
+
+source("~/delayscompare/R/plot_casestudy.R")
+
+# Need each plot to contain correct + each of the weight priors
+res_samples_correct <- read_latest(here(paste0("results/", disease, "casestudy/")), paste0("res_", disease, "scen", 23, "_all_samples"))
+res_id <- read_latest(here(paste0("results/", disease, "casestudy/")), paste0("res_", disease, "scen", 23, "_all_id"))
+
+res_samples_weightpriortrue <- read_latest(here(paste0("results/", disease, "casestudy/")), paste0("res_", disease, "scen", 27, "_all_samples"))
+res_samples_weightpriorfalse <- read_latest(here(paste0("results/", disease, "casestudy/")), paste0("res_", disease, "scen", 31, "_all_samples"))
+
+# Add info
+res_samples_correct <- res_samples_correct |>
+  left_join(res_id, by=c("result_list", "gt"))
+
+# Select only no delay and correct from res_samples_correct, only correct from the other two
+res_samples_correct <- res_samples_correct |> filter(inc_period %in% c("no delay",
+                                                                       "correct"),
+                                                     gen_time %in% c("no delay",
+                                                                     "correct"))
+res_samples_weightpriortrue <- res_samples_weightpriortrue |> filter(gt==4) |> 
+  mutate(gen_time="weight_prior_true", inc_period="weight_prior_true") |> rename(timepoint=result_list)
+res_samples_weightpriorfalse <- res_samples_weightpriorfalse |> filter(gt==4) |> 
+  mutate(gen_time="weight_prior_false", inc_period="weight_prior_false") |> rename(timepoint=result_list)
+
+# Combine
+res_samples <- res_samples_correct |>
+  bind_rows(res_samples_weightpriortrue) |>
+  bind_rows(res_samples_weightpriorfalse) |>
+  select(-c(result_list, gt))
+
+# Plot
+covid_cs_timeseries_plot <- plot_cs_triple(res_samples, covid_eng, 4)
+
+```
+
+## Ebola plots ##
+```{r load and score, cache=TRUE}
+# Loading all data and generating scores
+disease <- "ebola"
+
+## Load data ##
+
+ebola_confirmed_linelist <- read_xlsx(here("data", "ebola_linelist.xlsx"), "lab-confirmed database")
+
+# Formating for EpiNow2
+
+ebola_confirmed <- incidence(ebola_confirmed_linelist,
+                             date_index="Date of symptom onset",
+                             interval="day")
+
+ebola_confirmed <- ebola_confirmed |>
+  select(date_index, count) |>
+  rename(date=date_index, confirm=count)
+
+# Assuming no data reported on missing days
+extra_dates <- data.frame(date=seq(ebola_confirmed$date[1], ebola_confirmed$date[nrow(ebola_confirmed)], by="day"))
+ebola_confirmed <- right_join(ebola_confirmed, extra_dates, by="date")
+
+ebola_confirmed$confirm[is.na(ebola_confirmed$confirm)] <- 0
+
+# Need each plot to contain correct + each of the weight priors
+res_samples_correct <- read_latest(here(paste0("results/", disease, "casestudy/")), paste0("res_", disease, "scen", 23, "_all_samples"))
+res_id <- read_latest(here(paste0("results/", disease, "casestudy/")), paste0("res_", disease, "scen", 23, "_all_id"))
+
+res_samples_weightpriortrue <- read_latest(here(paste0("results/", disease, "casestudy/")), paste0("res_", disease, "scen", 27, "_all_samples"))
+res_samples_weightpriorfalse <- read_latest(here(paste0("results/", disease, "casestudy/")), paste0("res_", disease, "scen", 31, "_all_samples"))
+
+# Add info
+res_samples_correct <- res_samples_correct |>
+  left_join(res_id, by=c("result_list", "gt"))
+
+# Select only no delay and correct from res_samples_correct, only correct from the other two
+res_samples_correct <- res_samples_correct |> filter(inc_period %in% c("no delay",
+                                                                       "correct"),
+                                                     gen_time %in% c("no delay",
+                                                                     "correct"))
+res_samples_weightpriortrue <- res_samples_weightpriortrue |> filter(gt==4) |> 
+  mutate(gen_time="weight_prior_true", inc_period="weight_prior_true") |> rename(timepoint=result_list)
+res_samples_weightpriorfalse <- res_samples_weightpriorfalse |> filter(gt==4) |> 
+  mutate(gen_time="weight_prior_false", inc_period="weight_prior_false") |> rename(timepoint=result_list)
+
+# Combine
+res_samples <- res_samples_correct |>
+  bind_rows(res_samples_weightpriortrue) |>
+  bind_rows(res_samples_weightpriorfalse) |>
+  select(-c(result_list, gt)) |>
+  filter(type=="forecast")
+
+# Need case data in right structure
+ebola_confirmed <- ebola_confirmed |> 
+  mutate(variable="reported_cases") |>
+  rename(value=confirm)
+  
+# Plot
+ebola_cs_timeseries_plot <- plot_cs_triple(res_samples, ebola_confirmed, 4)
+
+```
+## Cholera plots ##
+
+```{r load and score, cache=TRUE}
+# Loading all data and generating scores
+disease <- "cholera"
+
+## Load data ##
+
+# Weekly cholera case counts by district
+cholera_yem <- read.csv(here("data", "YEM-CHOLERA-EOC-DIS-WEEK-20170424-20200621.csv")) # https://figshare.com/articles/dataset/Weekly_cholera_cases_and_rainfall_by_governorate_and_district_in_Yemen_between_2016_and_2020/24231019?file=42635185
+
+cholera_yem$date_monday <- as.Date(cholera_yem$date_monday)
+cholera_yem$date_sunday <- as.Date(cholera_yem$date_sunday)
+
+# National daily count
+cholera_yem_tot <- cholera_yem |>
+  group_by(date_monday, date_sunday) |>
+  summarise(cases=sum(cases)) |>
+  ungroup()
+
+# Selecting period of outbreak included last weekly WHO sit rep (1 July 2018) 
+cholera_yem_tot <- cholera_yem_tot |>
+  filter(date_sunday <="2018-07-01")
+
+# Formatting data for EpiNow2
+cholera_yem_tot <- cholera_yem_tot |>
+  select(date_sunday, cases) |>
+  rename(date=date_sunday, 
+         confirm=cases)
+
+
+# Need each plot to contain correct + each of the weight priors
+res_samples_correct <- read_latest(here(paste0("results/", disease, "casestudy/")), paste0("res_", disease, "scen", 23, "_all_samples"))
+res_id <- read_latest(here(paste0("results/", disease, "casestudy/")), paste0("res_", disease, "scen", 23, "_all_id"))
+
+res_samples_weightpriortrue <- read_latest(here(paste0("results/", disease, "casestudy/")), paste0("res_", disease, "scen", 27, "_all_samples"))
+res_samples_weightpriorfalse <- read_latest(here(paste0("results/", disease, "casestudy/")), paste0("res_", disease, "scen", 31, "_all_samples"))
+
+# Add info
+res_samples_correct <- res_samples_correct |>
+  left_join(res_id, by=c("result_list", "gt"))
+
+# Select only no delay and correct from res_samples_correct, only correct from the other two
+res_samples_correct <- res_samples_correct |> filter(inc_period %in% c("no delay",
+                                                                       "correct"),
+                                                     gen_time %in% c("no delay",
+                                                                     "correct"))
+res_samples_weightpriortrue <- res_samples_weightpriortrue |> filter(gt==4) |> 
+  mutate(gen_time="weight_prior_true", inc_period="weight_prior_true") |> rename(timepoint=result_list)
+res_samples_weightpriorfalse <- res_samples_weightpriorfalse |> filter(gt==4) |> 
+  mutate(gen_time="weight_prior_false", inc_period="weight_prior_false") |> rename(timepoint=result_list)
+
+# Combine
+res_samples <- res_samples_correct |>
+  bind_rows(res_samples_weightpriortrue) |>
+  bind_rows(res_samples_weightpriorfalse) |>
+  select(-c(result_list, gt)) |>
+  filter(type=="forecast")
+
+# Need case data in right structure
+cholera_yem_tot <- cholera_yem_tot |> 
+  mutate(variable="reported_cases") |>
+  rename(value=confirm)
+  
+# Plot
+cholera_cs_timeseries_plot <- plot_cs_triple(res_samples, cholera_yem_tot, 4)
+
+```
+

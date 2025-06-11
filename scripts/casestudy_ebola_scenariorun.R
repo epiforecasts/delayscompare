@@ -1,3 +1,4 @@
+
 library(here)
 
 source(here("scripts", "01_packages.R"))
@@ -29,6 +30,10 @@ extra_dates <- data.frame(date=seq(ebola_confirmed$date[1], ebola_confirmed$date
 ebola_confirmed <- right_join(ebola_confirmed, extra_dates, by="date")
 
 ebola_confirmed$confirm[is.na(ebola_confirmed$confirm)] <- 0
+
+# Make sure days are in order
+ebola_confirmed <- ebola_confirmed |>
+  arrange(date)
 
 ############### SCENARIOS #################
 

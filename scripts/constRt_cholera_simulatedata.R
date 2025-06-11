@@ -20,17 +20,17 @@ rt_const_low <- data.frame(date=seq.Date(from=startdate, to=enddate, by=1),
 cholera_sim_data_const_low <- simulate_infections(
   R=rt_const_low,
   initial_infections=75,
-  generation_time=generation_time_opts(cholera_gen_time),
-  delays=delay_opts(fix_dist(combined_delay_cholera)),
-  obs=obs_opts(family="poisson", scale=1)
+  generation_time=gt_opts(cholera_gen_time),
+  delays=delay_opts(cholera_combined_delay),
+  obs=obs_opts(family="poisson", scale=Fixed(1))
 )
 
 cholera_sim_data_const_low_ur <- simulate_infections(
   R=rt_const_low,
   initial_infections=75,
-  generation_time=generation_time_opts(cholera_gen_time),
-  delays=delay_opts(fix_dist(combined_delay_cholera)),
-  obs=obs_opts(family="poisson", scale=0.28)
+  generation_time=gt_opts(cholera_gen_time),
+  delays=delay_opts(cholera_combined_delay),
+  obs=obs_opts(family="poisson", scale=Fixed(0.28))
 )
 
 save_latest(cholera_sim_data_const_low, here("data"), "cholera_sim_data_const_low")
@@ -44,17 +44,17 @@ rt_const_hi <- data.frame(date=seq.Date(from=startdate, to=enddate, by=1),
 cholera_sim_data_const_hi <- simulate_infections(
   R=rt_const_hi,
   initial_infections=75,
-  generation_time=generation_time_opts(cholera_gen_time),
-  delays=delay_opts(fix_dist(combined_delay_cholera)),
-  obs=obs_opts(family="poisson", scale=1)
+  generation_time=gt_opts(cholera_gen_time),
+  delays=delay_opts(cholera_combined_delay),
+  obs=obs_opts(family="poisson", scale=Fixed(1))
 )
 
 cholera_sim_data_const_hi_ur <- simulate_infections(
   R=rt_const_hi,
   initial_infections=75,
-  generation_time=generation_time_opts(cholera_gen_time),
-  delays=delay_opts(fix_dist(combined_delay_cholera)),
-  obs=obs_opts(family="poisson", scale=0.28)
+  generation_time=gt_opts(cholera_gen_time),
+  delays=delay_opts(cholera_combined_delay),
+  obs=obs_opts(family="poisson", scale=Fixed(0.28))
 )
 
 save_latest(cholera_sim_data_const_hi, here("data"), "cholera_sim_data_const_hi")

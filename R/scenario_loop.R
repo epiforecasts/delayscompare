@@ -64,13 +64,13 @@ sim_scenarios <- function(case_data,
           def <- estimate_infections(case_segment,
                                      generation_time = generation_time_opts(gen_time),
                                      delays = delay_opts(reporting_delay),
-                                     obs=obs_opts(family="negbin", scale=obs_scale),
+                                     obs=obs_opts(family="negbin", scale=Fixed(obs_scale)),
                                      rt=rt_opts(future=rt_opts_choice),
                                      stan = stan_opts(samples = 3000,
                                                       return_fit = FALSE,
                                                       control=list(adapt_delta=0.99,
                                                                    max_treedepth=20)),
-                                     horizon=14,
+                                     forecast=forecast_opts(horizon=14, accumulate=1),
                                      verbose = FALSE)
 
          res_samples <-
@@ -204,14 +204,15 @@ res <- pmap(scenarios, \(k) {
           def <- estimate_infections(case_segment,
                                      generation_time = generation_time_opts(gen_time, weight_prior=weight_prior),
                                      delays = delay_opts(inc_period + reporting_delay, weight_prior=weight_prior),
-                                     obs=obs_opts(family="negbin", scale=obs_scale),
+                                     obs=obs_opts(family="negbin", scale=Fixed(obs_scale)),
                                      rt=rt_opts(future=rt_opts_choice),
                                      stan = stan_opts(samples = 3000,
                                                       return_fit = FALSE,
                                                       control=list(adapt_delta=0.99,
                                                                    max_treedepth=20)),
-                                    horizon=14,
+                                    forecast=forecast_opts(horizon=14, accumulate=7),
                                     verbose = FALSE)
+                                    
 
          res_samples <-
           def$samples[
@@ -281,4 +282,5 @@ res_R <- bind_rows(res_R)
               summary = res$summary,
               warnings = save_warnings))
 }
+
 

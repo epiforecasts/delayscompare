@@ -51,14 +51,14 @@ covid_eng$variable <- "reported_cases"
   scen_labs <- data.frame(scen=c(21:32),
                           rt_opts=rep(c("latest", "latest", "project", "project"), 3),
                           ur=rep(c("No under-reporting", "Under-reporting", "No under-reporting", "Under-reporting"), 3),
-                          weight_priors=c(rep("fixed", 4), rep("vary_no", 4), rep("vary_yes", 4)))
+                          weight_priors=c(rep("fixed", 4), rep("vary_true", 4), rep("vary_false", 4)))
   
   scores_cases <- list()
 
 test_results_cs <- lapply(c(21:24), function(i){
     
     ## Loading results & generating scores as we go in order to save memory ##
-    res_samples <- read_latest(here(paste0("results/", disease, "casestudy/")), paste0("res_", disease, "scen", i, "_all_samples"))
+    res_samples <- read_latest(here(paste0("results/",  disease, "casestudy/")), paste0("res_", disease, "scen", i, "_all_samples"))
  
     res_id <- read_latest(here(paste0("results/", disease, "casestudy/")), paste0("res_", disease, "scen", i, "_all_id")) 
     
@@ -67,27 +67,32 @@ test_results_cs <- lapply(c(21:24), function(i){
     
   })
 
+
 test_results_wp_no <- lapply(c(25:28), function(i){
     
-    ## Loading results & generating scores as we go in order to save memory ##
-    res_samples <- read_latest(here(paste0("results/", disease, "casestudy/")), paste0("res_", disease, "scen", i, "_all_samples"))
+    
+  ## Loading results & generating scores as we go in order to save memory ##
+  
+  res_samples <- read_latest(here(paste0("results/", disease, "casestudy/")), paste0("res_", disease, "scen", i, "_all_samples")) |>
+    filter(type=="forecast")
   
     res_id <- read_latest(here(paste0("results/", disease, "casestudy/")), paste0("res_", disease, "scen", i, "_all_id")) 
     
-    ## Keep only gt=correct
-    res_samples <- res_samples |> filter(gt==4)
-    res_id <- res_id |> filter(gt==4)
+    ## Keep only version - these should all be equivalent because gt was estimated from the data in each instance.
+    
+    res_samples <- res_samples |> filter(gt==1)
+    res_id <- res_id |> filter(gt==1)
     
     # Add labels
-    res_id$gen_time <- "correct"
-    res_id$inc_period <- "correct"
+    res_id$gen_time <- "From the data - no weighting"
+    res_id$inc_period <- "From the data - no weighting"
     
-    scores_cases <- generate_scores_cases(res_samples, res_id, covid_eng) |> mutate(scen=i, weight_priors="vary_no")
+    scores_cases <- generate_scores_cases(res_samples, res_id, covid_eng) |> mutate(scen=i, weight_priors="vary_true")
     return(list(scores_cases))
     
   })
 
-test_results_wp_yes <- lapply(c(29:32), function(i){
+test_results_wp_yes <- lapply(c(29:31), function(i){
     
     ## Loading results & generating scores as we go in order to save memory ##
     res_samples <- read_latest(here(paste0("results/", disease, "casestudy/")), paste0("res_", disease, "scen", i, "_all_samples"))
@@ -102,7 +107,7 @@ test_results_wp_yes <- lapply(c(29:32), function(i){
     res_id$gen_time <- "correct"
     res_id$inc_period <- "correct"
     
-    scores_cases <- generate_scores_cases(res_samples, res_id, covid_eng) |> mutate(scen=i, weight_priors="vary_yes")
+    scores_cases <- generate_scores_cases(res_samples, res_id, covid_eng) |> mutate(scen=i, weight_priors="vary_false")
     return(list(scores_cases))
     
   })
@@ -112,17 +117,33 @@ test_results_wp_yes <- lapply(c(29:32), function(i){
     scores_cases <- scores_cases |>
     left_join(scen_labs, by=c("scen", "weight_priors"))
     
-  scores_cases_wp <- test_results_wp |>
+  scores_cases_wp_no <- test_results_wp_no |>
     bind_rows()
-    scores_cases_wp <- scores_cases_wp |>
+    scores_cases_wp_no <- scores_cases_wp_no |>
+    left_join(scen_labs, by=c("scen", "weight_priors"))
+    
+    scores_cases_wp_yes <- test_results_wp_yes |>
+    bind_rows()
+    scores_cases_wp_yes <- scores_cases_wp_yes |>
     left_join(scen_labs, by=c("scen", "weight_priors"))
     
   # Put results together
     scores_cases <- scores_cases |>
-      rbind(scores_cases_wp)
+      rbind(scores_cases_wp_no) |>
+      rbind(scores_cases_wp_yes)
   
 ```
 
+
+## Plot case study, rt_opts=latest, under-reporting=no, with and without prior weighting.
+
+```{r collect and plot, cache=TRUE}
+
+# First, need results from fixed values
+res_samples <- read_latest(here(paste0("results/", disease, "casestudy/")), paste0("res_", disease, "scen", 23, "_all_samples"))
+res_id <- read_latest(here(paste0("results/", disease, "casestudy/")), paste0("res_", disease, "scen", 23, "_all_id"))
+
+```
 ## Barchart showing the CRPS contributions from over, underprediction, dispersion - cases
 
 ```{r barchart_cases, echo=FALSE}
@@ -144,10 +165,16 @@ mean_scores_cases_inc_period <- scores_cases_long |>
 
 ## Adding weight priors to gen_time/inc_period column
 mean_scores_cases_gen_time <- mean_scores_cases_gen_time |>
-  mutate(gen_time=ifelse(weight_priors=="yes", "weighted priors", gen_time))
+  mutate(gen_time=ifelse(weight_priors=="vary_true", "weight_priors_true", gen_time))
 
 mean_scores_cases_inc_period <- mean_scores_cases_inc_period |>
-  mutate(inc_period=ifelse(weight_priors=="yes", "weighted priors", inc_period))
+  mutate(inc_period=ifelse(weight_priors=="vary_true", "weight_priors_true", inc_period))
+
+mean_scores_cases_gen_time <- mean_scores_cases_gen_time |>
+  mutate(gen_time=ifelse(weight_priors=="vary_false", "weight_priors_false", gen_time))
+
+mean_scores_cases_inc_period <- mean_scores_cases_inc_period |>
+  mutate(inc_period=ifelse(weight_priors=="vary_false", "weight_priors_false", inc_period))
 
 # Need to make gen_time a factor so that ordering is correct:
 mean_scores_cases_gen_time$gen_time <- factor(mean_scores_cases_gen_time$gen_time, levels=c("no delay",
@@ -156,15 +183,22 @@ mean_scores_cases_gen_time$gen_time <- factor(mean_scores_cases_gen_time$gen_tim
                                                                                       "correct",
                                                                                       "high",
                                                                                       "very high",
-                                                                                      "weighted priors"))
-
+                                                                                      "weight_priors_true",
+                                                                                      "weight_priors_false"))
 mean_scores_cases_inc_period$inc_period <- factor(mean_scores_cases_inc_period$inc_period, levels=c("no delay",
                                                                                       "very low",
                                                                                       "low",
                                                                                       "correct",
                                                                                       "high",
                                                                                       "very high",
-                                                                                      "weighted priors"))
+                                                                                      "weight_priors_true",
+                                                                                      "weight_priors_false"))
+
+# Doesn't make sense to include very low/low etc
+mean_scores_cases_gen_time <- mean_scores_cases_gen_time |> filter(gen_time %in% c("no delay", "correct",
+                                                                                 "weight_priors_true", "weight_priors_false"))
+mean_scores_cases_inc_period <- mean_scores_cases_inc_period |> filter(inc_period %in% c("no delay", "correct",
+                                                                                 "weight_priors_true", "weight_priors_false"))
 
 barchart_cases_gen_time <- ggplot(mean_scores_cases_gen_time |> filter(measure!="crps")) + 
   geom_bar(aes(x=gen_time, y=value, fill=measure), stat="identity") +
@@ -205,10 +239,16 @@ mean_scores_cases_inc_period <- scores_cases_long |>
 
 ## Adding weight priors to gen_time/inc_period column
 mean_scores_cases_gen_time <- mean_scores_cases_gen_time |>
-  mutate(gen_time=ifelse(weight_priors=="yes", "weighted priors", gen_time))
+  mutate(gen_time=ifelse(weight_priors=="vary_true", "weight priors true", gen_time))
+
+mean_scores_cases_gen_time <- mean_scores_cases_gen_time |>
+  mutate(gen_time=ifelse(weight_priors=="vary_false", "weight priors false", gen_time))
 
 mean_scores_cases_inc_period <- mean_scores_cases_inc_period |>
-  mutate(inc_period=ifelse(weight_priors=="yes", "weighted priors", inc_period))
+  mutate(inc_period=ifelse(weight_priors=="vary_true", "weight priors true", inc_period))
+
+mean_scores_cases_inc_period <- mean_scores_cases_inc_period |>
+  mutate(inc_period=ifelse(weight_priors=="vary_false", "weight priors false", inc_period))
 
 # Need to make gen_time a factor so that ordering is correct:
 mean_scores_cases_gen_time$gen_time <- factor(mean_scores_cases_gen_time$gen_time, levels=c("no delay",
@@ -217,7 +257,8 @@ mean_scores_cases_gen_time$gen_time <- factor(mean_scores_cases_gen_time$gen_tim
                                                                                       "correct",
                                                                                       "high",
                                                                                       "very high",
-                                                                                      "weighted priors"))
+                                                                                      "weight priors true",
+                                                                                      "weight priors false"))
 
 mean_scores_cases_inc_period$inc_period <- factor(mean_scores_cases_inc_period$inc_period, levels=c("no delay",
                                                                                       "very low",
@@ -225,11 +266,14 @@ mean_scores_cases_inc_period$inc_period <- factor(mean_scores_cases_inc_period$i
                                                                                       "correct",
                                                                                       "high",
                                                                                       "very high",
-                                                                                      "weighted priors"))
+                                                                                      "weight priors true",
+                                                                                      "weight priors false"))
 
 # Doesn't make sense to include very low/low etc
-mean_scores_cases_gen_time <- mean_scores_cases_gen_time |> filter(gen_time %in% c("no delay", "correct", "weighted priors"))
-mean_scores_cases_inc_period <- mean_scores_cases_inc_period |> filter(inc_period %in% c("no delay", "correct", "weighted priors"))
+mean_scores_cases_gen_time <- mean_scores_cases_gen_time |> filter(gen_time %in% c("no delay", "correct",
+                                                                                 "weight priors true", "weight priors false"))
+mean_scores_cases_inc_period <- mean_scores_cases_inc_period |> filter(inc_period %in% c("no delay", "correct", 
+                                                                                 "weight priors true", "weight priors false"))
 
 # No delay isn't correct for generation time, should be 1-day 
 
@@ -255,121 +299,6 @@ crps_casestudy <- plot_grid(barchart_cases_gen_time + theme(legend.position="non
 
 ggsave(here("figures", "crps_casestudy.png"), crps_casestudy, width=10, height=5)
 
-```
-## For cases:
-
-```{r cases_opts_plot_overpredict }
-
-scores_cases_gen_time <- scores_cases |> filter(inc_period=="correct")
-
-# Add weight priors to gen_time column
-scores_cases_gen_time <- scores_cases_gen_time |>
-  mutate(gen_time=ifelse(weight_priors=="yes", "weighted priors", gen_time))
-
-## Mean scores by generation time assumption
-scores_cases_gen_time <- scores_cases_gen_time |> group_by(gen_time, rt_opts, ur) |> summarise(across(c(crps, overprediction, underprediction, dispersion), mean))
-
-scores_cases_gen_time$gen_time <- factor(scores_cases_gen_time$gen_time, levels=c("no delay",
-                                                                                      "very low",
-                                                                                      "low",
-                                                                                      "correct",
-                                                                                      "high",
-                                                                                      "very high",
-                                                                                  "weighted priors"))
-
-  abs_plot_overpredict <- ggplot(scores_cases_gen_time, aes(x=gen_time, y=overprediction)) +
-  geom_bar(stat="identity") +
-  #geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
-  facet_grid(ur~rt_opts) +
-  xlab("Generation time") +
-  ylab("Overprediction ratio") +
-  #scale_y_continuous(labels = function(x) x + 1) + # Relabel to show actual scores centered around 1
-  lshtm_theme() +
-  theme(axis.text.x=element_text(angle=45, hjust=1), legend.position="none")
-
-print(abs_plot_overpredict)
-```
-
-```{r cases_opts_plot_underpredict }
-  abs_plot_underpredict <- ggplot(scores_cases_gen_time, aes(x=gen_time, y=underprediction)) +
-  geom_bar(stat="identity") +
-  #geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
-  facet_grid(ur~rt_opts) +
-  xlab("Generation time") +
-  ylab("Overprediction ratio") +
-  #scale_y_continuous(labels = function(x) x + 1) + # Relabel to show actual scores centered around 1
-  lshtm_theme() +
-  theme(axis.text.x=element_text(angle=45, hjust=1), legend.position="none")
-
-print(abs_plot_underpredict)
-```
-
-```{r cases_opts_plot_dispersion}
-  abs_plot_dispersion <- ggplot(scores_cases_gen_time, aes(x=gen_time, y=dispersion)) +
-  geom_bar(stat="identity") +
-  #geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
-  facet_grid(ur~rt_opts) +
-  xlab("Generation time") +
-  ylab("Overprediction ratio") +
-  #scale_y_continuous(labels = function(x) x + 1) + # Relabel to show actual scores centered around 1
-  lshtm_theme() +
-  theme(axis.text.x=element_text(angle=45, hjust=1), legend.position="none")
-
-print(abs_plot_dispersion)
-```
-
-```{r cases_opts_plot_overpredict_incperiod }
-
-scores_cases_inc_period <- scores_cases |> filter(gen_time=="correct")
-
-# Add weight priors to gen_time column
-scores_cases_inc_period <- scores_cases_inc_period |>
-  mutate(inc_period=ifelse(weight_priors=="yes", "weighted priors", inc_period))
-
-## Mean scores by generation time assumption
-scores_cases_inc_period <- scores_cases_inc_period |> group_by(inc_period, rt_opts, ur) |> summarise(across(c(crps, overprediction, underprediction, dispersion), mean))
-
-scores_cases_inc_period$inc_period <- factor(scores_cases_inc_period$inc_period, levels=c("no delay",
-                                                                                      "very low",
-                                                                                      "low",
-                                                                                      "correct",
-                                                                                      "high",
-                                                                                      "very high",
-                                                                                  "weighted priors"))
-
-abs_plot_overpredict_inc_period <- ggplot(scores_cases_inc_period, aes(x=inc_period, y=overprediction)) +
-  geom_bar(stat="identity") +
-  #geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
-  facet_grid(ur~rt_opts) +
-  xlab("Generation time") +
-  ylab("Overprediction ratio") +
-  #scale_y_continuous(labels = function(x) x + 1) + # Relabel to show actual scores centered around 1
-  lshtm_theme() +
-  theme(axis.text.x=element_text(angle=45, hjust=1), legend.position="none")
-
-abs_plot_underpredict_inc_period <- ggplot(scores_cases_inc_period, aes(x=inc_period, y=underprediction)) +
-  geom_bar(stat="identity") +
-  #geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
-  facet_grid(ur~rt_opts) +
-  xlab("Generation time") +
-  ylab("Overprediction ratio") +
-  #scale_y_continuous(labels = function(x) x + 1) + # Relabel to show actual scores centered around 1
-  lshtm_theme() +
-  theme(axis.text.x=element_text(angle=45, hjust=1), legend.position="none")
-
-abs_plot_dispersion_inc_period <- ggplot(scores_cases_inc_period, aes(x=inc_period, y=dispersion)) +
-  geom_bar(stat="identity") +
-  #geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
-  facet_grid(ur~rt_opts) +
-  xlab("Generation time") +
-  ylab("Overprediction ratio") +
-  #scale_y_continuous(labels = function(x) x + 1) + # Relabel to show actual scores centered around 1
-  lshtm_theme() +
-  theme(axis.text.x=element_text(angle=45, hjust=1), legend.position="none")
-
-print(abs_plot_overpredict)
-print(abs_plot_underpredict)
-print(abs_plot_dispersion)
 ```
 
 ## Plotting cases over time: forecast vs reported ##
@@ -504,17 +433,280 @@ timeseriesplot <- ggplot() +
 print(timeseriesplot)
 ```
 
-## Looking at the summaries
+```{r timeseries_plot}
 
-```{r summary_cases, echo=FALSE}
+source("~/delayscompare/R/plot_casestudy.R")
 
-res_summaries <- readRDS(here("results", paste0("res_", disease, "scen21_summary42025-01-08.rds")))
+# Need each plot to contain correct + each of the weight priors
+res_samples_correct <- read_latest(here(paste0("results/", disease, "casestudy/")), paste0("res_", disease, "scen", 21, "_all_samples"))
+res_id <- read_latest(here(paste0("results/", disease, "casestudy/")), paste0("res_", disease, "scen", 21, "_all_id"))
 
-res_warnings <- readRDS(here("results", paste0("res_", disease, "scen21_warnings42025-01-08.rds")))
-# Find timepoint 4, correct
-correct4_listnum <- res_id |> filter(gen_time=="correct", inc_period=="correct", timepoint==4) |> select(result_list) |> pull() |> unique()
+# Add info to res_samples_correct
+res_samples_correct <- res_samples_correct |>
+  left_join(res_id, by=c("result_list", "gt"))
 
-res_summary_correct4 <- res_summaries[[correct4_listnum]]
+res_samples_weightpriortrue <- read_latest(here(paste0("results/", disease, "casestudy/")), paste0("res_", disease, "scen", 25, "_all_samples"))
+res_samples_weightpriorfalse <- read_latest(here(paste0("results/", disease, "casestudy/")), paste0("res_", disease, "scen", 29, "_all_samples"))
 
-plot(res_summary_correct4)
+# Select only no delay and correct from res_samples_correct, only correct from the other two
+res_samples_correct <- res_samples_correct |> filter(inc_period %in% c("no delay",
+                                                                       "correct"),
+                                                     gen_time %in% c("no delay",
+                                                                     "correct"))
+res_samples_weightpriortrue <- res_samples_weightpriortrue |> filter(gt==4) |> 
+  mutate(gen_time="weight_prior_true", inc_period="weight_prior_true") |> rename(timepoint=result_list)
+res_samples_weightpriorfalse <- res_samples_weightpriorfalse |> filter(gt==4) |> 
+  mutate(gen_time="weight_prior_false", inc_period="weight_prior_false") |> rename(timepoint=result_list)
+
+# Combine
+res_samples <- res_samples_correct |>
+  bind_rows(res_samples_weightpriortrue) |>
+  bind_rows(res_samples_weightpriorfalse) |>
+  select(-c(result_list, gt))
+
+# Plot
+covid_cs_timeseries_plot <- plot_cs_triple(res_samples, covid_eng, 4)
+
+ggsave(here("figures", "covid_cs_timeseries_plot.png"), covid_cs_timeseries_plot[[1]], width=13, height=8)
+ggsave(here("figures", "covid_cs_timeseries_only.png"), covid_cs_timeseries_plot[[2]], width=13, height=8)
+
+```
+
+## Ebola plots ##
+```{r load and score, cache=TRUE}
+# Loading all data and generating scores
+disease <- "ebola"
+
+## Load data ##
+
+ebola_confirmed_linelist <- read_xlsx(here("data", "ebola_linelist.xlsx"), "lab-confirmed database")
+
+# Formating for EpiNow2
+
+ebola_confirmed <- incidence(ebola_confirmed_linelist,
+                             date_index="Date of symptom onset",
+                             interval="day")
+
+ebola_confirmed <- ebola_confirmed |>
+  select(date_index, count) |>
+  rename(date=date_index, confirm=count)
+
+# Assuming no data reported on missing days
+extra_dates <- data.frame(date=seq(ebola_confirmed$date[1], ebola_confirmed$date[nrow(ebola_confirmed)], by="day"))
+ebola_confirmed <- right_join(ebola_confirmed, extra_dates, by="date")
+
+ebola_confirmed$confirm[is.na(ebola_confirmed$confirm)] <- 0
+
+# change to format for plotting
+
+ebola_confirmed <- ebola_confirmed |>
+  pivot_longer(cols=c("confirm"), names_to="variable", values_to="value")
+
+ebola_confirmed$variable <- "reported_cases"
+
+  
+  # Scenario labels
+  scen_labs <- data.frame(scen=c(21:32),
+                          rt_opts=rep(c("latest", "latest", "project", "project"), 3),
+                          ur=rep(c("No under-reporting", "Under-reporting", "No under-reporting", "Under-reporting"), 3),
+                          weight_priors=c(rep("fixed", 4), rep("vary_true", 4), rep("vary_false", 4)))
+  
+  scores_cases <- list()
+
+test_results_cs <- lapply(c(21:24), function(i){
+    
+    ## Loading results & generating scores as we go in order to save memory ##
+    res_samples <- read_latest(here(paste0("results/", disease, "casestudy/")), paste0("res_", disease, "scen", i, "_all_samples"))
+ 
+    res_id <- read_latest(here(paste0("results/", disease, "casestudy/")), paste0("res_", disease, "scen", i, "_all_id")) 
+    
+    scores_cases <- generate_scores_cases(res_samples, res_id, ebola_confirmed) |> mutate(scen=i, weight_priors="fixed")
+    return(scores_cases)
+    
+  })
+
+test_results_wp_no <- lapply(c(25:28), function(i){
+    
+  ## Loading results & generating scores as we go in order to save memory ##
+  
+  res_samples <- read_latest(here(paste0("results/", disease, "casestudy/")), paste0("res_", disease, "scen", i, "_all_samples"))
+  
+    res_id <- read_latest(here(paste0("results/", disease, "casestudy/")), paste0("res_", disease, "scen", i, "_all_id")) 
+    
+    ## Keep only gt=correct
+    res_samples <- res_samples |> filter(gt==4)
+    res_id <- res_id |> filter(gt==4)
+    
+    # Add labels
+    res_id$gen_time <- "correct"
+    res_id$inc_period <- "correct"
+    
+    scores_cases <- generate_scores_cases(res_samples, res_id, ebola_confirmed) |> mutate(scen=i, weight_priors="vary_true")
+    return(list(scores_cases))
+    
+  })
+
+test_results_wp_yes <- lapply(c(29:32), function(i){
+    
+    ## Loading results & generating scores as we go in order to save memory ##
+    res_samples <- read_latest(here(paste0("results/", disease, "casestudy/")), paste0("res_", disease, "scen", i, "_all_samples"))
+  
+    res_id <- read_latest(here(paste0("results/", disease, "casestudy/")), paste0("res_", disease, "scen", i, "_all_id")) 
+    
+    ## Keep only gt=correct
+    res_samples <- res_samples |> filter(gt==4)
+    res_id <- res_id |> filter(gt==4)
+    
+    # Add labels
+    res_id$gen_time <- "correct"
+    res_id$inc_period <- "correct"
+    
+    scores_cases <- generate_scores_cases(res_samples, res_id, ebola_confirmed) |> mutate(scen=i, weight_priors="vary_false")
+    return(list(scores_cases))
+    
+  })
+
+  scores_cases <- test_results_cs |>
+    bind_rows()
+    scores_cases <- scores_cases |>
+    left_join(scen_labs, by=c("scen", "weight_priors"))
+    
+  scores_cases_wp_no <- test_results_wp_no |>
+    bind_rows()
+    scores_cases_wp_no <- scores_cases_wp_no |>
+    left_join(scen_labs, by=c("scen", "weight_priors"))
+    
+    scores_cases_wp_yes <- test_results_wp_yes |>
+    bind_rows()
+    scores_cases_wp_yes <- scores_cases_wp_yes |>
+    left_join(scen_labs, by=c("scen", "weight_priors"))
+    
+  # Put results together
+    scores_cases <- scores_cases |>
+      rbind(scores_cases_wp_no) |>
+      rbind(scores_cases_wp_yes)
+  
+```
+
+## Plotting CRPS - Ebola
+
+```{r barchart_cases_ebola, echo=FALSE}
+scores_cases_long <- scores_cases |>
+  select(date, type, gen_time, inc_period, timepoint, scale, scen, rt_opts, ur, crps, overprediction, underprediction, dispersion, weight_priors) |>
+  pivot_longer(cols=c("crps", "overprediction", "underprediction", "dispersion"), names_to="measure", values_to="value")
+
+# Get the mean values across timepoints and GP methods
+
+mean_scores_cases_gen_time <- scores_cases_long |>
+  filter(inc_period=="correct") |>
+  group_by(gen_time, measure, weight_priors, rt_opts, ur) |>
+  summarise(value=mean(value))
+
+mean_scores_cases_inc_period <- scores_cases_long |>
+  filter(gen_time=="correct") |>
+  group_by(inc_period, measure, weight_priors, rt_opts, ur) |>
+  summarise(value=mean(value))
+
+## Adding weight priors to gen_time/inc_period column
+mean_scores_cases_gen_time <- mean_scores_cases_gen_time |>
+  mutate(gen_time=ifelse(weight_priors=="vary_true", "weight priors true", gen_time))
+
+mean_scores_cases_gen_time <- mean_scores_cases_gen_time |>
+  mutate(gen_time=ifelse(weight_priors=="vary_false", "weight priors false", gen_time))
+
+mean_scores_cases_inc_period <- mean_scores_cases_inc_period |>
+  mutate(inc_period=ifelse(weight_priors=="vary_true", "weight priors true", inc_period))
+
+mean_scores_cases_inc_period <- mean_scores_cases_inc_period |>
+  mutate(inc_period=ifelse(weight_priors=="vary_false", "weight priors false", inc_period))
+
+# Need to make gen_time a factor so that ordering is correct:
+mean_scores_cases_gen_time$gen_time <- factor(mean_scores_cases_gen_time$gen_time, levels=c("no delay",
+                                                                                      "very low",
+                                                                                      "low",
+                                                                                      "correct",
+                                                                                      "high",
+                                                                                      "very high",
+                                                                                      "weight priors true",
+                                                                                      "weight priors false"))
+
+mean_scores_cases_inc_period$inc_period <- factor(mean_scores_cases_inc_period$inc_period, levels=c("no delay",
+                                                                                      "very low",
+                                                                                      "low",
+                                                                                      "correct",
+                                                                                      "high",
+                                                                                      "very high",
+                                                                                      "weight priors true",
+                                                                                      "weight priors false"))
+
+# Doesn't make sense to include very low/low etc
+mean_scores_cases_gen_time <- mean_scores_cases_gen_time |> filter(gen_time %in% c("no delay", "correct",
+                                                                                 "weight priors true", "weight priors false"))
+mean_scores_cases_inc_period <- mean_scores_cases_inc_period |> filter(inc_period %in% c("no delay", "correct", 
+                                                                                 "weight priors true", "weight priors false"))
+
+# No delay isn't correct for generation time, should be 1-day 
+
+barchart_cases_gen_time <- ggplot(mean_scores_cases_gen_time |> filter(measure!="crps")) + 
+  geom_bar(aes(x=gen_time, y=value, fill=measure), stat="identity") +
+  xlab("Generation time") +
+  ylab("CRPS") +
+  lshtm_theme()  +
+  facet_grid(rt_opts~ur) +
+  theme(axis.text.x=element_text(angle=45, hjust=1))
+
+barchart_cases_inc_period <- ggplot(mean_scores_cases_inc_period |> filter(measure!="crps")) +
+  geom_bar(aes(x=inc_period, y=value, fill=measure), stat="identity") +
+  xlab("Incubation period") +
+  ylab("CRPS") +
+  lshtm_theme()  +
+  facet_grid(rt_opts~ur) +
+  theme(axis.text.x=element_text(angle=45, hjust=1))
+
+legend <- get_legend(barchart_cases_gen_time)
+
+crps_casestudy <- plot_grid(barchart_cases_gen_time + theme(legend.position="none"), barchart_cases_inc_period + theme(legend.position="none"), legend, ncol=3, rel_widths=c(1, 1, 0.5))
+
+ggsave(here("figures", "crps_casestudy_ebola.png"), crps_casestudy, width=10, height=5)
+
+```
+
+## Plotting time series - Ebola
+```{r timeseries_plot}
+
+source("~/delayscompare/R/plot_casestudy.R")
+
+# Need each plot to contain correct + each of the weight priors
+res_samples_correct <- read_latest(here(paste0("results/", disease, "casestudy/")), paste0("res_", disease, "scen", 21, "_all_samples"))
+res_id <- read_latest(here(paste0("results/", disease, "casestudy/")), paste0("res_", disease, "scen", 21, "_all_id"))
+
+# Add info to res_samples_correct
+res_samples_correct <- res_samples_correct |>
+  left_join(res_id, by=c("result_list", "gt"))
+
+res_samples_weightpriortrue <- read_latest(here(paste0("results/", disease, "casestudy/")), paste0("res_", disease, "scen", 25, "_all_samples"))
+res_samples_weightpriorfalse <- read_latest(here(paste0("results/", disease, "casestudy/")), paste0("res_", disease, "scen", 29, "_all_samples"))
+
+# Select only no delay and correct from res_samples_correct, only correct from the other two
+res_samples_correct <- res_samples_correct |> filter(inc_period %in% c("no delay",
+                                                                       "correct"),
+                                                     gen_time %in% c("no delay",
+                                                                     "correct"))
+res_samples_weightpriortrue <- res_samples_weightpriortrue |> filter(gt==4) |> 
+  mutate(gen_time="weight_prior_true", inc_period="weight_prior_true") |> rename(timepoint=result_list)
+res_samples_weightpriorfalse <- res_samples_weightpriorfalse |> filter(gt==4) |> 
+  mutate(gen_time="weight_prior_false", inc_period="weight_prior_false") |> rename(timepoint=result_list)
+
+# Combine
+res_samples <- res_samples_correct |>
+  bind_rows(res_samples_weightpriortrue) |>
+  bind_rows(res_samples_weightpriorfalse) |>
+  select(-c(result_list, gt))
+
+# Plot
+ebola_cs_timeseries_plot <- plot_cs_triple(res_samples, ebola_confirmed, 4)
+
+ggsave(here("figures", "ebola_cs_timeseries_plot.png"), ebola_cs_timeseries_plot[[1]], width=22, height=8)
+ggsave(here("figures", "ebola_cs_timeseries_only.png"), ebola_cs_timeseries_plot[[2]], width=13, height=8)
+
 ```
