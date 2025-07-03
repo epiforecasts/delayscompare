@@ -12,6 +12,7 @@ source(here("R", "funcs_plots.R"))
 source(here("R", "funcs_data.R"))
 source(here("R", "generate_scores_func.R"))
 source(here("R", "lshtm_theme.R"))
+source(here("R", "plot_casestudy.R"))
 
 # Make sure data lists are up-to-date
 source(here("scripts","datacollect_ebola.R"))
@@ -297,7 +298,7 @@ cholera_yem_tot <- cholera_yem_tot |>
   rename(value=confirm)
   
 # Plot
-cholera_cs_timeseries_plot <- plot_cs_triple(res_samples, cholera_yem_tot, 4)
+cholera_cs_timeseries_plot <- plot_cs_triple(res_samples, cholera_yem_tot, 4, "week")
 
 ```
 

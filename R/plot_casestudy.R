@@ -1,6 +1,27 @@
 plot_cs_triple <- function(res_samples,
                             sim_data,
-                            forecast_freq=4) {
+                            forecast_freq=4,
+                           data_freq="day") {
+  
+  
+  if(data_freq=="week"){
+  
+  # Need to turn samples into weekly cumulative counts that match sim_data dates
+  # Create a new week column in res_samples ending on the same date as sim_data
+  res_samples <- res_samples |>
+    mutate(
+      week = sim_data$date[findInterval(date, sim_data$date, left.open = TRUE) + 1]
+    )
+  
+  # Use this to get the weekly cumulative prediction
+  res_samples <- res_samples |>
+    group_by(week, gen_time, inc_period, timepoint, type, model, sample) |>
+    summarise(
+      prediction = sum(prediction),
+      date = max(date)
+    ) |>
+    ungroup() |>
+    select(-week)}
   
 
   res_samples_end <- res_samples |>
@@ -74,10 +95,19 @@ plot_cs_triple <- function(res_samples,
     filter(!is.na(performance))
  
  ## Create a full sequence of dates
+  if(data_freq == "week") {
  all_dates <- expand_grid(
-   date = seq(min(res_performance$date), max(res_performance$date), by = "1 day"),
+   date = seq(min(res_performance$date), max(res_performance$date), by = "1 week"),
    performance = unique(res_performance$performance)
  )
+  } else if(data_freq == "day") {
+    all_dates <- expand_grid(
+      date = seq(min(res_performance$date), max(res_performance$date), by = "1 day"),
+      performance = unique(res_performance$performance)
+    )
+  } else {
+    stop("data_freq must be either 'day' or 'week'")
+  }
   
   # Merge with existing data, filling gaps with NA
   res_performance_full <- merge(all_dates, res_performance, by = c("date", "performance"), all.x = TRUE)
