@@ -18,7 +18,7 @@ ebola_confirmed_linelist <- read_xlsx(here("data", "ebola_linelist.xlsx"), "lab-
 # Formating for EpiNow2
 
 ebola_confirmed <- incidence(ebola_confirmed_linelist,
-                             date_index="Date of symptom onset",
+                             date_index="Date of sample tested",
                              interval="day")
 
 ebola_confirmed <- ebola_confirmed |>
