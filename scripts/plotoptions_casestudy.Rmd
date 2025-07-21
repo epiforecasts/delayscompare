@@ -169,6 +169,8 @@ res_samples <- res_samples_correct |>
 # Plot
 covid_cs_timeseries_plot <- plot_cs_triple(res_samples, covid_eng, 4)
 
+covid_cs_short <- plot_cs_single(res_samples, covid_eng, 4)
+
 ```
 
 ## Ebola plots ##
@@ -231,6 +233,8 @@ ebola_confirmed <- ebola_confirmed |>
   
 # Plot
 ebola_cs_timeseries_plot <- plot_cs_triple(res_samples, ebola_confirmed, 4)
+
+ebola_cs_short <- plot_cs_single(res_samples, ebola_confirmed, 4)
 
 ```
 ## Cholera plots ##
@@ -300,5 +304,17 @@ cholera_yem_tot <- cholera_yem_tot |>
 # Plot
 cholera_cs_timeseries_plot <- plot_cs_triple(res_samples, cholera_yem_tot, 4, "week")
 
+cholera_cs_short <- plot_cs_single(res_samples, cholera_yem_tot, 4, "week")
+
 ```
 
+## Combining summary plots ##
+```{r combine_plots}
+
+# Combine all plots
+combined_summary_plot <- plot_grid(covid_cs_short$combined_plots,
+                                   ebola_cs_short$combined_plots,
+                                   cholera_cs_short$combined_plots,
+                                   ncol=1, align="hv", axis="tb",
+                                   labels=c("A", "B", "C"))
+```
