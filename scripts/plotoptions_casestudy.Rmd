@@ -308,9 +308,8 @@ cholera_cs_short <- plot_cs_single(res_samples, cholera_yem_tot, 4, "week")
 
 ```
 
-## Combining summary plots ##
-```{r combine_plots}
 
+```{r combine_plots}
 # Combine all plots
 combined_summary_plot <- plot_grid(covid_cs_short$combined_plots,
                                    ebola_cs_short$combined_plots,
@@ -318,3 +317,4 @@ combined_summary_plot <- plot_grid(covid_cs_short$combined_plots,
                                    ncol=1, align="hv", axis="tb",
                                    labels=c("A", "B", "C"))
 ```
+

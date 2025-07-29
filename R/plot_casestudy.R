@@ -594,8 +594,7 @@ plot_cs_single <- function(res_samples,
     theme(axis.text.x=element_text(angle=45, hjust=1),
           legend.position = "none",
           #axis.title.x=element_blank(),
-          axis.title.y=element_blank()) +
-    xlab(" ")
+          axis.title.y=element_blank())
   
   barchart_mean_inc_period <- ggplot(mean_scores_cases_inc_period |> filter(measure!="crps")) +
     geom_bar(aes(x=inc_period, y=value, fill=measure), stat="identity") +
@@ -605,9 +604,7 @@ plot_cs_single <- function(res_samples,
     theme(axis.text.x=element_text(angle=45, hjust=1),
           legend.position = "none",
           #axis.title.x=element_blank(),
-          axis.title.y=element_blank()) +
-    xlab(" ")
-  
+          axis.title.y=element_blank())
   # Standard legend text size
   legend_text_size <- 10
   
