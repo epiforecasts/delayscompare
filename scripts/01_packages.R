@@ -17,6 +17,6 @@ pkgs <- c("EpiNow2",
 
 lapply(pkgs, library, character.only=TRUE)
 
-here::here("C:/Users/CiaraMcCarthy/delayscompare")
+here::here()
 
 options(mc.cores = 4)

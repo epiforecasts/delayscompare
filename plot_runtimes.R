@@ -71,9 +71,7 @@ slurm_data <- slurm_data |>
 
 # Add scenario names
 
-scens <- data.frame(JobID=c(4227959, 
-                            4228046,
-                            4228073,
+scens <- data.frame(JobID=c(4228046,
                             4228104),
                     scen=c("Rt=increasing","Rt=decreasing"))
 
@@ -81,7 +79,7 @@ slurm_data <- slurm_data |>
   left_join(scens, by = "JobID")
 
 runtimeplot <- ggplot() + geom_col(data = slurm_data |> filter(!is.na(scen)), aes(x = factor(gen_time), y = ElapsedHours)) +
-  labs(x = "Generation interval", y = "Elapsed Time (Hours)") +
+  labs(x = "Generation interval", y = "Elapsed time (hours)") +
   theme_minimal() +
   facet_wrap(~ scen, scales = "free_y", ncol = 2) +
   scale_fill_brewer(palette = "Set1") +
