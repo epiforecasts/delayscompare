@@ -30,8 +30,8 @@ ebola_sim_data <- simulate_infections(
   R=rt_ebola_epinow,
   initial_infections=5,
   generation_time=generation_time_opts(ebola_gen_time),
-  delays=delay_opts(fix_dist(combined_delay_ebola)),
-  obs=obs_opts(family="poisson", scale=0.83)
+  delays=delay_opts(fix_parameters(ebola_inc_period)),
+  obs=obs_opts(family="poisson", scale=Fixed(0.83))
 )
 
 save_latest(ebola_sim_data, here("data"), "ebola_sim_data")
@@ -64,8 +64,8 @@ covid_sim_data <- simulate_infections(
   R=rt_covid_epinow,
   initial_infections=2500,
   generation_time=generation_time_opts(covid_gen_time),
-  delays=delay_opts(covid_inc_period + covid_rep_delay),
-  obs=obs_opts("poisson", scale=0.4)
+  delays=delay_opts(covid_inc_period + covid_reporting_delay),
+  obs=obs_opts("poisson", scale=Fixed(0.4))
 )
 
 ggplot(covid_sim_data) + geom_line(aes(x=date, y=value)) + facet_wrap(~variable)
@@ -100,7 +100,7 @@ cholera_sim_data <- simulate_infections(
   initial_infections=75,
   generation_time=generation_time_opts(cholera_gen_time),
   delays=delay_opts(combined_delay_cholera),
-  obs=obs_opts(family="poisson", scale=0.28)
+  obs=obs_opts(family="poisson", scale=Fixed(0.28))
 )
 
 save_latest(cholera_sim_data, here("data"), "cholera_sim_data")

@@ -20,7 +20,7 @@ ebola_inc_period <- LogNormal(mean=11.4,
 
 ## Reporting delay
 
-# ebola_reporting_delay <- readRDS(here("data", "ebolareportingdelay.RDS")) # estimated from Fang et al. 2016 linelist - no longer need, as using date of symptom onset.
+ #ebola_reporting_delay <- readRDS(here("data", "ebolareportingdelay.RDS")) # estimated from Fang et al. 2016 linelist - no longer need, as using date of symptom onset.
 
 # combined_delay_ebola <- ebola_inc_period + ebola_reporting_delay
 
@@ -76,5 +76,5 @@ cholera_reporting_delay <- discretise(cholera_reporting_delay)
 cholera_combined_param <- cholera_inc_period + cholera_reporting_delay
 
 test_delay <- cholera_combined_param[[2]]$pmf
-cholera_combined_delay2 <- NonParametric(pmf = test_delay)
+combined_delay_cholera <- NonParametric(pmf = test_delay)
 
