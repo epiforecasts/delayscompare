@@ -13,7 +13,8 @@ sim_scenarios <- function(case_data,
                           freq_fc=4,
                           weeks_inc=12,
                           rt_opts_choice,
-                          obs_scale){
+                          obs_scale,
+                          report_freq="day"){
   
   ## Scenarios
   
@@ -22,6 +23,27 @@ sim_scenarios <- function(case_data,
   
   start_date <- min(case_data$date)
   end_date <- max(case_data$date)
+  
+  ## Dealing with missing data
+  
+  if(report_freq=="week"){
+    fill_missing(
+      case_data,
+      missing_dates = c("accumulate"),
+      missing_obs = c("accumulate"),
+      obs_column = "confirm",
+      by = NULL
+    )
+  } else if (report_freq=="day"){
+    fill_missing(
+      case_data,
+      missing_dates = c("ignore"),
+      missing_obs = c("ignore"),
+      obs_column = "confirm",
+      by = NULL
+    )
+  }
+  
 
 target_dates  <- seq.Date(from=start_date, to=end_date, by=paste(freq_fc, "weeks"))
 
@@ -74,9 +96,10 @@ if(length(scen_timepoints)>8){scen_timepoints <- scen_timepoints[1:8]}
         inc_period <- LogNormal(mean=inc_mean*scen_values[j],
                                 sd=inc_sd,
                                 max=inc_max)
+        if(rep_max>0){
         reporting_delay <- LogNormal(mean=rep_mean*scen_values[j],
                                      sd=rep_sd,
-                                     max=rep_max)
+                                     max=rep_max)} else {reporting_delay <- Fixed(0)}
         } else {
           inc_period <- Fixed(0)
           reporting_delay <- Fixed(0)
@@ -85,17 +108,16 @@ if(length(scen_timepoints)>8){scen_timepoints <- scen_timepoints[1:8]}
 case_segment <- case_segment[order(case_segment$date), ]
 
 start_runtime <- Sys.time()
-
           def <- estimate_infections(case_segment,
                                      generation_time = generation_time_opts(gen_time),
-                                     delays = delay_opts(reporting_delay),
-                                     obs=obs_opts(family="negbin", scale=obs_scale, na="missing"),
+                                     delays = delay_opts(inc_period + reporting_delay),
+                                     obs=obs_opts(family="negbin", scale=Fixed(obs_scale)),
                                      rt=rt_opts(future=rt_opts_choice),
                                      stan = stan_opts(samples = 3000,
                                                       return_fit = FALSE,
                                                       control=list(adapt_delta=0.99,
                                                                    max_treedepth=20)),
-                                     horizon=14,
+                                     forecast = forecast_opts(horizon=14),
                                      verbose = FALSE)
           
         # Recording runtime
@@ -132,7 +154,7 @@ start_runtime <- Sys.time()
                     R = res_R,
                     id = res_id,
                     summary = def,
-                    timing - timing_log))
+                    timing = timing_log))
   }, .progress = TRUE)
 
   save_warnings <- warnings()
