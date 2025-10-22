@@ -496,7 +496,7 @@ plot_baseline_cases <- function(res_samples,
   # Add all dates for plotting
   
   all_dates <- expand_grid(
-    date = seq(min(res_samples$date), max(res_samples$date), by = "1 day"),
+    date = seq(min(sim_data$date), max(res_samples$date), by = "1 day"),
     performance = unique(res_performance$performance)
   )
   
@@ -653,7 +653,7 @@ plot_baseline_cases <- function(res_samples,
         const_low  = "Constant low Rt",
         inc  = "Increasing Rt",
         dec  = "Decreasing Rt",
-        resim = ""
+        resim = "Generation time"
       ))) +
     xlab("Generation time") +
     ylab("CRPS") +
@@ -675,7 +675,7 @@ plot_baseline_cases <- function(res_samples,
         const_low  = "Constant low Rt",
         inc  = "Increasing Rt",
         dec  = "Decreasing Rt",
-        resim = ""
+        resim = "Incubation period"
       ))) +
     xlab("Incubation period") +
     ylab("CRPS") +
