@@ -9,7 +9,7 @@ This project investigates how misspecification of epidemiological delay distribu
 - Simulate epidemic data with known delay distributions
 - Estimate infections and Rt under various delay misspecification scenarios
 - Compare forecast performance across different diseases and epidemic trajectories
-- Evaluate the impact of prior weight specifications on delay estimation
+- Evaluate the impact of prior weighting on delay estimation
 
 ## Project Structure
 
@@ -38,16 +38,10 @@ delayscompare/
 The analysis includes three epidemic case studies:
 
 1. **COVID-19** (England, 2021 Delta wave)
-   - Generation time: 3.6 days (SD: 3.1)
-   - Incubation period: 5.2 days (SD: 1.52)
-   - Reporting delay: 4.4 days (SD: 5.6)
 
-2. **Ebola** (West Africa outbreak)
-   - Uses linelist data from real outbreak
-   - Multiple R trajectory patterns (constant, increasing/decreasing, sine wave)
+2. **Ebola** (Sierra Leone, 2014)
 
-3. **Cholera**
-   - Simulated scenarios with varying epidemic dynamics
+3. **Cholera** (Yemen, 2016)
 
 ## Scenarios
 
@@ -60,7 +54,7 @@ Each case study examines delay misspecification scenarios:
 - **High**: 1.25× correct delay mean
 - **Very high**: 2× correct delay mean
 
-Additional scenarios test:
+Additional scenarios tested:
 - Different Rt projection methods (`rt_opts`: "latest" vs "project")
 - Under-reporting (observation scale: 0.3 vs 1.0)
 - Prior weight specifications for delay distributions
@@ -130,7 +124,7 @@ res <- sim_weightprior(
   gen_sd_sd = 0.3,
   gen_max = 30,
   # ... other parameters
-  weight_prior = 0.5  # Weight given to prior vs data
+  weight_prior = TRUE 
 )
 ```
 
@@ -152,9 +146,8 @@ Results are saved as RDS files in the `results/` directory:
 - `*_warnings*.rds`: Model warnings
 
 Plots are generated showing:
-- Forecast accuracy across scenarios
-- Rt estimation performance
-- Impact of delay misspecification
+- Impact of delay misspecification on CRPS for Rt and case forecasts
+- Timeseries of best- and worst-performing forecasts
 - Runtime comparisons
 
 ## Configuration
@@ -170,10 +163,3 @@ MCMC settings:
 ## License
 
 This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details.
-
-## Notes
-
-- Uses `renv` for package management
-- Designed for parallel execution across scenarios
-- Runtime varies by scenario complexity (tracked in `plot_runtimes.R`)
-- Results are reproducible given fixed random seeds
