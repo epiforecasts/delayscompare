@@ -69,12 +69,4 @@ cholera_reporting_delay <- LogNormal(mean=4.4,
                                sd=0.67, max=30) # max is placeholder # https://tbiomed.biomedcentral.com/articles/10.1186/s12976-017-0061-x 
 
 
-  
-
-cholera_inc_period <- discretise(cholera_inc_period)
-cholera_reporting_delay <- discretise(cholera_reporting_delay)
-cholera_combined_param <- cholera_inc_period + cholera_reporting_delay
-
-test_delay <- cholera_combined_param[[2]]$pmf
-combined_delay_cholera <- NonParametric(pmf = test_delay)
-
+combined_delay_cholera <- cholera_inc_period + cholera_reporting_delay

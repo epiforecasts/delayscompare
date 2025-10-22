@@ -1,3 +1,9 @@
+lshtm_pal <- c(
+  "underprediction"     = "#003366",  # deep navy
+  "dispersion"     = "#FFD700",  # gold
+  "overprediction" = "#008080"   # teal
+)
+
 plot_baseline_rt <- function(res_rt_samples, 
                           res_id, 
                           rt_dis,
@@ -209,8 +215,10 @@ plot_baseline_rt <- function(res_rt_samples,
     xlab("Generation time") +
     ylab("CRPS") +
     lshtm_theme() +
+    scale_fill_manual(values = lshtm_pal) +
     theme(axis.text.x=element_text(angle=45, hjust=1),
-          legend.position = "none") # Remove legend from barchart_gen_time 
+          legend.position = "none") + # Remove legend from barchart_gen_time  +
+  scale_fill_manual(values = lshtm_pal) 
   
   barchart_inc_period <- ggplot(scores_rt_inc_period |> filter(measure!="crps")) +
     geom_bar(aes(x=inc_period, y=value, fill=measure), stat="identity") +
@@ -218,32 +226,54 @@ plot_baseline_rt <- function(res_rt_samples,
     xlab("Incubation period") +
     ylab("CRPS") +
     lshtm_theme()  +
+    scale_fill_manual(values = lshtm_pal) +
     theme(axis.text.x=element_text(angle=45, hjust=1),
-          legend.position = "none")
+          legend.position = "none") +
+    scale_fill_manual(values = lshtm_pal) 
   
   barchart_mean_gen_time <- ggplot(mean_scores_rt_gen_time |> filter(measure!="crps")) + 
     geom_bar(aes(x=gen_time, y=value, fill=measure), stat="identity") +
-    facet_wrap(~rt_traj, nrow=1) +
+    facet_wrap(
+      ~ rt_traj,
+      nrow = 1,
+      labeller = as_labeller(c(
+        const_high = "Constant high Rt",
+        const_low  = "Constant low Rt",
+        inc  = "Increasing Rt",
+        dec  = "Decreasing Rt"
+      ))) +
     xlab("Generation time") +
     ylab("CRPS") +
     lshtm_theme() +
+    scale_fill_manual(values = lshtm_pal) +
     theme(axis.text.x=element_text(angle=45, hjust=1),
           legend.position = "none",
           #axis.title.x=element_blank(),
           axis.title.y=element_blank()) +
-    xlab(" ")
+    xlab(" ") +
+    scale_fill_manual(values = lshtm_pal) 
   
   barchart_mean_inc_period <- ggplot(mean_scores_rt_inc_period |> filter(measure!="crps")) +
     geom_bar(aes(x=inc_period, y=value, fill=measure), stat="identity") +
-    facet_wrap(~rt_traj, nrow=1) +
+    facet_wrap(
+      ~ rt_traj,
+      nrow = 1,
+      labeller = as_labeller(c(
+        const_high = "Constant high Rt",
+        const_low  = "Constant low Rt",
+        inc  = "Increasing Rt",
+        dec  = "Decreasing Rt"
+      ))) +
     xlab("Incubation period") +
     ylab("CRPS") +
     lshtm_theme()  +
+    scale_fill_manual(values = lshtm_pal) +
     theme(axis.text.x=element_text(angle=45, hjust=1),
           legend.position = "none",
           #axis.title.x=element_blank(),
           axis.title.y=element_blank()) +
-    xlab(" ")
+    xlab(" ") +
+    scale_fill_manual(values = lshtm_pal) 
   
   # Standard legend text size
   legend_text_size <- 10
@@ -319,8 +349,9 @@ plot_baseline_rt <- function(res_rt_samples,
       theme(axis.text.x=element_text(angle=45, hjust=1),
             legend.position = "right",
             legend.text = element_text(size = legend_text_size),
-            legend.background = element_rect(fill = "white")) 
-  )
+            legend.background = element_rect(fill = "white"))  +
+      scale_fill_manual(values = lshtm_pal) 
+  ) 
   
   # Spacer to align legends correctly
   spacer <- ggplot() + theme_void()  # Create an empty plot to act as a spacer
@@ -371,7 +402,12 @@ plot_baseline_rt <- function(res_rt_samples,
     rel_widths = c(8, 1)  # Adjust width ratio (e.g., 4 times wider for plots)
   )
   
-  return(final_plot)}
+  return(list(final_plot=final_plot,
+              timeseries=timeseries_performance,
+         overall_rank_plot=overall_rank_plot,
+         barchart_mean_gen_time=barchart_mean_gen_time,
+         barchart_mean_inc_period=barchart_mean_inc_period
+         ))}
 
 plot_baseline_cases <- function(res_samples, 
                              res_id, 
@@ -450,11 +486,11 @@ plot_baseline_cases <- function(res_samples,
     group_by(timepoint, date, gen_time, inc_period, type, performance) |>
     filter(type=="forecast") |>
     summarise(
-      q0.025 = quantile(prediction, 0.025),
-      q0.25 = quantile(prediction, 0.25),
-      q0.5 = quantile(prediction, 0.5),
-      q0.75 = quantile(prediction, 0.75),
-      q0.975 = quantile(prediction, 0.975),
+      q0.025 = quantile(prediction, 0.025, na.rm=TRUE),
+      q0.25 = quantile(prediction, 0.25, na.rm=TRUE),
+      q0.5 = quantile(prediction, 0.5, na.rm=TRUE),
+      q0.75 = quantile(prediction, 0.75, na.rm=TRUE),
+      q0.975 = quantile(prediction, 0.975, na.rm=TRUE)
     )
   
   # Add all dates for plotting
@@ -475,13 +511,14 @@ plot_baseline_cases <- function(res_samples,
   
   res_performance_full <- res_performance_full |>
     left_join(sim_data, by="date")
-  
+
   # Plot 1: Timeseries Performance (remove legend from plot)
   timeseries_performance <- ggplot(res_performance_full) + 
     geom_line(mapping=aes(x=date, y=q0.5, colour=performance)) +
     geom_ribbon(mapping=aes(x=date, ymin=q0.25, ymax=q0.75, fill=performance), alpha=0.5) +
-    #geom_ribbon(mapping=aes(x=date, ymin=q0.025, ymax=q0.975, fill=performance), alpha=0.2) +
+    geom_ribbon(mapping=aes(x=date, ymin=q0.025, ymax=q0.975, fill=performance), alpha=0.2) +
     geom_point(mapping=aes(x=date, y=value), colour="black", size=0.5, show.legend=FALSE) +
+    facet_wrap(~performance, scale="free") +
     lshtm_theme() +
     scale_colour_manual(
       name = "Performance",
@@ -515,7 +552,7 @@ plot_baseline_cases <- function(res_samples,
     ) +
     theme(legend.position = "none") + # Remove legend from timeseries_performance 
     xlab("Date") +
-    ylab("Rt")
+    ylab("Reported cases")
   
   # Plot 2a: Rank plot (remove legend from plot)
   rank_plot <- ggplot(rankings, aes(x=gen_time, y=inc_period)) +
@@ -592,6 +629,7 @@ plot_baseline_cases <- function(res_samples,
     xlab("Generation time") +
     ylab("CRPS") +
     lshtm_theme() +
+    scale_fill_manual(values = lshtm_pal) +
     theme(axis.text.x=element_text(angle=45, hjust=1),
           legend.position = "none") # Remove legend from barchart_gen_time 
   
@@ -601,15 +639,26 @@ plot_baseline_cases <- function(res_samples,
     xlab("Incubation period") +
     ylab("CRPS") +
     lshtm_theme()  +
+    scale_fill_manual(values = lshtm_pal) +
     theme(axis.text.x=element_text(angle=45, hjust=1),
           legend.position = "none")
   
   barchart_mean_gen_time <- ggplot(mean_scores_cases_gen_time |> filter(measure!="crps")) + 
     geom_bar(aes(x=gen_time, y=value, fill=measure), stat="identity") +
-    facet_wrap(~rt_traj, nrow=1) +
+    facet_wrap(
+      ~ rt_traj,
+      nrow = 1,
+      labeller = as_labeller(c(
+        const_high = "Constant high Rt",
+        const_low  = "Constant low Rt",
+        inc  = "Increasing Rt",
+        dec  = "Decreasing Rt",
+        resim = ""
+      ))) +
     xlab("Generation time") +
     ylab("CRPS") +
     lshtm_theme() +
+    scale_fill_manual(values = lshtm_pal) +
     theme(axis.text.x=element_text(angle=45, hjust=1),
           legend.position = "none",
           #axis.title.x=element_blank(),
@@ -618,10 +667,20 @@ plot_baseline_cases <- function(res_samples,
   
   barchart_mean_inc_period <- ggplot(mean_scores_cases_inc_period |> filter(measure!="crps")) +
     geom_bar(aes(x=inc_period, y=value, fill=measure), stat="identity") +
-    facet_wrap(~rt_traj, nrow=1) +
+    facet_wrap(
+      ~ rt_traj,
+      nrow = 1,
+      labeller = as_labeller(c(
+        const_high = "Constant high Rt",
+        const_low  = "Constant low Rt",
+        inc  = "Increasing Rt",
+        dec  = "Decreasing Rt",
+        resim = ""
+      ))) +
     xlab("Incubation period") +
     ylab("CRPS") +
     lshtm_theme()  +
+    scale_fill_manual(values = lshtm_pal) +
     theme(axis.text.x=element_text(angle=45, hjust=1),
           legend.position = "none",
           #axis.title.x=element_blank(),
@@ -699,6 +758,7 @@ plot_baseline_cases <- function(res_samples,
       xlab("Generation time") +
       ylab("CRPS") +
       lshtm_theme() +
+      scale_fill_manual(values = lshtm_pal) +
       theme(axis.text.x=element_text(angle=45, hjust=1),
             legend.position = "right",
             legend.text = element_text(size = legend_text_size),
@@ -754,5 +814,10 @@ plot_baseline_cases <- function(res_samples,
     rel_widths = c(8, 1)  # Adjust width ratio (e.g., 4 times wider for plots)
   )
   
-  return(final_plot)}
+  return(list(final_plot=final_plot,
+              timeseries=timeseries_performance,
+         overall_rank_plot=overall_rank_plot,
+         barchart_mean_gen_time=barchart_mean_gen_time,
+         barchart_mean_inc_period=barchart_mean_inc_period
+  ))}
 

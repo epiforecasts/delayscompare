@@ -137,6 +137,8 @@ test_results_wp_yes <- lapply(c(29:31), function(i){
 
 ```{r timeseries_plot}
 
+disease <- "covid"
+
 source("~/delayscompare/R/plot_casestudy.R")
 
 # Need each plot to contain correct + each of the weight priors
@@ -167,9 +169,9 @@ res_samples <- res_samples_correct |>
   select(-c(result_list, gt))
 
 # Plot
-covid_cs_timeseries_plot <- plot_cs_triple(res_samples, covid_eng, 4)
+# covid_cs_timeseries_plot <- plot_cs_triple(res_samples, covid_eng, 4, title="COVID-19 in England")
 
-covid_cs_short <- plot_cs_single(res_samples, covid_eng, 4)
+covid_cs_short <- plot_cs_single(res_samples, covid_eng, 4, title="COVID-19 in England")
 
 ```
 
@@ -232,9 +234,9 @@ ebola_confirmed <- ebola_confirmed |>
   rename(value=confirm)
   
 # Plot
-ebola_cs_timeseries_plot <- plot_cs_triple(res_samples, ebola_confirmed, 4)
+# ebola_cs_timeseries_plot <- plot_cs_triple(res_samples, ebola_confirmed, 4)
 
-ebola_cs_short <- plot_cs_single(res_samples, ebola_confirmed, 4)
+ebola_cs_short <- plot_cs_single(res_samples, ebola_confirmed, 4, title="Ebola in Sierra Leone")
 
 ```
 ## Cholera plots ##
@@ -302,9 +304,9 @@ cholera_yem_tot <- cholera_yem_tot |>
   rename(value=confirm)
   
 # Plot
-cholera_cs_timeseries_plot <- plot_cs_triple(res_samples, cholera_yem_tot, 4, "week")
+# cholera_cs_timeseries_plot <- plot_cs_triple(res_samples, cholera_yem_tot, 4, "week")
 
-cholera_cs_short <- plot_cs_single(res_samples, cholera_yem_tot, 4, "week")
+cholera_cs_short <- plot_cs_single(res_samples, cholera_yem_tot, 4, "week", title="Cholera in Yemen")
 
 ```
 
@@ -316,5 +318,61 @@ combined_summary_plot <- plot_grid(covid_cs_short$combined_plots,
                                    cholera_cs_short$combined_plots,
                                    ncol=1, align="hv", axis="tb",
                                    labels=c("A", "B", "C"))
+
+# Combining plots for poster
+library(patchwork)
+
+# Combine plots in a column
+covid_timeseries <- covid_cs_short$timeseries
+
+ebola_timeseries <- ebola_cs_short$timeseries
+
+cholera_timeseries <- cholera_cs_short$timeseries
+
+combined_timeseries <- (covid_timeseries / ebola_timeseries / cholera_timeseries) +
+  plot_layout(guides = "collect") & theme(legend.position = "bottom")
+
+# combined barchart - gen time
+p_covid_gen <- covid_cs_short$barchart_gen_time +
+  labs(title = "COVID-19 in England") +
+  theme(legend.position = "none")
+
+p_ebola_gen <- ebola_cs_short$barchart_gen_time +
+  labs(title = "Ebola in Sierra Leone") +
+  theme(legend.position = "none")
+
+p_cholera_gen <- cholera_cs_short$barchart_gen_time +
+  labs(title = "Cholera in Yemen") +
+  theme(legend.position = "none")
+
+# 1 row of plots + 1 row reserved for the legend
+combined_gen_time <- ((p_covid | p_ebola | p_cholera) / patchwork::guide_area()) +
+  plot_layout(guides = "collect", heights = c(1, 0.12)) &
+  theme(
+    legend.position = "bottom",
+    legend.justification = "center"
+  )
+
+# combined barchart - inc period
+p_covid_inc <- covid_cs_short$barchart_inc_period +
+  labs(title = "COVID-19 in England") +
+  theme(legend.position = "none")
+
+p_ebola_inc <- ebola_cs_short$barchart_inc_period +
+  labs(title = "Ebola in Sierra Leone") +
+  theme(legend.position = "none")
+
+p_cholera_inc <- cholera_cs_short$barchart_inc_period +
+  labs(title = "Cholera in Yemen") +
+  theme(legend.position = "none")
+
+# 1 row of plots + 1 row reserved for the legend
+combined_inc_period <- ((p_covid | p_ebola | p_cholera) / patchwork::guide_area()) +
+  plot_layout(guides = "collect", heights = c(1, 0.12)) &
+  theme(
+    legend.position = "bottom",
+    legend.justification = "center"
+  )
+
 ```
 

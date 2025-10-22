@@ -371,7 +371,10 @@ plot_baseline_rt <- function(res_rt_samples,
     rel_widths = c(8, 1)  # Adjust width ratio (e.g., 4 times wider for plots)
   )
   
-  return(final_plot)}
+  return(list(final_plot=final_plot, 
+              overall_rank_plot=overall_rank_plot,
+              barchart_mean_gen_time=barchart_mean_gen_time,
+              barchart_mean_inc_period=barchart_mean_inc_period))}
 
 plot_baseline_cases <- function(res_samples, 
                                 res_id, 
@@ -754,4 +757,7 @@ plot_baseline_cases <- function(res_samples,
     rel_widths = c(8, 1)  # Adjust width ratio (e.g., 4 times wider for plots)
   )
   
-  return(final_plot)}
+  return(list(final_plot=final_plot, 
+              overall_rank_plot=overall_rank_plot,
+              barchart_mean_gen_time=barchart_mean_gen_time,
+              barchart_mean_inc_period=barchart_mean_inc_period))}
