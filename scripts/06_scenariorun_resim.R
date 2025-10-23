@@ -12,6 +12,7 @@ gt <- as.numeric(var[1])
 print(gt)
 
 disease <- "cholera"
+rt_opts <- "latest"
 
 ## Loading data ##
 
@@ -40,7 +41,7 @@ res_disease <- sim_scenarios(case_data=sim_data_cases,
                              rep_max = d$rep["max"],
                              freq_fc = 4,
                              weeks_inc = 12,
-                             rt_opts_choice = "latest",
+                             rt_opts_choice = rt_opts,
                              obs_scale = d$underreport)
 
 save_latest(res_disease[[1]], here("results"), paste0("res_", disease, "_sim_latest_samples", gt))
@@ -64,7 +65,7 @@ res_disease <- sim_scenarios(case_data=sim_data_cases,
                              rep_max = d$rep["max"],
                              freq_fc = 4,
                              weeks_inc = 12,
-                             rt_opts_choice = "latest",
+                             rt_opts_choice = rt_opts,
                              obs_scale = d$underreport)
 save_latest(res_disease[[1]], here("results"), paste0("res_", disease, "sim_project_samples", gt))
 save_latest(res_disease[[2]], here("results"), paste0("res_", disease, "sim_project_id", gt))

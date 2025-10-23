@@ -91,3 +91,20 @@ delays <- list(
     rep = c(mean = 4.4, sd = 0.67, max = 30),
     underreport = 0.28
   ))
+
+## Saving dates for datacollect
+startenddates <- list(
+  ebola = list(
+    startdate = as.Date("2014-05-18"), # Same start date as data
+    enddate = as.Date("2014-05-18") + 6*4*7 + 14 # Long enough time horizon to have six forecast timepoints with forecasts every 4 weeks
+  ),
+  covid = list(
+  startdate  = as.Date("2021-01-01"), # Same start date as data
+  enddate = as.Date("2021-01-01") + 6*4*7 + 14 # Long enough time horizon to have six forecast time points with forecasts every 4 weeks, + two weeks data at the end for forecast
+  ),
+  cholera = list(
+    startdate = as.Date("2017-04-23"), # Same start date as data
+    enddate = as.Date("2017-04-23") + 6*4*7 + 14 # Long enough time horizon to have six forecast timepoints with forecasts every 4 weeks
+  )
+)
+
