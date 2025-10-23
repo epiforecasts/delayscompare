@@ -10,6 +10,7 @@ gt <- as.numeric(var[1])
 print(gt)
 
 disease <- "cholera"
+d <- delays[[disease]]
 
 ############### SCENARIOS #################
 
@@ -17,7 +18,6 @@ disease <- "cholera"
 
 sim_data_const_low <- read_latest(here("data"), paste0(disease, "_sim_data_const_low"))
 sim_data_const_low_ur <- read_latest(here("data"), paste0(disease, "_sim_data_const_low_ur"))
-d <- delays[[disease]]
 
 # In required format for EpiNow2
 
