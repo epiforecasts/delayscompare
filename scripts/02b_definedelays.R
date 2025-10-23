@@ -77,19 +77,22 @@ delays <- list(
     gen = c(mean = 16.2, sd = 9.4, max = 45),
     inc = c(mean = 11.4, sd = 8.1, max = 45),
     rep = c(mean = 0, sd = 0, max = 0),
-    underreport = 0.83
+    underreport = 0.83,
+    init_infs=50
   ),
   covid = list(
     gen = c(mean = 3.6, sd = 3.1, max = 30),
     inc = c(mean = 5.2, sd = 1.52, max = 30),
     rep = c(mean = 4.4, sd = 5.6, max = 30),
-    underreport = 0.4
+    underreport = 0.4,
+    initial_infs=2500
   ),
   cholera = list(
     gen = c(mean = 8.51, sd = 0.54, max = 50),
     inc = c(mean = 1.77, sd = 1.08, max = 30),
     rep = c(mean = 4.4, sd = 0.67, max = 30),
-    underreport = 0.28
+    underreport = 0.28,
+    initial_infs=75
   ))
 
 ## Saving dates for datacollect
