@@ -5,8 +5,8 @@ disease <- "covid"
 
 ## Get correct start and end date for disease
 
-startdate <- startenddates$covid[["startdate"]]
-enddate <- startenddates$covid[["enddate"]]
+startdate <- startenddates[[disease]][["startdate"]]
+enddate <- startenddates[[disease]][["enddate"]]
 
 rt_traj <- list()
 
