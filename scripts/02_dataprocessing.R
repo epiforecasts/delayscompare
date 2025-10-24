@@ -27,24 +27,38 @@ ebola_confirmed$confirm[is.na(ebola_confirmed$confirm)] <- 0
 #### SARS-CoV2 ####
 ###################
 
-# covid_eng <- read.csv("https://api.coronavirus.data.gov.uk/v2/data?areaType=nation&areaCode=E92000001&metric=newCasesBySpecimenDate&format=csv") # THIS DOESN'T WORK ANYMORE - NEED TO FIX
-#
+covid_eng_file <- here("data", "covid_england.csv")
 
-#
-#covid_eng$date <- as.Date(covid_eng$date, "%Y-%m-%d" )
-#covid_eng$confirm <- as.numeric(covid_eng$confirm)
-#
-## Testing on shorter timeseries
-#covid_eng <- covid_eng |>
+if (file.exists(covid_eng_file)) {
+  covid_eng <- read_csv(covid_eng_file)
+} else {
+  covid_eng <- get_data(
+    theme = "infectious_disease",
+    sub_theme = "respiratory",
+    topic = "COVID-19",
+    geography_type = "Nation",
+    geography = "England",
+    metric = "COVID-19_cases_casesByDay"
+  )
+  covid_eng <- covid_eng |>
+    select(date, confirm = metric_value)
+  write_csv(covid_eng, covid_eng_file)
+}
+
+covid_eng$date <- as.Date(covid_eng$date, "%Y-%m-%d" )
+covid_eng$confirm <- as.numeric(covid_eng$confirm)
+
+# Testing on shorter timeseries
+# covid_eng <- covid_eng |>
 #  filter(date < "2020-12-31")
-#
-#rt_covid <- read.csv(here("data", "rt.csv")) |>
-#  filter(region=="United Kingdom",
-#         type=="estimate") |>
-#  select(date, median) |>
-#  rename(R=median)
-#
-#rt_covid$date <- as.Date(rt_covid$date, "%Y-%m-%d")
+
+rt_covid <- read.csv(here("data", "rt.csv")) |>
+ filter(region=="United Kingdom",
+        type=="estimate") |>
+ select(date, median) |>
+ rename(R=median)
+
+rt_covid$date <- as.Date(rt_covid$date, "%Y-%m-%d")
 
 #################
 #### CHOLERA ####
