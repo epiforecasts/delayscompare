@@ -74,23 +74,23 @@ combined_delay_cholera <- cholera_inc_period + cholera_reporting_delay
 ## Saving delays for sim_scenario input 
 delays <- list(
   ebola = list(
-    gen = c(mean = 16.2, sd = 9.4, max = 45),
-    inc = c(mean = 11.4, sd = 8.1, max = 45),
+    gen = c(mean = 16.2, mean_sd = 0.16, sd = 9.4, sd_sd = 0.11, max = 45),
+    inc = c(mean = 11.4, mean_sd = 0.14, sd = 8.1, sd_sd = 0.1, max = 45),
     rep = c(mean = 0, sd = 0, max = 0),
     underreport = 0.83,
     init_infs=50
   ),
   covid = list(
-    gen = c(mean = 3.6, sd = 3.1, max = 30),
-    inc = c(mean = 5.2, sd = 1.52, max = 30),
-    rep = c(mean = 4.4, sd = 5.6, max = 30),
+    gen = c(mean = 3.6, mean_sd = 0.7, sd = 3.1, sd_sd = 0.8, max = 30),
+    inc = c(mean = 5.2, mean_sd = 1.1, sd = 1.52, sd_sd = 1.1, max = 30),
+    rep = c(mean = 4.4, mean_sd = 0.04, sd = 5.6, sd_sd = 0.03, max = 30),
     underreport = 0.4,
     initial_infs=2500
   ),
   cholera = list(
-    gen = c(mean = 8.51, sd = 0.54, max = 50),
-    inc = c(mean = 1.77, sd = 1.08, max = 30),
-    rep = c(mean = 4.4, sd = 0.67, max = 30),
+    gen = c(mean = 8.51, mean_sd = 0.0006, sd = 0.54, sd_sd = 0.0004, max = 50),
+    inc = c(mean = 1.77, mean_sd = 0.06, sd = 1.08, sd_sd = 0.04, max = 30),
+    rep = c(mean = 4.4, mean_sd = 0.07, sd = 0.67, sd_sd = 0.05, max = 30),
     underreport = 0.28,
     initial_infs=75
   ))
