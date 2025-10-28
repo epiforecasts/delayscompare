@@ -11,6 +11,7 @@ gt <- as.numeric(var[1])
 print(gt)
 
 disease <- "covid"
+rt_opts <- 
 d <- delays[[disease]]
 
 ############### SCENARIOS #################

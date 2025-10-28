@@ -12,7 +12,7 @@ gt <- as.numeric(var[1])
 print(gt)
 
 disease <- "cholera"
-rt_opts <- "latest"
+rt_opts <- var[2]
 
 ## Loading data ##
 
@@ -25,8 +25,6 @@ sim_data_cases <- sim_data |> filter(variable=="reported_cases")
 sim_data_cases <- sim_data_cases |>
   select(date, value) |>
   rename(confirm=value)
-
-## Run scenario 1 - rt_opts=latest, under-reporting=yes ##
 
 res_disease <- sim_scenarios(case_data=sim_data_cases,
                              gt,
