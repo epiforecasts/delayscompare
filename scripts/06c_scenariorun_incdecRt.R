@@ -62,6 +62,7 @@ sim_data_inc_cases_ur <- sim_data_inc_cases_ur |>
  save_latest(res_disease[[3]], here("results"), paste0("res_",disease,"inc", rt_opts, "_R", gt))
  save_latest(res_disease[[4]], here("results"), paste0("res_",disease,"inc", rt_opts, "_summary", gt))
  save_latest(res_disease[[5]], here("results"), paste0("res_",disease,"inc", rt_opts, "_warnings", gt))
+ save_latest(res_disease[[6]], here("results"), paste0("res_",disease,"inc", rt_opts, "_timing", gt))
  
 #### Decreasing Rt ####
   
@@ -105,3 +106,4 @@ sim_data_dec_cases_ur <- sim_data_dec_cases_ur |>
   save_latest(res_disease[[3]], here("results"), paste0("res_",disease,"dec", rt_opts, "_R", gt))
   save_latest(res_disease[[4]], here("results"), paste0("res_",disease,"dec", rt_opts, "_summary", gt))
   save_latest(res_disease[[5]], here("results"), paste0("res_",disease,"dec", rt_opts, "_warnings", gt))
+  save_latest(res_disease[[6]], here("results"), paste0("res_",disease,"dec", rt_opts, "_timing", gt))

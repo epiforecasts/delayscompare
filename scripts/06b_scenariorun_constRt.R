@@ -13,6 +13,11 @@ rt_opts <- var[2]
 print(rt_opts)
 disease <- var[3]
 print(disease)
+
+if (!disease %in% names(delays)) {
+ stop("Invalid disease. Must be one of: ", paste(names(delays), collapse=", "))
+}
+ 
 d <- delays[[disease]]
 
 ############### SCENARIOS #################
@@ -57,11 +62,12 @@ res_disease <- sim_scenarios(case_data=sim_data_low_cases,
                            obs_scale=1)
 
 save_latest(res_disease[[2]], here("results"), paste0("res_", disease, "_const_low_", rt_opts, "_id", gt))
-save_latest(res_disease[[2]], here("results"), paste0("res_", disease, "_const_low_", rt_opts, "_warnings", gt))
+save_latest(res_disease[[5]], here("results"), paste0("res_", disease, "_const_low_", rt_opts, "_warnings", gt))
+save_latest(res_disease[[6]], here("results"), paste0("res_", disease, "_const_low_", rt_opts, "_timing", gt))
 
 ## Saving samples only ##
-save_latest(res_disease[[2]], here("results"), paste0("res_", disease, "_const_low_", rt_opts, "_samples", gt))
-save_latest(res_disease[[2]], here("results"), paste0("res_", disease, "_const_low_", rt_opts, "_R", gt))
+save_latest(res_disease[[1]], here("results"), paste0("res_", disease, "_const_low_", rt_opts, "_samples", gt))
+save_latest(res_disease[[3]], here("results"), paste0("res_", disease, "_const_low_", rt_opts, "_R", gt))
 
   ## Loading data ##
 
@@ -99,9 +105,10 @@ sim_data_hi_cases_ur <- sim_data_hi_cases_ur |>
                              obs_scale=1)
   
   save_latest(res_disease[[2]], here("results"), paste0("res_", disease, "_const_high_", rt_opts, "_id", gt))
-  save_latest(res_disease[[3]], here("results"), paste0("res_", disease, "_const_high_", rt_opts, "_warnings", gt))
+  save_latest(res_disease[[5]], here("results"), paste0("res_", disease, "_const_high_", rt_opts, "_warnings", gt))
+  save_latest(res_disease[[6]], here("results"), paste0("res_", disease, "_const_high_", rt_opts, "_timing", gt))
   
   ## Saving samples only ##
   save_latest(res_disease[[1]], here("results"), paste0("res_", disease, "_const_high_", rt_opts, "_samples", gt))
-  save_latest(res_disease[[4]], here("results"), paste0("res_", disease, "_const_high_", rt_opts, "_R", gt))
+  save_latest(res_disease[[3]], here("results"), paste0("res_", disease, "_const_high_", rt_opts, "_R", gt))
   

@@ -4,12 +4,11 @@ source(here("scripts", "01_packages.R"))
 source(here("R", "funcs_data.R"))
 
 disease <- "ebola"
-rt_opts <- "latest"
 
 #### Simulated data scenarios ####
 
 for(rt_opts in c("project", "latest")){
-  for(scen in c("const_low", "const__high", "inc", "dec")){
+  for(scen in c("const_low", "const_high", "inc", "dec")){
 
   disease_id <- list()
   disease_R <- list()
@@ -32,11 +31,10 @@ for(rt_opts in c("project", "latest")){
   disease_R <- bind_rows(disease_R)
   disease_samples <- bind_rows(disease_samples)
   
-  save_latest(disease_id, here("results/sim"), paste0("res_", disease, "_", scen, "_", rt_opts, "_scen", i, "_all_id"))
-  save_latest(disease_R, here("results/sim"), paste0("res_", disease, "_", scen, "_", rt_opts, "_scen", i, "_all_R"))
-  save_latest(disease_samples, here("results/sim"), paste0("res_", disease, "_", scen, "_", rt_opts, "_scen", i, "_all_samples"))
-  save_latest(disease_warnings, here("results/sim"), paste0("res_", disease, "_", scen, "_", rt_opts, "_scen", i, "_all_warnings"))
-  
+save_latest(disease_id, here("results/sim"), paste0("res_", disease, "_", scen, "_", rt_opts, "_all_id"))
+save_latest(disease_R, here("results/sim"), paste0("res_", disease, "_", scen, "_", rt_opts, "_all_R"))
+save_latest(disease_samples, here("results/sim"), paste0("res_", disease, "_", scen, "_", rt_opts, "_all_samples"))
+save_latest(disease_warnings, here("results/sim"), paste0("res_", disease, "_", scen, "_", rt_opts, "_all_warnings"))
   }
   
 }

@@ -86,3 +86,4 @@ save_latest(res_disease[[2]], here("results"), paste0("res_", disease, "_weightp
 save_latest(res_disease[[3]], here("results"), paste0("res_", disease, "_weightprior_FALSE", rt_opts, "_R", gt))
 save_latest(res_disease[[4]], here("results"), paste0("res_", disease, "_weightprior_FALSE", rt_opts, "_summary", gt))
 save_latest(res_disease[[5]], here("results"), paste0("res_", disease, "_weightprior_FALSE", rt_opts, "_warnings", gt))
+save_latest(res_disease[[6]], here("results"), paste0("res_", disease, "_weightprior_FALSE", rt_opts, "_timing", gt))
