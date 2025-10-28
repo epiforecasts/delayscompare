@@ -85,14 +85,14 @@ delays <- list(
     inc = c(mean = 5.2, mean_sd = 1.1, sd = 1.52, sd_sd = 1.1, max = 30),
     rep = c(mean = 4.4, mean_sd = 0.04, sd = 5.6, sd_sd = 0.03, max = 30),
     underreport = 0.4,
-    initial_infs=2500
+    init_infs=2500
   ),
   cholera = list(
     gen = c(mean = 8.51, mean_sd = 0.0006, sd = 0.54, sd_sd = 0.0004, max = 50),
     inc = c(mean = 1.77, mean_sd = 0.06, sd = 1.08, sd_sd = 0.04, max = 30),
     rep = c(mean = 4.4, mean_sd = 0.07, sd = 0.67, sd_sd = 0.05, max = 30),
     underreport = 0.28,
-    initial_infs=75
+    init_infs=75
   ))
 
 ## Saving dates for datacollect

@@ -21,7 +21,7 @@ for(rt_opts in c("project", "latest")){
     disease_R[[gt]] <- read_latest(here("results"), paste0("res_", disease, "_", scen, "_", rt_opts, "_R", gt))
     disease_samples[[gt]] <- read_latest(here("results"), paste0("res_", disease, "_", scen, "_", rt_opts, "_samples", gt))
     disease_warnings[[gt]] <- read_latest(here("results"), paste0("res_", disease, "_", scen, "_", rt_opts, "_warnings", gt))
-    # Add get column
+    # Add gt column
     disease_id[[gt]]$gt <- gt
     disease_R[[gt]]$gt <- gt
     disease_samples[[gt]]$gt <- gt
@@ -70,12 +70,12 @@ for(gt in c(1:6)){
 disease_id <- bind_rows(disease_id)
 disease_R <- bind_rows(disease_R)
 disease_samples <- bind_rows(disease_samples)
-# disease_summaries <- bind_rows(disease_summaries)
+disease_summaries <- bind_rows(disease_summaries)
 
 save_latest(disease_id, here("results/resim"), paste0(disease, "_resim_", rt_opts, "_all_id"))
-save_latest(ebola_R, here("results/resim"), paste0(disease, "_resim_", rt_opts, "_all_R"))
-save_latest(ebola_samples, here("results/resim"),  paste0(disease, "_resim_", rt_opts, "_all_samples"))
-save_latest(ebola_summaries, here("results/resim"),  paste0(disease, "_resim_", rt_opts, "_all_summary"))
+save_latest(disease_R, here("results/resim"), paste0(disease, "_resim_", rt_opts, "_all_R"))
+save_latest(disease_samples, here("results/resim"),  paste0(disease, "_resim_", rt_opts, "_all_samples"))
+save_latest(disease_summaries, here("results/resim"),  paste0(disease, "_resim_", rt_opts, "_all_summary"))
 
 }
 
@@ -95,7 +95,7 @@ for(i in c("project", "latest")){
     disease_R[[gt]] <- read_latest(here("results"), paste0("res_", disease, "_casestudy_", rt_opts, "_R", gt))
     disease_samples[[gt]] <- read_latest(here("results"), paste0("res_", disease, "_casestudy_", rt_opts, "_samples", gt))
     disease_warnings[[gt]] <- read_latest(here("results"), paste0("res_", disease, "_casestudy_", rt_opts,  "_warnings", gt))
-    # Add get column
+    # Add gt column
     disease_id[[gt]]$gt <- gt
     disease_R[[gt]]$gt <- gt
     disease_samples[[gt]]$gt <- gt
@@ -127,7 +127,7 @@ for(rt_opts in c("project", "latest")){
     disease_R[[gt]] <- read_latest(here("results"), paste0("res_", disease, "_weightprior_TRUE_", rt_opts, "_R", gt))
     disease_samples[[gt]] <- read_latest(here("results"), paste0("res_", disease, "_weightprior_TRUE_", rt_opts, "_samples", gt))
     disease_warnings[[gt]] <- read_latest(here("results"), paste0("res_", disease, "_weightprior_TRUE_", rt_opts, "_warnings", gt))
-    # Add get column
+    # Add gt column
     disease_id[[gt]]$gt <- gt
     disease_R[[gt]]$gt <- gt
     disease_samples[[gt]]$gt <- gt
@@ -158,7 +158,7 @@ for(rt_opts in c("project", "latest")){
     disease_R[[gt]] <- read_latest(here("results"), paste0("res_", disease, "_weightprior_FALSE_", rt_opts, "_R", gt))
     disease_samples[[gt]] <- read_latest(here("results"), paste0("res_", disease, "_weightprior_FALSE_", rt_opts, "_samples", gt))
     disease_warnings[[gt]] <- read_latest(here("results"), paste0("res_", disease, "_weightprior_FALSE_", rt_opts, "_warnings", gt))
-    # Add get column
+    # Add gt column
     disease_id[[gt]]$gt <- gt
     disease_R[[gt]]$gt <- gt
     disease_samples[[gt]]$gt <- gt

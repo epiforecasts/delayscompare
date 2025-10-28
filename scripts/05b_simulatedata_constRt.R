@@ -5,7 +5,11 @@ source(here("scripts", "02b_definedelays.R"))
 source(here("R", "funcs_data.R"))
 source(here("R", "scenario_loop.R"))
 
-disease <- "ebola"
+## Load argument(s) ##
+var <- commandArgs(trailingOnly = T)
+disease <- var[1]
+print(disease)
+  
 d <- delays[[disease]]
 
 #####################
@@ -68,5 +72,5 @@ sim_data_const_hi_ur <- simulate_infections(
   obs=obs_opts(family="poisson", scale=Fixed(d$underreport))
 )
 
-save_latest(sim_data_const_hi, here("data"), paste0(disease,"sim_data_const_hi"))
+save_latest(sim_data_const_hi, here("data"), paste0(disease,"_sim_data_const_hi"))
 save_latest(sim_data_const_hi_ur, here("data"), paste0(disease,"_sim_data_const_hi_ur"))
