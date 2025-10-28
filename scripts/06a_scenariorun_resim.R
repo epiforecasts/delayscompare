@@ -11,15 +11,11 @@ var <- commandArgs(trailingOnly = T)
 gt <- as.numeric(var[1])
 print(gt)
 
-<<<<<<< HEAD
-disease <- "cholera"
-rt_opts <- var[2]
-=======
-disease <- var[2] # "cholera", "covid" or "ebola"
-print(disease)
-rt_opts <- var[3] # "latest" or "project"
+rt_opts <- var[2] # "latest" or "project"
 print(rt_opts)
->>>>>>> b929f4864f5a2d466a931cc3c7e2d08ae32ec9b2
+
+disease <- var[3] # "cholera", "covid" or "ebola"
+print(disease)
 
 ## Loading data ##
 
