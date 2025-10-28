@@ -123,10 +123,10 @@ for(rt_opts in c("project", "latest")){
   disease_warnings <- list()
   
   for(gt in c(1:6)){
-    disease_id[[gt]] <- read_latest(here("results/weightprior"), paste0("res_", disease, "_weightprior_TRUE_", rt_opts, "_id", gt))
-    disease_R[[gt]] <- read_latest(here("results/weightprior"), paste0("res_", disease, "_weightprior_TRUE_", rt_opts, "_R", gt))
-    disease_samples[[gt]] <- read_latest(here("results/weightprior"), paste0("res_", disease, "_weightprior_TRUE_", rt_opts, "_samples", gt))
-    disease_warnings[[gt]] <- read_latest(here("results/weightprior"), paste0("res_", disease, "_weightprior_TRUE_", rt_opts, "_warnings", gt))
+    disease_id[[gt]] <- read_latest(here("results"), paste0("res_", disease, "_weightprior_TRUE_", rt_opts, "_id", gt))
+    disease_R[[gt]] <- read_latest(here("results"), paste0("res_", disease, "_weightprior_TRUE_", rt_opts, "_R", gt))
+    disease_samples[[gt]] <- read_latest(here("results"), paste0("res_", disease, "_weightprior_TRUE_", rt_opts, "_samples", gt))
+    disease_warnings[[gt]] <- read_latest(here("results"), paste0("res_", disease, "_weightprior_TRUE_", rt_opts, "_warnings", gt))
     # Add get column
     disease_id[[gt]]$gt <- gt
     disease_R[[gt]]$gt <- gt
@@ -154,10 +154,10 @@ for(rt_opts in c("project", "latest")){
   disease_warnings <- list()
   
   for(gt in c(1:6)){
-    disease_id[[gt]] <- read_latest(here("results/weightprior"), paste0("res_", disease, "_weightprior_FALSE_", rt_opts, "_id", gt))
-    disease_R[[gt]] <- read_latest(here("results/weightprior"), paste0("res_", disease, "_weightprior_FALSE_", rt_opts, "_R", gt))
-    disease_samples[[gt]] <- read_latest(here("results/weightprior"), paste0("res_", disease, "_weightprior_FALSE_", rt_opts, "_samples", gt))
-    disease_warnings[[gt]] <- read_latest(here("results/weightprior"), paste0("res_", disease, "_weightprior_FALSE_", rt_opts, "_warnings", gt))
+    disease_id[[gt]] <- read_latest(here("results"), paste0("res_", disease, "_weightprior_FALSE_", rt_opts, "_id", gt))
+    disease_R[[gt]] <- read_latest(here("results"), paste0("res_", disease, "_weightprior_FALSE_", rt_opts, "_R", gt))
+    disease_samples[[gt]] <- read_latest(here("results"), paste0("res_", disease, "_weightprior_FALSE_", rt_opts, "_samples", gt))
+    disease_warnings[[gt]] <- read_latest(here("results"), paste0("res_", disease, "_weightprior_FALSE_", rt_opts, "_warnings", gt))
     # Add get column
     disease_id[[gt]]$gt <- gt
     disease_R[[gt]]$gt <- gt

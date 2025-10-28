@@ -11,7 +11,8 @@ print(gt)
 
 rt_opts <- var[2]
 print(rt_opts)
-disease <- "cholera"
+disease <- var[3]
+print(disease)
 d <- delays[[disease]]
 
 ############### SCENARIOS #################

@@ -45,7 +45,7 @@ sim_data_const_low_ur <- simulate_infections(
 )
 
 save_latest(sim_data_const_low, here("data"), paste0(disease, "_sim_data_const_low"))
-save_latest(sim_data_const_low_ur, here("data"), paste0(diseaes,"_sim_data_const_low_ur"))
+save_latest(sim_data_const_low_ur, here("data"), paste0(disease,"_sim_data_const_low_ur"))
 
 ##### Simulate data - high Rt ######
 
