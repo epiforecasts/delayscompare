@@ -18,7 +18,7 @@ disease <- var[3]
 print(disease)
 
 ## Universal parameter values ##
-freq_fc <-4
+freq_fc <- 4
 weeks_inc <- 12
 
 ## Load data ##
@@ -26,7 +26,7 @@ weeks_inc <- 12
 case_data <- casestudydata[[disease]]
 d <- delays[[disease]]
 
-############### SCENARIOS #################\
+############### SCENARIOS #################
 
 ## under-reporting=yes ##
 
@@ -47,6 +47,7 @@ d <- delays[[disease]]
                            obs_scale=d$underreport)
 
 save_latest(res_disease[[2]], here("results"), paste0("res_", disease, "_casestudy_", rt_opts, "_id", gt))
+save_latest(res_disease[[4]], here("results"), paste0("res_", disease, "_casestudy_", rt_opts, "_summary", gt))
 save_latest(res_disease[[5]], here("results"), paste0("res_", disease, "_casestudy_", rt_opts, "_warnings", gt))
 save_latest(res_disease[[6]], here("results"), paste0("res_", disease, "_casestudy_", rt_opts, "_timing", gt))
 

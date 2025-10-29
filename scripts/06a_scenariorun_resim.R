@@ -2,7 +2,6 @@ library(here)
 
 source(here("scripts", "01_packages.R"))
 source(here("scripts", "02b_definedelays.R"))
-#source(here("scripts", "05_simulate_data.R")) # Data already simulated so removing for now
 source(here("R", "funcs_data.R"))
 source(here("R", "scenario_loop.R"))
 
@@ -18,6 +17,11 @@ disease <- var[3] # "cholera", "covid" or "ebola"
 print(disease)
 
 ## Loading data ##
+
+# Verify required data exists
+  if (!file.exists(here("data", paste0(disease, "_sim_data.rds")))) {
+      stop("Simulated data not found. Please run 05_simulate_data.R first.")
+    }
 
 sim_data <- read_latest(here("data"), paste0(disease, "_sim_data"))
 d <- delays[[disease]]
