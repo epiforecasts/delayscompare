@@ -2,6 +2,7 @@ library(here)
 
 source(here("scripts", "01_packages.R"))
 source(here("scripts", "02b_definedelays.R"))
+source(here("scripts", "datacollect_casestudy.R"))
 source(here("R", "funcs_data.R"))
 source(here("R", "scenario_loop.R"))
 
@@ -16,7 +17,9 @@ print(rt_opts)
 disease <- var[3]
 print(disease)
 
-d <- delays[[disease]]
+## Universal parameter values ##
+freq_fc <-4
+weeks_inc <- 12
 
 ## Load data ##
 
@@ -27,7 +30,7 @@ d <- delays[[disease]]
 
 ## under-reporting=yes ##
 
-  res_disease <- sim_scenarios(case_data=cholera_yem_tot,
+  res_disease <- sim_scenarios(case_data=case_data,
                            gt,
                            gen_mean=d$gen[["mean"]],
                            gen_sd=d$gen[["sd"]],
@@ -40,7 +43,7 @@ d <- delays[[disease]]
                            rep_max = d$rep[["max"]],
                            freq_fc=freq_fc,
                            weeks_inc=weeks_inc,
-                           rt_opts_choice="latest",
+                           rt_opts_choice=rt_opts,
                            obs_scale=d$underreport)
 
 save_latest(res_disease[[2]], here("results"), paste0("res_", disease, "_casestudy_", rt_opts, "_id", gt))
