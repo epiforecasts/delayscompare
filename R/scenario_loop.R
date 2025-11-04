@@ -1,6 +1,7 @@
 
 sim_scenarios <- function(case_data,
                           var,
+                          inc,
                           gen_mean,
                           gen_sd,
                           gen_max,
@@ -67,11 +68,10 @@ names(scen_timepoints) <- seq_along(scen_timepoints)
 if(length(scen_timepoints)>8){scen_timepoints <- scen_timepoints[1:8]}
 
   scenarios <- expand.grid(
-    j = seq_along(scen_values),
     k = seq_along(scen_timepoints)
   )
   
-  res <- pmap(scenarios, \(j, k) {
+  res <- for(i in c(k:length(scen_timepoints))) {
         # Case data
         case_segment <- case_data |>
           filter(date <= scen_timepoints[k])
@@ -92,12 +92,12 @@ if(length(scen_timepoints)>8){scen_timepoints <- scen_timepoints[1:8]}
         }
         
         # Incubation period
-        if(j!=1){
-        inc_period <- LogNormal(mean=inc_mean*scen_values[j],
+        if(inc!=1){
+        inc_period <- LogNormal(mean=inc_mean*scen_values[inc],
                                 sd=inc_sd,
                                 max=inc_max)
         if(rep_max>0){
-        reporting_delay <- LogNormal(mean=rep_mean*scen_values[j],
+        reporting_delay <- LogNormal(mean=rep_mean*scen_values[inc],
                                      sd=rep_sd,
                                      max=rep_max)} else {reporting_delay <- Fixed(0)}
         } else {
@@ -127,7 +127,7 @@ start_runtime <- Sys.time()
         timing_log <- data.frame(
           timepoint=k, 
           gen_time=names(scen_values)[var],
-          inc_period=names(scen_values)[j],
+          inc_period=names(scen_values)[inc],
           elapsed_seconds=elapsed_seconds
         )
 
@@ -147,9 +147,9 @@ start_runtime <- Sys.time()
         
         res_id <- data.frame(timepoint=k,
                              gen_time=names(scen_values)[var],
-                             inc_period=names(scen_values)[j])
+                             inc_period=names(scen_values)[inc])
         
-        print(paste("timepoint =", k, "gen time =", var, "inc period =", j))
+        print(paste("timepoint =", k, "gen time =", var, "inc period =", inc))
         return(list(samples = res_samples,
                     R = res_R,
                     id = res_id,
@@ -208,6 +208,7 @@ start_runtime <- Sys.time()
 
 sim_weightprior <- function(case_data,
                           var,
+                          inc,
                           gen_mean_mean,
                           gen_mean_sd,
                           gen_sd_mean,
