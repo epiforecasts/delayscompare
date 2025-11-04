@@ -9,9 +9,13 @@ var <- commandArgs(trailingOnly = T)
 gt <- as.numeric(var[1])
 print(gt)
 
-rt_opts <- var[2]
+inc <- as.numeric(var[2])
+print(inc)
+
+rt_opts <- var[3] # "latest" or "project"
 print(rt_opts)
-disease <- var[3]
+
+disease <- var[4] # "cholera", "covid" or "ebola"
 print(disease)
 
 if (!disease %in% names(delays)) {
@@ -41,6 +45,7 @@ weeks_inc=12
 
 res_disease <- sim_scenarios(case_data=sim_data_low_cases,
                            gt,
+                           inc,
                            gen_mean=d$gen[["mean"]],
                            gen_sd=d$gen[["sd"]],
                            gen_max = d$gen[["max"]],
@@ -55,13 +60,13 @@ res_disease <- sim_scenarios(case_data=sim_data_low_cases,
                            rt_opts_choice=rt_opts,
                            obs_scale=1)
 
-save_latest(res_disease[[2]], here("results"), paste0("res_", disease, "_const_low_", rt_opts, "_id", gt))
-save_latest(res_disease[[5]], here("results"), paste0("res_", disease, "_const_low_", rt_opts, "_warnings", gt))
-save_latest(res_disease[[6]], here("results"), paste0("res_", disease, "_const_low_", rt_opts, "_timing", gt))
+save_latest(res_disease[[2]], here("results"), paste0("res_", disease, "_const_low_", rt_opts, "_id", gt,inc))
+save_latest(res_disease[[5]], here("results"), paste0("res_", disease, "_const_low_", rt_opts, "_warnings", gt,inc))
+save_latest(res_disease[[6]], here("results"), paste0("res_", disease, "_const_low_", rt_opts, "_timing", gt,inc))
 
 ## Saving samples only ##
-save_latest(res_disease[[1]], here("results"), paste0("res_", disease, "_const_low_", rt_opts, "_samples", gt))
-save_latest(res_disease[[3]], here("results"), paste0("res_", disease, "_const_low_", rt_opts, "_R", gt))
+save_latest(res_disease[[1]], here("results"), paste0("res_", disease, "_const_low_", rt_opts, "_samples", gt,inc))
+save_latest(res_disease[[3]], here("results"), paste0("res_", disease, "_const_low_", rt_opts, "_R", gt,inc))
 
   ## Loading data ##
 
@@ -78,6 +83,7 @@ sim_data_hi_cases <- sim_data_hi_cases |>
 
   res_disease <- sim_scenarios(case_data=sim_data_hi_cases,
                              gt,
+                             inc,
                              gen_mean=d$gen[["mean"]],
                              gen_sd=d$gen[["sd"]],
                              gen_max = d$gen[["max"]],
@@ -92,11 +98,11 @@ sim_data_hi_cases <- sim_data_hi_cases |>
                              rt_opts_choice=rt_opts,
                              obs_scale=1)
   
-  save_latest(res_disease[[2]], here("results"), paste0("res_", disease, "_const_high_", rt_opts, "_id", gt))
-  save_latest(res_disease[[5]], here("results"), paste0("res_", disease, "_const_high_", rt_opts, "_warnings", gt))
-  save_latest(res_disease[[6]], here("results"), paste0("res_", disease, "_const_high_", rt_opts, "_timing", gt))
+  save_latest(res_disease[[2]], here("results"), paste0("res_", disease, "_const_high_", rt_opts, "_id", gt,inc))
+  save_latest(res_disease[[5]], here("results"), paste0("res_", disease, "_const_high_", rt_opts, "_warnings", gt,inc))
+  save_latest(res_disease[[6]], here("results"), paste0("res_", disease, "_const_high_", rt_opts, "_timing", gt,inc))
   
   ## Saving samples only ##
-  save_latest(res_disease[[1]], here("results"), paste0("res_", disease, "_const_high_", rt_opts, "_samples", gt))
-  save_latest(res_disease[[3]], here("results"), paste0("res_", disease, "_const_high_", rt_opts, "_R", gt))
+  save_latest(res_disease[[1]], here("results"), paste0("res_", disease, "_const_high_", rt_opts, "_samples", gt,inc))
+  save_latest(res_disease[[3]], here("results"), paste0("res_", disease, "_const_high_", rt_opts, "_R", gt,inc))
   
