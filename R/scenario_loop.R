@@ -25,9 +25,9 @@ sim_scenarios <- function(case_data,
   end_date <- max(case_data$date)
   
   ## Dealing with missing data
-  
+
   if(report_freq=="week"){
-    fill_missing(
+    case_data <- fill_missing(
       case_data,
       missing_dates = c("accumulate"),
       missing_obs = c("accumulate"),
@@ -35,7 +35,7 @@ sim_scenarios <- function(case_data,
       by = NULL
     )
   } else if (report_freq=="day"){
-    fill_missing(
+    case_data <- fill_missing(
       case_data,
       missing_dates = c("ignore"),
       missing_obs = c("ignore"),
