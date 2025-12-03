@@ -4,7 +4,16 @@
 .Ruserdata
 
 results/
-data/
+
+# Ignore generated/large data files but keep essential ones
+data/*.rds
+data/*.rdata
+data/*.RDS
+data/*.pdf
+data/YEM-CHOLERA-WHO*.csv
+data/YEM-CHOLERA-WHO*.xlsx
+data/YEM-CHOLERA-WHOEOC*.csv
+data/YEM-CHOLERA-WHOEOC*.xlsx
 
 # Local test figures
 figures/ebola_all_scenarios_heatmap.png
