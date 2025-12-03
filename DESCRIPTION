@@ -10,7 +10,6 @@ Description: Analysis of how misspecification of delay distributions affects
 License: MIT
 Imports:
     EpiNow2,
-    incidence2,
     readxl,
     dplyr,
     tidyr,

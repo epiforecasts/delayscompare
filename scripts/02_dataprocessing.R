@@ -9,13 +9,9 @@ ebola_suspected_linelist <- read_xlsx(here("data", "ebola_linelist.xlsx"), "susp
 
 # Formating for EpiNow2
 
-ebola_confirmed <- incidence(ebola_confirmed_linelist,
-                             date_index="Date of symptom onset",
-                             interval="day")
-
-ebola_confirmed <- ebola_confirmed |>
-  select(date_index, count) |>
-  rename(date=date_index, confirm=count)
+ebola_confirmed <- ebola_confirmed_linelist |>
+  count(`Date of symptom onset`, name = "confirm") |>
+  rename(date = `Date of symptom onset`)
 
 # Assuming no data reported on missing days
 extra_dates <- data.frame(date=seq(ebola_confirmed$date[1], ebola_confirmed$date[nrow(ebola_confirmed)], by="day"))
