@@ -4,12 +4,8 @@ source(here("scripts", "01_packages.R"))
 source(here("scripts", "02b_definedelays.R"))
 source(here("R", "funcs_data.R"))
 source(here("R", "scenario_loop.R"))
-
-## Load argument(s) ##
-var <- commandArgs(trailingOnly = T)
-disease <- var[1]
-print(disease)
-
+ 
+disease <- "ebola"
 d <- delays[[disease]]
 
 ######################################
