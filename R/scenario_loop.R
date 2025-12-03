@@ -55,7 +55,7 @@ if(length(available)>0){
 return(min(available))
 }else{
 return(NA)}
-}) |> as.Date()
+}) |> as.Date(origin = "1970-01-01")
 # Remove NAs from end of range 
 scen_timepoints <- scen_timepoints[!is.na(scen_timepoints)]
 
@@ -245,7 +245,7 @@ return(min(available))
 } else {
 return(NA)
 }
-}) |> as.Date()
+}) |> as.Date(origin = "1970-01-01")
 
 # Remove NAs from end of range
 scen_timepoints <- scen_timepoints[!is.na(scen_timepoints)]
