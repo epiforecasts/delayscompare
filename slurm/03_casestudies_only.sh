@@ -57,6 +57,8 @@ echo "GT level: $GT"
 echo "RT opts: $RT_OPTS"
 echo "=========================================="
 
-Rscript scripts/06d_scenariorun_casestudy.R $GT $RT_OPTS $DISEASE
+# INC defaults to same as GT (both misspecified by same amount)
+INC=$GT
+Rscript scripts/06d_scenariorun_casestudy.R $GT $INC $RT_OPTS $DISEASE
 
 echo "Done: $DISEASE casestudy gt=$GT rt_opts=$RT_OPTS"

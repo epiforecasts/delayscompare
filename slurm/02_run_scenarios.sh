@@ -73,6 +73,8 @@ echo "RT opts: $RT_OPTS"
 echo "Script: $SCRIPT"
 echo "=========================================="
 
-Rscript $SCRIPT $GT $RT_OPTS $DISEASE
+# INC defaults to same as GT (both misspecified by same amount)
+INC=$GT
+Rscript $SCRIPT $GT $INC $RT_OPTS $DISEASE
 
 echo "Done: $DISEASE $SCENARIO gt=$GT"
