@@ -166,9 +166,8 @@ start_runtime <- Sys.time()
   res <- transpose(res)
   
   res_samples <- lapply(seq_along(res$samples), function(i) {
-    # Skip NULL or empty results
     if (is.null(res$samples[[i]]) || nrow(res$samples[[i]]) == 0) {
-      return(NULL)
+      stop(paste("Timepoint", i, "has NULL or empty samples - model fit likely failed"))
     }
     samples_scen <- res$samples[[i]] |>
       mutate(model="EpiNow2")
@@ -188,9 +187,8 @@ start_runtime <- Sys.time()
   })
   
   res_R <- lapply(seq_along(res$R), function(i) {
-    # Skip NULL or empty results
     if (is.null(res$R[[i]]) || nrow(res$R[[i]]) == 0) {
-      return(NULL)
+      stop(paste("Timepoint", i, "has NULL or empty R samples - model fit likely failed"))
     }
     samples_scen <- res$R[[i]] |>
       mutate(model="EpiNow2")
@@ -356,9 +354,8 @@ save_warnings <- warnings()
 res <- transpose(res)
 
 res_samples <- lapply(seq_along(res$samples), function(i) {
-  # Skip NULL or empty results
   if (is.null(res$samples[[i]]) || nrow(res$samples[[i]]) == 0) {
-    return(NULL)
+    stop(paste("Timepoint", i, "has NULL or empty samples - model fit likely failed"))
   }
   samples_scen <- res$samples[[i]] |>
     mutate(model="EpiNow2")
@@ -378,9 +375,8 @@ res_id <- lapply(seq_along(res$id), function(i){
 })
 
 res_R <- lapply(seq_along(res$R), function(i) {
-  # Skip NULL or empty results
   if (is.null(res$R[[i]]) || nrow(res$R[[i]]) == 0) {
-    return(NULL)
+    stop(paste("Timepoint", i, "has NULL or empty R samples - model fit likely failed"))
   }
   samples_scen <- res$R[[i]] |>
     mutate(model="EpiNow2")
