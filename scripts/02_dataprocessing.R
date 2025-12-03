@@ -30,8 +30,11 @@ if (file.exists(covid_eng_file)) {
   covid_eng <- read_csv(covid_eng_file)
 } else {
   message("Fetching COVID-19 data from UKHSA API...")
+  if (!requireNamespace("ukhsadatR", quietly = TRUE)) {
+    stop("Package 'ukhsadatR' needed to fetch COVID data. Install with: install.packages('ukhsadatR')")
+  }
   tryCatch({
-    covid_eng <- get_data(
+    covid_eng <- ukhsadatR::get_data(
       theme = "infectious_disease",
       sub_theme = "respiratory",
       topic = "COVID-19",

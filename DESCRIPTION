@@ -16,11 +16,14 @@ Imports:
     purrr,
     here,
     ggplot2,
+    gh,
     readr,
     cowplot,
     scoringutils,
     viridis,
     RColorBrewer
+Suggests:
+    ukhsadatR
 Remotes:
     epiforecasts/EpiNow2
 Encoding: UTF-8
