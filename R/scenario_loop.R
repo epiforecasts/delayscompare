@@ -131,17 +131,13 @@ start_runtime <- Sys.time()
           elapsed_seconds=elapsed_seconds
         )
 
-         res_samples <-
-          def$samples[
-                variable=="reported_cases" & type != "estimate",
-                list(date, sample, value, type)
-              ]
-        
-        res_R <-
-          def$samples[
-                variable=="R" & type != "estimate",
-                list(date, sample, value, type)
-              ]
+         res_samples <- def$samples |>
+          filter(variable == "reported_cases", type != "estimate") |>
+          select(date, sample, value, type)
+
+        res_R <- def$samples |>
+          filter(variable == "R", type != "estimate") |>
+          select(date, sample, value, type)
 
         def$samples <- NULL
         
@@ -310,17 +306,13 @@ start_runtime <- Sys.time()
           timepoint=k, 
           elapsed_seconds=elapsed_seconds)
 
-         res_samples <-
-          def$samples[
-                variable=="reported_cases" & type != "estimate",
-                list(date, sample, value, type)
-              ]
-        
-        res_R <-
-          def$samples[
-                variable=="R" & type != "estimate",
-                list(date, sample, value, type)
-              ]
+         res_samples <- def$samples |>
+          filter(variable == "reported_cases", type != "estimate") |>
+          select(date, sample, value, type)
+
+        res_R <- def$samples |>
+          filter(variable == "R", type != "estimate") |>
+          select(date, sample, value, type)
 
         def$samples <- NULL
         
