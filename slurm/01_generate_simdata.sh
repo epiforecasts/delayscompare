@@ -13,10 +13,14 @@
 # 1=ebola_const, 2=covid_const, 3=cholera_const
 # 4=ebola_incdec, 5=covid_incdec, 6=cholera_incdec
 
-# Get project root (parent of slurm dir, or current dir if run from root)
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
-cd "$PROJECT_ROOT"
+# Get project root from SLURM_SUBMIT_DIR
+# If submitted from slurm/, go up one level; if from root, stay there
+if [[ "$SLURM_SUBMIT_DIR" == */slurm ]]; then
+    cd "$SLURM_SUBMIT_DIR/.."
+else
+    cd "$SLURM_SUBMIT_DIR"
+fi
+echo "Working directory: $(pwd)"
 
 module load R
 

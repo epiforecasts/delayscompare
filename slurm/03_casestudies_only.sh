@@ -16,10 +16,14 @@
 # Jobs 13-24: covid   (gt 1-6 latest, gt 1-6 project)
 # Jobs 25-36: cholera (gt 1-6 latest, gt 1-6 project)
 
-# Get project root (parent of slurm dir, or current dir if run from root)
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
-cd "$PROJECT_ROOT"
+# Get project root from SLURM_SUBMIT_DIR
+# If submitted from slurm/, go up one level; if from root, stay there
+if [[ "$SLURM_SUBMIT_DIR" == */slurm ]]; then
+    cd "$SLURM_SUBMIT_DIR/.."
+else
+    cd "$SLURM_SUBMIT_DIR"
+fi
+echo "Working directory: $(pwd)"
 
 module load R
 
