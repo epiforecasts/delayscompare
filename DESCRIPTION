@@ -1,0 +1,27 @@
+Package: delayscompare
+Title: Comparing Delay Distribution Misspecification in Epidemic Forecasting
+Version: 0.1.0
+Authors@R: c(
+    person("Ciara", "McCarthy", role = c("aut", "cre")),
+    person("Sebastian", "Funk", role = "aut")
+  )
+Description: Analysis of how misspecification of delay distributions affects
+    epidemic forecasting using EpiNow2.
+License: MIT
+Imports:
+    EpiNow2,
+    incidence2,
+    readxl,
+    dplyr,
+    tidyr,
+    purrr,
+    here,
+    ggplot2,
+    readr,
+    cowplot,
+    scoringutils,
+    viridis,
+    RColorBrewer
+Remotes:
+    epiforecasts/EpiNow2
+Encoding: UTF-8
