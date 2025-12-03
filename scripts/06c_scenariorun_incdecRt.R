@@ -10,10 +10,13 @@ var <- commandArgs(trailingOnly = T)
 gt <- as.numeric(var[1])
 print(gt)
 
-rt_opts <- var[2]
+inc <- as.numeric(var[2])
+print(inc)
+
+rt_opts <- var[3] # "latest" or "project"
 print(rt_opts)
 
-disease <- var[3]
+disease <- var[4] # "cholera", "covid" or "ebola"
 print(disease)
 
 d <- delays[[disease]]
@@ -37,6 +40,7 @@ sim_data_inc_cases <- sim_data_inc_cases |>
  
  res_disease <- sim_scenarios(case_data=sim_data_inc_cases,
                             gt,
+                            inc,
                             gen_mean=d$gen[["mean"]],
                             gen_sd=d$gen[["sd"]],
                             gen_max = d$gen[["max"]],
@@ -75,6 +79,7 @@ sim_data_dec_cases <- sim_data_dec_cases |>
 
   res_disease <- sim_scenarios(case_data=sim_data_dec_cases,
                              gt,
+                             inc,
                              gen_mean=d$gen[["mean"]],
                              gen_sd=d$gen[["sd"]],
                              gen_max = d$gen[["max"]],
@@ -89,9 +94,9 @@ sim_data_dec_cases <- sim_data_dec_cases |>
                              rt_opts_choice=rt_opts,
                              obs_scale=1)
   
-save_latest(res_disease[[1]], here("results"), paste0("res_",disease,"_dec_", rt_opts, "_samples", gt))
-save_latest(res_disease[[2]], here("results"), paste0("res_",disease,"_dec_", rt_opts, "_id", gt))
-save_latest(res_disease[[3]], here("results"), paste0("res_",disease,"_dec_", rt_opts, "_R", gt))
-save_latest(res_disease[[4]], here("results"), paste0("res_",disease,"_dec_", rt_opts, "_summary", gt))
-save_latest(res_disease[[5]], here("results"), paste0("res_",disease,"_dec_", rt_opts, "_warnings", gt))
-save_latest(res_disease[[6]], here("results"), paste0("res_",disease,"_dec_", rt_opts, "_timing", gt))
+save_latest(res_disease[[1]], here("results"), paste0("res_",disease,"_dec_", rt_opts, "_samples", gt,inc))
+save_latest(res_disease[[2]], here("results"), paste0("res_",disease,"_dec_", rt_opts, "_id", gt,inc))
+save_latest(res_disease[[3]], here("results"), paste0("res_",disease,"_dec_", rt_opts, "_R", gt,inc))
+save_latest(res_disease[[4]], here("results"), paste0("res_",disease,"_dec_", rt_opts, "_summary", gt,inc))
+save_latest(res_disease[[5]], here("results"), paste0("res_",disease,"_dec_", rt_opts, "_warnings", gt,inc))
+save_latest(res_disease[[6]], here("results"), paste0("res_",disease,"_dec_", rt_opts, "_timing", gt,inc))
