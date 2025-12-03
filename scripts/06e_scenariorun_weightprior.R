@@ -2,6 +2,7 @@ library(here)
 
 source(here("scripts", "01_packages.R"))
 source(here("scripts", "02b_definedelays.R"))
+source(here("scripts", "datacollect_casestudy.R"))
 source(here("R", "funcs_data.R"))
 source(here("R", "scenario_loop.R"))
 
