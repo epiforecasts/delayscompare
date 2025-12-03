@@ -48,11 +48,7 @@ if (file.exists(covid_eng_file)) {
 covid_eng$date <- as.Date(covid_eng$date, "%Y-%m-%d" )
 covid_eng$confirm <- as.numeric(covid_eng$confirm)
 
-# Testing on shorter timeseries
-# covid_eng <- covid_eng |>
-#  filter(date < "2020-12-31")
-
-rt_covid <- read.csv(here("data", "rt.csv")) |>
+rt_covid <- read_csv(here("data", "rt.csv")) |>
  filter(region=="United Kingdom",
         type=="estimate") |>
  select(date, median) |>
