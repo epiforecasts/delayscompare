@@ -30,19 +30,38 @@ ebola_confirmed$confirm[is.na(ebola_confirmed$confirm)] <- 0
 covid_eng_file <- here("data", "covid_england.csv")
 
 if (file.exists(covid_eng_file)) {
+  message("Reading COVID-19 data from cache...")
   covid_eng <- read_csv(covid_eng_file)
 } else {
-  covid_eng <- get_data(
-    theme = "infectious_disease",
-    sub_theme = "respiratory",
-    topic = "COVID-19",
-    geography_type = "Nation",
-    geography = "England",
-    metric = "COVID-19_cases_casesByDay"
-  )
-  covid_eng <- covid_eng |>
-    select(date, confirm = metric_value)
-  write_csv(covid_eng, covid_eng_file)
+  message("Fetching COVID-19 data from UKHSA API...")
+  tryCatch({
+    covid_eng <- get_data(
+      theme = "infectious_disease",
+      sub_theme = "respiratory",
+      topic = "COVID-19",
+      geography_type = "Nation",
+      geography = "England",
+      metric = "COVID-19_cases_casesByDay"
+    )
+
+    # Validate expected columns exist
+    if (!all(c("date", "metric_value") %in% names(covid_eng))) {
+      stop("Fetched data missing expected columns")
+    }
+
+    covid_eng <- covid_eng |>
+      select(date, confirm = metric_value)
+
+    # Ensure data directory exists
+    if (!dir.exists(here("data"))) {
+      dir.create(here("data"), recursive = TRUE)
+    }
+
+    write_csv(covid_eng, covid_eng_file)
+    message("Data cached successfully")
+  }, error = function(e) {
+    stop("Failed to fetch COVID-19 data: ", e$message)
+  })
 }
 
 covid_eng$date <- as.Date(covid_eng$date, "%Y-%m-%d" )
