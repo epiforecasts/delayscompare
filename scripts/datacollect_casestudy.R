@@ -31,17 +31,12 @@ ebola_confirmed <- ebola_confirmed |>
 
 ### COVID ###
 
-covid_eng <- read.csv(here("data", "newCasesBySpecimenDate_nation_2021.csv")) |>
-  filter(area_name=="England", metric=="newCasesBySpecimenDate")
+covid_eng <- read.csv(here("data", "covid_england.csv"))
 
 ## Formatting data for EpiNow2
-covid_eng <- covid_eng |> 
-  select(date, value) |>
-  rename(confirm=value)
-
 covid_eng$date <- as.Date(covid_eng$date, "%Y-%m-%d" )
 
-## Delta wave only 
+## Delta wave only
 covid_eng <- covid_eng |> filter(date >= "2021-06-01" & date < "2021-12-01")
 
 ### CHOLERA ###

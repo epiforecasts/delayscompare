@@ -70,8 +70,8 @@ if(length(scen_timepoints)>8){scen_timepoints <- scen_timepoints[1:8]}
   scenarios <- expand.grid(
     k = seq_along(scen_timepoints)
   )
-  
-  res <- for(i in c(k:length(scen_timepoints))) {
+
+  res <- pmap(scenarios, \(k) {
         # Case data
         case_segment <- case_data |>
           filter(date <= scen_timepoints[k])
@@ -300,8 +300,8 @@ start_runtime <- Sys.time()
                                                       return_fit = FALSE,
                                                       control=list(adapt_delta=0.99,
                                                                    max_treedepth=20)),
-                                    horizon=14,
-                                    verbose = FALSE)
+                                     forecast = forecast_opts(horizon=14),
+                                     verbose = FALSE)
           
         # Recording runtime
         end_runtime <- Sys.time()
