@@ -6,18 +6,18 @@
 #SBATCH --mem=16gb
 #SBATCH --ntasks=4
 #SBATCH --nodes=1
-#SBATCH --array=1-36%36
+#SBATCH --array=1-108%40
 
-# Run ONLY case study analyses (real data - most important)
-# Array: 36 jobs = 3 diseases × 6 gt_levels × 2 rt_opts
-# Limited to 36 concurrent (within LSHTM's 40 job limit)
+# Run ONLY case study analyses (real data)
+# Array: 108 jobs = 3 diseases × 6 gt_levels × 6 inc_levels
+# GT and INC vary independently
+# Limited to 40 concurrent (LSHTM limit)
 #
-# Jobs 1-12:  ebola   (gt 1-6 latest, gt 1-6 project)
-# Jobs 13-24: covid   (gt 1-6 latest, gt 1-6 project)
-# Jobs 25-36: cholera (gt 1-6 latest, gt 1-6 project)
+# Jobs 1-36:   ebola   (gt 1-6 × inc 1-6)
+# Jobs 37-72:  covid   (gt 1-6 × inc 1-6)
+# Jobs 73-108: cholera (gt 1-6 × inc 1-6)
 
 # Get project root from SLURM_SUBMIT_DIR
-# If submitted from slurm/, go up one level; if from root, stay there
 if [[ "$SLURM_SUBMIT_DIR" == */slurm ]]; then
     cd "$SLURM_SUBMIT_DIR/.."
 else
@@ -29,36 +29,35 @@ module load R
 
 TASK_ID=$SLURM_ARRAY_TASK_ID
 
-# Determine disease
-if [ $TASK_ID -le 12 ]; then
+# Determine disease (36 jobs per disease)
+if [ $TASK_ID -le 36 ]; then
     DISEASE="ebola"
     LOCAL_ID=$TASK_ID
-elif [ $TASK_ID -le 24 ]; then
+elif [ $TASK_ID -le 72 ]; then
     DISEASE="covid"
-    LOCAL_ID=$((TASK_ID - 12))
+    LOCAL_ID=$((TASK_ID - 36))
 else
     DISEASE="cholera"
-    LOCAL_ID=$((TASK_ID - 24))
+    LOCAL_ID=$((TASK_ID - 72))
 fi
 
-# Determine gt and rt_opts (1-6 = latest, 7-12 = project)
-if [ $LOCAL_ID -le 6 ]; then
-    GT=$LOCAL_ID
-    RT_OPTS="latest"
-else
-    GT=$((LOCAL_ID - 6))
-    RT_OPTS="project"
-fi
+# Determine GT and INC from LOCAL_ID (1-36)
+# LOCAL_ID = (GT-1)*6 + INC, so:
+# GT = ((LOCAL_ID-1) / 6) + 1
+# INC = ((LOCAL_ID-1) % 6) + 1
+GT=$(( ((LOCAL_ID - 1) / 6) + 1 ))
+INC=$(( ((LOCAL_ID - 1) % 6) + 1 ))
+
+RT_OPTS="latest"
 
 echo "=========================================="
 echo "Case Study Analysis"
 echo "Disease: $DISEASE"
 echo "GT level: $GT"
+echo "INC level: $INC"
 echo "RT opts: $RT_OPTS"
 echo "=========================================="
 
-# INC defaults to same as GT (both misspecified by same amount)
-INC=$GT
 Rscript scripts/06d_scenariorun_casestudy.R $GT $INC $RT_OPTS $DISEASE
 
-echo "Done: $DISEASE casestudy gt=$GT rt_opts=$RT_OPTS"
+echo "Done: $DISEASE casestudy gt=$GT inc=$INC"

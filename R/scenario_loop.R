@@ -91,17 +91,21 @@ if(length(scen_timepoints)>8){scen_timepoints <- scen_timepoints[1:8]}
           gen_time <- Fixed(1)
         }
         
-        # Incubation period
+        # Incubation period (varies with inc parameter)
         if(inc!=1){
         inc_period <- LogNormal(mean=inc_mean*scen_values[inc],
                                 sd=inc_sd,
                                 max=inc_max)
-        if(rep_max>0){
-        reporting_delay <- LogNormal(mean=rep_mean*scen_values[inc],
-                                     sd=rep_sd,
-                                     max=rep_max)} else {reporting_delay <- Fixed(0)}
         } else {
           inc_period <- Fixed(0)
+        }
+
+        # Reporting delay (always correct, doesn't vary with inc)
+        if(rep_max>0){
+        reporting_delay <- LogNormal(mean=rep_mean,
+                                     sd=rep_sd,
+                                     max=rep_max)
+        } else {
           reporting_delay <- Fixed(0)
         }
 
