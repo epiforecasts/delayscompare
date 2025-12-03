@@ -31,7 +31,7 @@ d <- delays[[disease]]
 
 ## under-reporting=yes, weight_prior=TRUE ##
 
-res_disease <- sim_weightprior(case_data=covid_eng,
+res_disease <- sim_weightprior(case_data=case_data,
                            gt,
                            inc,
                            gen_mean_mean=d$gen[["mean"]],
@@ -63,7 +63,7 @@ save_latest(res_disease[[5]], here("results"), paste0("res_", disease, "_weightp
 
 ## under-reporting=yes, weight_prior=TRUE ##
 
-res_disease <- sim_weightprior(case_data=covid_eng,
+res_disease <- sim_weightprior(case_data=case_data,
                                gt,
                                inc,
                                gen_mean_mean=d$gen[["mean"]],
