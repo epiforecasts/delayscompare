@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=casestudy
-#SBATCH --output=logs/casestudy_%A_%a.out
-#SBATCH --error=logs/casestudy_%A_%a.err
+#SBATCH --output=slurm/logs/casestudy_%A_%a.out
+#SBATCH --error=slurm/logs/casestudy_%A_%a.err
 #SBATCH --time=24:00:00
 #SBATCH --mem=16gb
 #SBATCH --ntasks=4
@@ -16,7 +16,10 @@
 # Jobs 13-24: covid   (gt 1-6 latest, gt 1-6 project)
 # Jobs 25-36: cholera (gt 1-6 latest, gt 1-6 project)
 
-cd $SLURM_SUBMIT_DIR/..
+# Get project root (parent of slurm dir, or current dir if run from root)
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+cd "$PROJECT_ROOT"
 
 module load R
 

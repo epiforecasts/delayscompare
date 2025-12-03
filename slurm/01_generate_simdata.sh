@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=simdata
-#SBATCH --output=logs/simdata_%A_%a.out
-#SBATCH --error=logs/simdata_%A_%a.err
+#SBATCH --output=slurm/logs/simdata_%A_%a.out
+#SBATCH --error=slurm/logs/simdata_%A_%a.err
 #SBATCH --time=01:00:00
 #SBATCH --mem=8gb
 #SBATCH --ntasks=1
@@ -13,7 +13,10 @@
 # 1=ebola_const, 2=covid_const, 3=cholera_const
 # 4=ebola_incdec, 5=covid_incdec, 6=cholera_incdec
 
-cd $SLURM_SUBMIT_DIR/..
+# Get project root (parent of slurm dir, or current dir if run from root)
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+cd "$PROJECT_ROOT"
 
 module load R
 
