@@ -13,7 +13,8 @@ ebola_confirmed_linelist <- read_xlsx(here("data", "ebola_linelist.xlsx"), "lab-
 
 ebola_confirmed <- ebola_confirmed_linelist |>
   count(`Date of sample tested`, name = "confirm") |>
-  rename(date = `Date of sample tested`)
+  rename(date = `Date of sample tested`) |>
+  mutate(date = as.Date(date))
 
 # Assuming no data reported on missing days
 extra_dates <- data.frame(date=seq(ebola_confirmed$date[1], ebola_confirmed$date[nrow(ebola_confirmed)], by="day"))
