@@ -55,11 +55,11 @@ res_disease <- sim_weightprior(case_data=case_data,
                            weight_prior=TRUE,
                            obs_scale=d$underreport)
 
-save_latest(res_disease[[1]], here("results"), paste0("res_", disease, "_weightprior_TRUE", rt_opts, "_samples", gt))
-save_latest(res_disease[[2]], here("results"), paste0("res_", disease, "_weightprior_TRUE", rt_opts, "_id", gt))
-save_latest(res_disease[[3]], here("results"), paste0("res_", disease, "_weightprior_TRUE", rt_opts, "_R", gt))
-save_latest(res_disease[[4]], here("results"), paste0("res_", disease, "_weightprior_TRUE", rt_opts, "_summary", gt))
-save_latest(res_disease[[5]], here("results"), paste0("res_", disease, "_weightprior_TRUE", rt_opts, "_warnings", gt))
+save_latest(res_disease[[1]], here("results"), paste0("res_", disease, "_weightprior_TRUE", rt_opts, "_samples", gt, inc))
+save_latest(res_disease[[2]], here("results"), paste0("res_", disease, "_weightprior_TRUE", rt_opts, "_id", gt, inc))
+save_latest(res_disease[[3]], here("results"), paste0("res_", disease, "_weightprior_TRUE", rt_opts, "_R", gt, inc))
+save_latest(res_disease[[4]], here("results"), paste0("res_", disease, "_weightprior_TRUE", rt_opts, "_summary", gt, inc))
+save_latest(res_disease[[5]], here("results"), paste0("res_", disease, "_weightprior_TRUE", rt_opts, "_warnings", gt, inc))
 
 ## under-reporting=yes, weight_prior=TRUE ##
 
