@@ -305,7 +305,7 @@ start_runtime <- Sys.time()
           def <- estimate_infections(case_segment,
                                      generation_time = generation_time_opts(gen_time, weight_prior=weight_prior),
                                      delays = delay_opts(inc_period + reporting_delay, weight_prior=weight_prior),
-                                     obs=obs_opts(family="negbin", scale=obs_scale),
+                                     obs=obs_opts(family="negbin", scale=Fixed(obs_scale)),
                                      rt=rt_opts(future=rt_opts_choice),
                                      stan = stan_opts(samples = 3000,
                                                       return_fit = FALSE,
