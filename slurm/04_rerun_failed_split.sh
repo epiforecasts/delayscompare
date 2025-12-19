@@ -6,12 +6,13 @@
 #SBATCH --mem=16gb
 #SBATCH --ntasks=4
 #SBATCH --nodes=1
-#SBATCH --array=1-20%20
+#SBATCH --array=1-24%24
 
 # Rerun failed covid jobs, split by sub-scenario
 # constRt jobs (155,156,159,160,162,166) × 2 (low/high) = 12 jobs
 # incdecRt jobs (190,191,197,204) × 2 (inc/dec) = 8 jobs
-# Total: 20 jobs
+# casestudy jobs (228,240) × 2 (tp1-4/tp5-8) = 4 jobs
+# Total: 24 jobs
 
 if [[ "$SLURM_SUBMIT_DIR" == */slurm ]]; then
     cd "$SLURM_SUBMIT_DIR/.."
@@ -50,6 +51,12 @@ case $TASK_ID in
     18) GT=2; INC=5; SCRIPT="scripts/06c_scenariorun_incdecRt.R"; SPLIT="dec" ;;
     19) GT=3; INC=5; SCRIPT="scripts/06c_scenariorun_incdecRt.R"; SPLIT="dec" ;;
     20) GT=4; INC=6; SCRIPT="scripts/06c_scenariorun_incdecRt.R"; SPLIT="dec" ;;
+    # casestudy jobs - timepoints 1-4
+    21) GT=2; INC=6; SCRIPT="scripts/06d_scenariorun_casestudy.R"; SPLIT="1-4" ;;
+    22) GT=4; INC=6; SCRIPT="scripts/06d_scenariorun_casestudy.R"; SPLIT="1-4" ;;
+    # casestudy jobs - timepoints 5-8
+    23) GT=2; INC=6; SCRIPT="scripts/06d_scenariorun_casestudy.R"; SPLIT="5-8" ;;
+    24) GT=4; INC=6; SCRIPT="scripts/06d_scenariorun_casestudy.R"; SPLIT="5-8" ;;
 esac
 
 DISEASE="covid"

@@ -15,7 +15,8 @@ sim_scenarios <- function(case_data,
                           weeks_inc=12,
                           rt_opts_choice,
                           obs_scale,
-                          report_freq="day"){
+                          report_freq="day",
+                          timepoint_range=NULL){
   
   ## Scenarios
   
@@ -66,6 +67,11 @@ names(scen_timepoints) <- seq_along(scen_timepoints)
 
 # Make sure max number of timepoints is 8 to ensure quicker runtime
 if(length(scen_timepoints)>8){scen_timepoints <- scen_timepoints[1:8]}
+
+# Filter to specific timepoint range if provided
+if(!is.null(timepoint_range)){
+  scen_timepoints <- scen_timepoints[timepoint_range[timepoint_range <= length(scen_timepoints)]]
+}
 
   scenarios <- expand.grid(
     k = seq_along(scen_timepoints)
