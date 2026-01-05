@@ -23,6 +23,19 @@ rt_trend <- var[5] # "inc", "dec", or "both" (default)
 if (is.na(rt_trend)) rt_trend <- "both"
 print(rt_trend)
 
+# Optional: specify which timepoints to run (e.g., "1-4" or "5-8")
+tp_arg <- var[6]
+if (!is.na(tp_arg) && tp_arg != "all") {
+  tp_parts <- strsplit(tp_arg, "-")[[1]]
+  timepoint_range <- seq(as.numeric(tp_parts[1]), as.numeric(tp_parts[2]))
+} else {
+  timepoint_range <- NULL
+}
+print(paste("Timepoint range:", paste(timepoint_range, collapse="-")))
+
+# Suffix for filenames when using timepoint range
+tp_suffix <- if(!is.null(timepoint_range)) paste0("_tp", min(timepoint_range), "-", max(timepoint_range)) else ""
+
 d <- delays[[disease]]
 
 ############### SCENARIOS #################
@@ -55,14 +68,15 @@ if (rt_trend %in% c("inc", "both")) {
                              freq_fc=4,
                              weeks_inc=12,
                              rt_opts_choice=rt_opts,
-                             obs_scale=1)
+                             obs_scale=1,
+                             timepoint_range=timepoint_range)
 
-  save_latest(res_disease[[1]], here("results"), paste0("res_",disease,"_inc_", rt_opts, "_samples", gt, inc))
-  save_latest(res_disease[[2]], here("results"), paste0("res_",disease,"_inc_", rt_opts, "_id", gt, inc))
-  save_latest(res_disease[[3]], here("results"), paste0("res_",disease,"_inc_", rt_opts, "_R", gt, inc))
-  save_latest(res_disease[[4]], here("results"), paste0("res_",disease,"_inc_", rt_opts, "_summary", gt, inc))
-  save_latest(res_disease[[5]], here("results"), paste0("res_",disease,"_inc_", rt_opts, "_warnings", gt, inc))
-  save_latest(res_disease[[6]], here("results"), paste0("res_",disease,"_inc_", rt_opts, "_timing", gt, inc))
+  save_latest(res_disease[[1]], here("results"), paste0("res_",disease,"_inc_", rt_opts, "_samples", gt, inc, tp_suffix))
+  save_latest(res_disease[[2]], here("results"), paste0("res_",disease,"_inc_", rt_opts, "_id", gt, inc, tp_suffix))
+  save_latest(res_disease[[3]], here("results"), paste0("res_",disease,"_inc_", rt_opts, "_R", gt, inc, tp_suffix))
+  save_latest(res_disease[[4]], here("results"), paste0("res_",disease,"_inc_", rt_opts, "_summary", gt, inc, tp_suffix))
+  save_latest(res_disease[[5]], here("results"), paste0("res_",disease,"_inc_", rt_opts, "_warnings", gt, inc, tp_suffix))
+  save_latest(res_disease[[6]], here("results"), paste0("res_",disease,"_inc_", rt_opts, "_timing", gt, inc, tp_suffix))
 }
  
 #### Decreasing Rt ####
@@ -93,12 +107,13 @@ if (rt_trend %in% c("dec", "both")) {
                              freq_fc=4,
                              weeks_inc=12,
                              rt_opts_choice=rt_opts,
-                             obs_scale=1)
+                             obs_scale=1,
+                             timepoint_range=timepoint_range)
 
-  save_latest(res_disease[[1]], here("results"), paste0("res_",disease,"_dec_", rt_opts, "_samples", gt,inc))
-  save_latest(res_disease[[2]], here("results"), paste0("res_",disease,"_dec_", rt_opts, "_id", gt,inc))
-  save_latest(res_disease[[3]], here("results"), paste0("res_",disease,"_dec_", rt_opts, "_R", gt,inc))
-  save_latest(res_disease[[4]], here("results"), paste0("res_",disease,"_dec_", rt_opts, "_summary", gt,inc))
-  save_latest(res_disease[[5]], here("results"), paste0("res_",disease,"_dec_", rt_opts, "_warnings", gt,inc))
-  save_latest(res_disease[[6]], here("results"), paste0("res_",disease,"_dec_", rt_opts, "_timing", gt,inc))
+  save_latest(res_disease[[1]], here("results"), paste0("res_",disease,"_dec_", rt_opts, "_samples", gt, inc, tp_suffix))
+  save_latest(res_disease[[2]], here("results"), paste0("res_",disease,"_dec_", rt_opts, "_id", gt, inc, tp_suffix))
+  save_latest(res_disease[[3]], here("results"), paste0("res_",disease,"_dec_", rt_opts, "_R", gt, inc, tp_suffix))
+  save_latest(res_disease[[4]], here("results"), paste0("res_",disease,"_dec_", rt_opts, "_summary", gt, inc, tp_suffix))
+  save_latest(res_disease[[5]], here("results"), paste0("res_",disease,"_dec_", rt_opts, "_warnings", gt, inc, tp_suffix))
+  save_latest(res_disease[[6]], here("results"), paste0("res_",disease,"_dec_", rt_opts, "_timing", gt, inc, tp_suffix))
 }
