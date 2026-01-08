@@ -60,8 +60,9 @@ save_latest(res_disease[[2]], here("results"), paste0("res_", disease, "_weightp
 save_latest(res_disease[[3]], here("results"), paste0("res_", disease, "_weightprior_TRUE", rt_opts, "_R", gt, inc))
 save_latest(res_disease[[4]], here("results"), paste0("res_", disease, "_weightprior_TRUE", rt_opts, "_summary", gt, inc))
 save_latest(res_disease[[5]], here("results"), paste0("res_", disease, "_weightprior_TRUE", rt_opts, "_warnings", gt, inc))
+save_latest(res_disease[[6]], here("results"), paste0("res_", disease, "_weightprior_TRUE", rt_opts, "_timing", gt, inc))
 
-## under-reporting=yes, weight_prior=TRUE ##
+## under-reporting=yes, weight_prior=FALSE ##
 
 res_disease <- sim_weightprior(case_data=case_data,
                                gt,

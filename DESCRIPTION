@@ -7,7 +7,7 @@ Authors@R: c(
   )
 Description: Analysis of how misspecification of delay distributions affects
     epidemic forecasting using EpiNow2.
-License: MIT
+License: GPL-3
 Imports:
     EpiNow2,
     readxl,
