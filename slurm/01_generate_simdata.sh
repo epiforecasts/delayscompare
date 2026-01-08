@@ -16,9 +16,9 @@
 # Get project root from SLURM_SUBMIT_DIR
 # If submitted from slurm/, go up one level; if from root, stay there
 if [[ "$SLURM_SUBMIT_DIR" == */slurm ]]; then
-    cd "$SLURM_SUBMIT_DIR/.."
+    cd "$SLURM_SUBMIT_DIR/.." || exit 1
 else
-    cd "$SLURM_SUBMIT_DIR"
+    cd "$SLURM_SUBMIT_DIR" || exit 1
 fi
 echo "Working directory: $(pwd)"
 
