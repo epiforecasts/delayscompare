@@ -19,9 +19,9 @@
 # Total: 32 + 16 + 4 + 4 = 56 jobs
 
 if [[ "$SLURM_SUBMIT_DIR" == */slurm ]]; then
-    cd "$SLURM_SUBMIT_DIR/.."
+    cd "$SLURM_SUBMIT_DIR/.." || exit 1
 else
-    cd "$SLURM_SUBMIT_DIR"
+    cd "$SLURM_SUBMIT_DIR" || exit 1
 fi
 echo "Working directory: $(pwd)"
 
