@@ -51,6 +51,9 @@ for(disease in c("ebola", "covid", "cholera")){
       disease_id <- bind_rows(disease_id)
       disease_R <- bind_rows(disease_R)
       disease_samples <- bind_rows(disease_samples)
+      if(length(disease_warnings) > 0) {
+        disease_warnings <- bind_rows(disease_warnings)
+      }
 
       save_latest(disease_id, here("results/sim"), paste0("res_", disease, "_", scen, "_", rt_opts, "_all_id"))
       save_latest(disease_R, here("results/sim"), paste0("res_", disease, "_", scen, "_", rt_opts, "_all_R"))
@@ -99,6 +102,9 @@ for(disease in c("ebola", "covid", "cholera")){
     disease_id <- bind_rows(disease_id)
     disease_R <- bind_rows(disease_R)
     disease_samples <- bind_rows(disease_samples)
+    if(length(disease_warnings) > 0) {
+      disease_warnings <- bind_rows(disease_warnings)
+    }
 
     save_latest(disease_id, here("results/casestudy"), paste0("res_", disease, "_casestudy_", rt_opts, "_all_id"))
     save_latest(disease_R, here("results/casestudy"), paste0("res_", disease, "_casestudy_", rt_opts, "_all_R"))
@@ -148,6 +154,9 @@ for(disease in c("ebola", "covid", "cholera")){
       disease_id <- bind_rows(disease_id)
       disease_R <- bind_rows(disease_R)
       disease_samples <- bind_rows(disease_samples)
+      if(length(disease_warnings) > 0) {
+        disease_warnings <- bind_rows(disease_warnings)
+      }
 
       save_latest(disease_id, here("results/weightprior"), paste0("res_", disease, "_weightprior_", weight_prior, "_", rt_opts, "_all_id"))
       save_latest(disease_R, here("results/weightprior"), paste0("res_", disease, "_weightprior_", weight_prior, "_", rt_opts, "_all_R"))
