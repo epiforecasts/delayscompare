@@ -21,10 +21,11 @@ print(disease)
 
 ## Loading data ##
 
-# Verify required data exists
-  if (!file.exists(here("data", paste0(disease, "_sim_data.rds")))) {
-      stop("Simulated data not found. Please run 05_simulate_data.R first.")
-    }
+# Verify required data exists (check for files matching pattern with date suffix)
+sim_data_files <- list.files(here("data"), pattern = paste0("^", disease, "_sim_data[0-9]"))
+if (length(sim_data_files) == 0) {
+    stop("Simulated data not found for ", disease, ". Please run 05_simulatedata.R first.")
+}
 
 sim_data <- read_latest(here("data"), paste0(disease, "_sim_data"))
 d <- delays[[disease]]
