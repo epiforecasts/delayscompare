@@ -92,20 +92,20 @@ if(!is.null(timepoint_range)){
         if(var!=1){
         gen_time <- Gamma(mean=gen_mean*scen_values[var],
                           sd=gen_sd,
-                          max=gen_max)
+                          max=min(gen_max, ceiling(6 * gen_mean)))
         } else {
           gen_time <- Fixed(1)
         }
-        
+
         # Incubation period and reporting delay (both vary with inc parameter)
         if(inc!=1){
         inc_period <- LogNormal(mean=inc_mean*scen_values[inc],
                                 sd=inc_sd,
-                                max=inc_max)
+                                max=min(inc_max, ceiling(6 * inc_mean)))
         if(rep_max>0){
         reporting_delay <- LogNormal(mean=rep_mean*scen_values[inc],
                                      sd=rep_sd,
-                                     max=rep_max)} else {reporting_delay <- Fixed(0)}
+                                     max=min(rep_max, ceiling(6 * rep_mean)))} else {reporting_delay <- Fixed(0)}
         } else {
           inc_period <- Fixed(0)
           reporting_delay <- Fixed(0)
@@ -293,16 +293,16 @@ res <- pmap(scenarios, \(k) {
         # Generation interval
         gen_time <- Gamma(mean=Normal(gen_mean_mean, gen_mean_sd),
                           sd=Normal(gen_sd_mean, gen_sd_sd),
-                          max=gen_max)
-        
+                          max=min(gen_max, ceiling(6 * gen_mean_mean)))
+
         # Incubation period
         inc_period <- LogNormal(mean=Normal(inc_mean_mean, inc_mean_sd),
                                 sd=Normal(inc_sd_mean, inc_sd_sd),
-                                max=inc_max)
-        
-        if(rep_max>0) {reporting_delay <- LogNormal(mean=Normal(rep_mean_mean, rep_mean_sd),
+                                max=min(inc_max, ceiling(6 * inc_mean_mean)))
+
+        if(rep_mean_mean>0) {reporting_delay <- LogNormal(mean=Normal(rep_mean_mean, rep_mean_sd),
                                      sd=Normal(rep_sd_mean, rep_sd_sd),
-                                     max=rep_max)} else {reporting_delay <- Fixed(0)}
+                                     max=min(rep_max, ceiling(6 * rep_mean_mean)))} else {reporting_delay <- Fixed(0)}
 
 case_segment <- case_segment[order(case_segment$date), ]
 
