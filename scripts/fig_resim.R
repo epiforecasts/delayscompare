@@ -35,11 +35,11 @@ for(disease in c("ebola", "covid", "cholera")) {
 
   # Load processed resim results
   res_samples <- tryCatch(
-    read_latest(here("results/resim"), paste0("res_", disease, "_resim_", rt_opts, "_all_samples")),
+    read_latest(here("results/sim"), paste0("res_", disease, "_resim_", rt_opts, "_all_samples")),
     error = function(e) { message(paste("  Missing samples for", disease)); NULL }
   )
   res_id <- tryCatch(
-    read_latest(here("results/resim"), paste0("res_", disease, "_resim_", rt_opts, "_all_id")),
+    read_latest(here("results/sim"), paste0("res_", disease, "_resim_", rt_opts, "_all_id")),
     error = function(e) { message(paste("  Missing id for", disease)); NULL }
   )
 

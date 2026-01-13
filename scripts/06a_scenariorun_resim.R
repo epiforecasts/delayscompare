@@ -54,10 +54,10 @@ res_disease <- sim_scenarios(case_data=sim_data_cases,
                              rt_opts_choice = rt_opts,
                              obs_scale = d$underreport)
 
-save_latest(res_disease[[1]], here("results"), paste0("res_", disease, "_resim_", rt_opts, "_samples_", gt, "_", inc))
-save_latest(res_disease[[2]], here("results"), paste0("res_", disease, "_resim_", rt_opts, "_id_", gt, "_", inc))
-save_latest(res_disease[[3]], here("results"), paste0("res_", disease, "_resim_", rt_opts, "_R_", gt, "_", inc))
-save_latest(res_disease[[4]], here("results"), paste0("res_", disease, "_resim_", rt_opts, "_summary_", gt, "_", inc))
-save_latest(res_disease[[5]], here("results"), paste0("res_", disease, "_resim_", rt_opts, "_warnings_", gt, "_", inc))
-save_latest(res_disease[[6]], here("results"), paste0("res_", disease, "_resim_", rt_opts, "_timing_", gt, "_", inc))
+save_latest(res_disease[[1]], here("results"), paste0("res_", disease, "_resim_", rt_opts, "_samples", gt, inc))
+save_latest(res_disease[[2]], here("results"), paste0("res_", disease, "_resim_", rt_opts, "_id", gt, inc))
+save_latest(res_disease[[3]], here("results"), paste0("res_", disease, "_resim_", rt_opts, "_R", gt, inc))
+save_latest(res_disease[[4]], here("results"), paste0("res_", disease, "_resim_", rt_opts, "_summary", gt, inc))
+save_latest(res_disease[[5]], here("results"), paste0("res_", disease, "_resim_", rt_opts, "_warnings", gt, inc))
+save_latest(res_disease[[6]], here("results"), paste0("res_", disease, "_resim_", rt_opts, "_timing", gt, inc))
 
