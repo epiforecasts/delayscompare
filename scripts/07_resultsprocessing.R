@@ -124,11 +124,10 @@ for(disease in c("ebola", "covid", "cholera")){
   for(gt in 1:6){
     for(inc_val in 1:6){
       tryCatch({
-        # Note: resim uses underscore between gt and inc in filename
-        disease_id[[idx]] <- read_latest(here("results"), paste0("res_", disease, "_resim_", rt_opts, "_id_", gt, "_", inc_val))
-        disease_R[[idx]] <- read_latest(here("results"), paste0("res_", disease, "_resim_", rt_opts, "_R_", gt, "_", inc_val))
-        disease_samples[[idx]] <- read_latest(here("results"), paste0("res_", disease, "_resim_", rt_opts, "_samples_", gt, "_", inc_val))
-        warnings_data <- read_latest(here("results"), paste0("res_", disease, "_resim_", rt_opts, "_warnings_", gt, "_", inc_val))
+        disease_id[[idx]] <- read_latest(here("results"), paste0("res_", disease, "_resim_", rt_opts, "_id", gt, inc_val))
+        disease_R[[idx]] <- read_latest(here("results"), paste0("res_", disease, "_resim_", rt_opts, "_R", gt, inc_val))
+        disease_samples[[idx]] <- read_latest(here("results"), paste0("res_", disease, "_resim_", rt_opts, "_samples", gt, inc_val))
+        warnings_data <- read_latest(here("results"), paste0("res_", disease, "_resim_", rt_opts, "_warnings", gt, inc_val))
         # Add gt and inc columns
         disease_id[[idx]]$gt <- gt
         disease_id[[idx]]$inc <- inc_val
@@ -157,13 +156,10 @@ for(disease in c("ebola", "covid", "cholera")){
       disease_warnings <- bind_rows(disease_warnings)
     }
 
-    # Create resim directory if needed
-    if(!dir.exists(here("results/resim"))) dir.create(here("results/resim"))
-
-    save_latest(disease_id, here("results/resim"), paste0("res_", disease, "_resim_", rt_opts, "_all_id"))
-    save_latest(disease_R, here("results/resim"), paste0("res_", disease, "_resim_", rt_opts, "_all_R"))
-    save_latest(disease_samples, here("results/resim"), paste0("res_", disease, "_resim_", rt_opts, "_all_samples"))
-    save_latest(disease_warnings, here("results/resim"), paste0("res_", disease, "_resim_", rt_opts, "_all_warnings"))
+    save_latest(disease_id, here("results/sim"), paste0("res_", disease, "_resim_", rt_opts, "_all_id"))
+    save_latest(disease_R, here("results/sim"), paste0("res_", disease, "_resim_", rt_opts, "_all_R"))
+    save_latest(disease_samples, here("results/sim"), paste0("res_", disease, "_resim_", rt_opts, "_all_samples"))
+    save_latest(disease_warnings, here("results/sim"), paste0("res_", disease, "_resim_", rt_opts, "_all_warnings"))
     message(paste("Saved:", disease, "resim with", nrow(disease_id), "rows"))
   }
 
