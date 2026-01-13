@@ -6,12 +6,12 @@
 #SBATCH --mem=16gb
 #SBATCH --ntasks=4
 #SBATCH --nodes=1
-#SBATCH --array=0-359
+#SBATCH --array=0-251
 
 # Re-run ALL cholera analyses with updated max cap (4x base mean)
-# This covers: 4 sim scenarios + casestudy + resim + 2 weightprior = 8 types
-# Each type has 36 GT×INC combinations (6×6)
-# Total: 8 × 36 = 288 jobs... but we'll do scripts×gt×inc = 10×36 = 360
+# 7 script types × 36 GT×INC combinations = 252 jobs
+# Script types: const_low, const_high, inc, dec, casestudy, resim, weightprior
+# Note: weightprior runs both TRUE/FALSE in single execution
 
 if [[ "$SLURM_SUBMIT_DIR" == */slurm ]]; then
     cd "$SLURM_SUBMIT_DIR/.." || exit 1
@@ -21,20 +21,7 @@ fi
 
 module load R
 
-# Scripts to run (10 total)
-SCRIPTS=(
-    "06_scenariorun_constRt.R const_low"
-    "06_scenariorun_constRt.R const_high"
-    "06b_scenariorun_incdecRt.R inc"
-    "06b_scenariorun_incdecRt.R dec"
-    "06d_scenariorun_casestudy.R casestudy"
-    "06a_scenariorun_resim.R resim"
-    "06e_scenariorun_weightprior.R weightprior_TRUE"
-    "06e_scenariorun_weightprior.R weightprior_FALSE"
-)
-
-# Calculate indices
-# 36 combinations per script type, 8 script types (but some need special handling)
+# Calculate indices: 36 combinations per script type
 SCRIPT_IDX=$((SLURM_ARRAY_TASK_ID / 36))
 COMBO_IDX=$((SLURM_ARRAY_TASK_ID % 36))
 GT=$((COMBO_IDX / 6 + 1))
@@ -74,19 +61,10 @@ case $SCRIPT_IDX in
         echo "Running: Rscript scripts/$SCRIPT $GT $INC $RT_OPTS $DISEASE"
         Rscript scripts/$SCRIPT $GT $INC $RT_OPTS $DISEASE
         ;;
-    6) # weightprior TRUE
+    6) # weightprior (runs both TRUE and FALSE)
         SCRIPT="06e_scenariorun_weightprior.R"
-        echo "Running: Rscript scripts/$SCRIPT $GT $INC $RT_OPTS $DISEASE TRUE"
-        Rscript scripts/$SCRIPT $GT $INC $RT_OPTS $DISEASE TRUE
-        ;;
-    7) # weightprior FALSE
-        SCRIPT="06e_scenariorun_weightprior.R"
-        echo "Running: Rscript scripts/$SCRIPT $GT $INC $RT_OPTS $DISEASE FALSE"
-        Rscript scripts/$SCRIPT $GT $INC $RT_OPTS $DISEASE FALSE
-        ;;
-    8|9) # Extra slots (288 jobs needed, array goes to 359)
-        echo "Slot $SCRIPT_IDX not used, exiting"
-        exit 0
+        echo "Running: Rscript scripts/$SCRIPT $GT $INC $RT_OPTS $DISEASE"
+        Rscript scripts/$SCRIPT $GT $INC $RT_OPTS $DISEASE
         ;;
 esac
 
