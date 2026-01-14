@@ -246,7 +246,15 @@ sim_weightprior <- function(case_data,
                           rt_opts_choice,
                           weight_prior,
                           obs_scale){
-  
+
+  # Handle missing dates (casestudy data is daily)
+  case_data <- fill_missing(
+    case_data,
+    missing_dates = c("ignore"),
+    missing_obs = c("ignore"),
+    obs_column = "confirm",
+    by = NULL
+  )
 
   # Define start and end dates
 start_date <- min(case_data$date)
