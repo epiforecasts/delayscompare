@@ -92,7 +92,7 @@ if(!is.null(timepoint_range)){
         if(var!=1){
         gen_time <- Gamma(mean=gen_mean*scen_values[var],
                           sd=gen_sd,
-                          max=min(gen_max, ceiling(4 * gen_mean)))
+                          max=min(gen_max, ceiling(4 * gen_mean * scen_values[var])))
         } else {
           gen_time <- Fixed(1)
         }
@@ -101,11 +101,11 @@ if(!is.null(timepoint_range)){
         if(inc!=1){
         inc_period <- LogNormal(mean=inc_mean*scen_values[inc],
                                 sd=inc_sd,
-                                max=min(inc_max, ceiling(4 * inc_mean)))
+                                max=min(inc_max, ceiling(4 * inc_mean * scen_values[inc])))
         if(rep_max>0){
         reporting_delay <- LogNormal(mean=rep_mean*scen_values[inc],
                                      sd=rep_sd,
-                                     max=min(rep_max, ceiling(4 * rep_mean)))} else {reporting_delay <- Fixed(0)}
+                                     max=min(rep_max, ceiling(4 * rep_mean * scen_values[inc])))} else {reporting_delay <- Fixed(0)}
         } else {
           inc_period <- Fixed(0)
           reporting_delay <- Fixed(0)
