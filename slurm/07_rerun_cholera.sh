@@ -33,13 +33,13 @@ DISEASE="cholera"
 case $SCRIPT_IDX in
     0) # const_low
         SCRIPT="06b_scenariorun_constRt.R"
-        echo "Running: Rscript scripts/$SCRIPT $GT $INC $RT_OPTS $DISEASE const_low"
-        Rscript scripts/$SCRIPT $GT $INC $RT_OPTS $DISEASE const_low
+        echo "Running: Rscript scripts/$SCRIPT $GT $INC $RT_OPTS $DISEASE low"
+        Rscript scripts/$SCRIPT $GT $INC $RT_OPTS $DISEASE low
         ;;
     1) # const_high
         SCRIPT="06b_scenariorun_constRt.R"
-        echo "Running: Rscript scripts/$SCRIPT $GT $INC $RT_OPTS $DISEASE const_high"
-        Rscript scripts/$SCRIPT $GT $INC $RT_OPTS $DISEASE const_high
+        echo "Running: Rscript scripts/$SCRIPT $GT $INC $RT_OPTS $DISEASE high"
+        Rscript scripts/$SCRIPT $GT $INC $RT_OPTS $DISEASE high
         ;;
     2) # inc
         SCRIPT="06c_scenariorun_incdecRt.R"
