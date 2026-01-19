@@ -92,7 +92,7 @@ if(!is.null(timepoint_range)){
         if(var!=1){
         gen_time <- Gamma(mean=gen_mean*scen_values[var],
                           sd=gen_sd,
-                          max=min(gen_max, ceiling(4 * gen_mean)))
+                          max=gen_max)
         } else {
           gen_time <- Fixed(1)
         }
@@ -101,11 +101,11 @@ if(!is.null(timepoint_range)){
         if(inc!=1){
         inc_period <- LogNormal(mean=inc_mean*scen_values[inc],
                                 sd=inc_sd,
-                                max=min(inc_max, ceiling(4 * inc_mean)))
+                                max=inc_max)
         if(rep_max>0){
         reporting_delay <- LogNormal(mean=rep_mean*scen_values[inc],
                                      sd=rep_sd,
-                                     max=min(rep_max, ceiling(4 * rep_mean)))} else {reporting_delay <- Fixed(0)}
+                                     max=rep_max)} else {reporting_delay <- Fixed(0)}
         } else {
           inc_period <- Fixed(0)
           reporting_delay <- Fixed(0)
@@ -298,19 +298,47 @@ res <- pmap(scenarios, \(k) {
         
         print(nrow(case_segment))
         
-        # Generation interval
-        gen_time <- Gamma(mean=Normal(gen_mean_mean, gen_mean_sd),
-                          sd=Normal(gen_sd_mean, gen_sd_sd),
-                          max=min(gen_max, ceiling(4 * gen_mean_mean)))
+        # Generation interval - use natural parameters (shape/rate) to avoid crude conversion
+        gen_shape <- gen_mean_mean^2 / gen_sd_mean^2
+        gen_rate <- gen_mean_mean / gen_sd_mean^2
 
-        # Incubation period
-        inc_period <- LogNormal(mean=Normal(inc_mean_mean, inc_mean_sd),
-                                sd=Normal(inc_sd_mean, inc_sd_sd),
-                                max=min(inc_max, ceiling(4 * inc_mean_mean)))
+        # If shape is very high (>100), use Fixed to avoid numerical issues
+        if(gen_shape > 100) {
+          gen_time <- Gamma(shape=gen_shape, rate=gen_rate, max=gen_max)
+        } else {
+          # Uncertainty on shape/rate (delta method approximation)
+          gen_shape_sd <- gen_shape * sqrt((2*gen_mean_sd/gen_mean_mean)^2 + (2*gen_sd_sd/gen_sd_mean)^2)
+          gen_rate_sd <- gen_rate * sqrt((gen_mean_sd/gen_mean_mean)^2 + (2*gen_sd_sd/gen_sd_mean)^2)
+          gen_time <- Gamma(shape=Normal(gen_shape, gen_shape_sd),
+                            rate=Normal(gen_rate, gen_rate_sd),
+                            max=gen_max)
+        }
 
-        if(rep_mean_mean>0) {reporting_delay <- LogNormal(mean=Normal(rep_mean_mean, rep_mean_sd),
-                                     sd=Normal(rep_sd_mean, rep_sd_sd),
-                                     max=min(rep_max, ceiling(4 * rep_mean_mean)))} else {reporting_delay <- Fixed(0)}
+        # Incubation period - use natural parameters (meanlog/sdlog)
+        inc_var <- inc_sd_mean^2
+        inc_meanlog <- log(inc_mean_mean^2 / sqrt(inc_var + inc_mean_mean^2))
+        inc_sdlog <- sqrt(log(1 + inc_var / inc_mean_mean^2))
+        # Uncertainty (approximate)
+        inc_meanlog_sd <- inc_mean_sd / inc_mean_mean
+        inc_sdlog_sd <- inc_sd_sd / (2 * inc_sd_mean)
+
+        inc_period <- LogNormal(meanlog=Normal(inc_meanlog, inc_meanlog_sd),
+                                sdlog=Normal(inc_sdlog, inc_sdlog_sd),
+                                max=inc_max)
+
+        if(rep_mean_mean>0) {
+          rep_var <- rep_sd_mean^2
+          rep_meanlog <- log(rep_mean_mean^2 / sqrt(rep_var + rep_mean_mean^2))
+          rep_sdlog <- sqrt(log(1 + rep_var / rep_mean_mean^2))
+          rep_meanlog_sd <- rep_mean_sd / rep_mean_mean
+          rep_sdlog_sd <- rep_sd_sd / (2 * rep_sd_mean)
+
+          reporting_delay <- LogNormal(meanlog=Normal(rep_meanlog, rep_meanlog_sd),
+                                       sdlog=Normal(rep_sdlog, rep_sdlog_sd),
+                                       max=rep_max)
+        } else {
+          reporting_delay <- Fixed(0)
+        }
 
 case_segment <- case_segment[order(case_segment$date), ]
 
