@@ -9,264 +9,257 @@ source(here("R", "funcs_data.R"))
 source(here("R", "generate_scores_func.R"))
 source(here("R", "lshtm_theme.R"))
 
-# Make sure data lists are up-to-date
-source(here("scripts","datacollect_ebola.R"))
-source(here("scripts", "datacollect_cholera.R"))
-source(here("scripts", "datacollect_covid.R"))
+rt_opts <- "latest"
 
-# Loading all data - collect Rt trajectories and simulated data in a list
-disease <- "ebola"
-rt_traj <- read_latest(here("data"), paste0("rt_traj_list_", disease))
-sim_data <- read_latest(here("data"), paste0("sim_data_list_", disease))
+# Scenario labels for plotting
+scen_labels <- c(
+  "const_low" = "Constant Rt (low)",
+  "const_high" = "Constant Rt (high)",
+  "inc" = "Increasing Rt",
+  "dec" = "Decreasing Rt"
+)
 
-# Scenario labels
-scen_labs <- data.frame(scen=c(1:16),
-                        rt_traj=c(rep("const_low", 4), rep("const_high", 4), rep("inc", 4), rep("dec", 4)),
-                        rt_opts=rep(c("latest", "latest", "project", "project"), 4),
-                        ur=rep(c("No under-reporting", "Under-reporting", "No under-reporting", "Under-reporting"), 4))
+# GT/INC level labels
+level_labels <- c("1" = "no delay", "2" = "very low", "3" = "low",
+                  "4" = "correct", "5" = "high", "6" = "very high")
 
-# Adding labels to data
-rt_traj_scen <- lapply(c(1:16), function(i){
-  rt_traj[[i]] |> 
-    as.data.frame() |> 
-    mutate(scen=i)
-})
+# Process each disease
+for(disease in c("ebola", "covid", "cholera")) {
 
-sim_data_scen <- lapply(c(1:16), function(i){
-  sim_data[[i]] |> 
-    as.data.frame()|> 
-    mutate(scen=i)
-})
+  message(paste("\n=== Processing", disease, "===\n"))
 
-## Create plot for each Rt trajectory
+  # Load simulated data for true values
+  # Try scenario-specific files first, then fall back to generic
+  sim_data_const <- tryCatch(
+    read_latest(here("data"), paste0(disease, "_sim_data_const")),
+    error = function(e) NULL
+  )
+  sim_data_inc <- tryCatch(
+    read_latest(here("data"), paste0(disease, "_sim_data_inc")),
+    error = function(e) NULL
+  )
+  sim_data_dec <- tryCatch(
+    read_latest(here("data"), paste0(disease, "_sim_data_dec")),
+    error = function(e) NULL
+  )
 
-# Create Rt trajectory list
-rankings_cases_list <- list()
-rankings_rt_list <- list()
+  # Fall back to generic sim data if scenario-specific not found
+  sim_data_generic <- tryCatch(
+    read_latest(here("data"), paste0(disease, "_sim_data")),
+    error = function(e) NULL
+  )
+  if(is.null(sim_data_const)) sim_data_const <- sim_data_generic
+  if(is.null(sim_data_inc)) sim_data_inc <- sim_data_generic
+  if(is.null(sim_data_dec)) sim_data_dec <- sim_data_generic
 
-for(i in seq(1, 16, 4)){
-  
-  # Get all scenarios with that Rt trajectory
-  scen_traj <- c(i, i+1, i+2, i+3)
-  scen_lab <- scen_labs$rt_traj[scen_labs$scen==i]
-  
-  # Create scores lists
-  scores_cases_list <- list()
-  scores_rt_list <- list()
-  
-  for(j in scen_traj){
-    
-    # Get results
-    res_samples <- read_latest(here(paste0("results/", disease)), paste0("res_", disease, "scen", j, "_all_samples"))
-    res_R <- read_latest(here(paste0("results/", disease)), paste0("res_", disease, "scen", j, "_all_R"))
-    res_id <- read_latest(here(paste0("results/", disease)), paste0("res_", disease, "scen", j, "_all_id")) 
-    
-    # Add scenario info
-    res_samples <- res_samples |>
-      filter(type=="forecast") |>
-      # add info
-      left_join(res_id, by=c("result_list", "gt"))
-    
-    res_R <- res_R |> 
-      filter(type=="forecast") |>
-      rename(prediction=value) |>
-      # add info
-      left_join(res_id, by=c("result_list", "gt"))
-    
-    # Add simulated data
-    res_samples <- sim_data_scen[[j]] |>
-      filter(variable=="reported_cases") |>
-      rename(true_value=value) |>
-      select(-variable) |>
-      right_join(res_samples, by="date")
-    
-    res_R <- rt_traj_scen[[j]] |> 
-      rename(true_value=R) |>
-      right_join(res_R, by="date") 
-    
-    # Get rid of all columns that aren't date, true_value, prediction, sample
-    res_samples <- res_samples |>
-      select(date, true_value, prediction, sample, model, result_list, gt, type)
-    
-    res_R <- res_R |>
-      select(date, true_value, prediction, sample, model, result_list, gt, type)
-    
-    # Log transform observations and predicted values
-    res_samples <- as_forecast_sample(
-      data=res_samples,
-      forecast_unit=c("date", "type", "result_list" , "gt", "model"),
-      observed="true_value",
-      predicted="prediction",
-      sample_id='sample'
+  # Store rankings for all scenarios
+  rankings_cases_all <- list()
+
+  for(scen in c("const_low", "const_high", "inc", "dec")) {
+
+    message(paste("Processing scenario:", scen))
+
+    # Load processed results
+    res_samples <- tryCatch(
+      read_latest(here("results/sim"), paste0("res_", disease, "_", scen, "_", rt_opts, "_all_samples")),
+      error = function(e) { message(paste("  Missing samples for", scen)); NULL }
     )
-    
-    res_samples <- res_samples |> 
-      transform_forecasts(fun = log_shift, offset=1, label="log")
-    
-    res_R <- as_forecast_sample(
-      data=res_R,
-      forecast_unit=c("date", "type", "result_list" , "gt", "model"),
-      observed="true_value",
-      predicted="prediction",
-      sample_id='sample'
+    res_id <- tryCatch(
+      read_latest(here("results/sim"), paste0("res_", disease, "_", scen, "_", rt_opts, "_all_id")),
+      error = function(e) { message(paste("  Missing id for", scen)); NULL }
     )
-    
-    res_R <- res_R |>
-      transform_forecasts(fun = log_shift, offset=1, label="log")
-    
-    scores_cases <- res_samples |>
-      # filtering out what I don't need to save memory
-      filter(type=="forecast", scale=="log") |>
+
+    if(is.null(res_samples) || is.null(res_id)) next
+
+    # Select appropriate sim data for true values
+    if(grepl("const", scen)) {
+      sim_data <- sim_data_const
+    } else if(scen == "inc") {
+      sim_data <- sim_data_inc
+    } else {
+      sim_data <- sim_data_dec
+    }
+
+    if(is.null(sim_data)) {
+      message(paste("  No sim data for", scen))
+      next
+    }
+
+    # Filter to forecasts only
+    res_samples <- res_samples |>
+      filter(type == "forecast")
+
+    # Join with id info
+    res_samples <- res_samples |>
+      left_join(res_id, by = c("result_list", "gt", "inc"))
+
+    # Get true values (reported cases)
+    true_cases <- sim_data |>
+      filter(variable == "reported_cases") |>
+      rename(true_value = value) |>
+      select(date, true_value)
+
+    # Join with true values
+    res_samples <- res_samples |>
+      left_join(true_cases, by = "date")
+
+    # Remove rows without true values
+    res_samples <- res_samples |>
+      filter(!is.na(true_value))
+
+    if(nrow(res_samples) == 0) {
+      message(paste("  No matching data for", scen))
+      next
+    }
+
+    # Create forecast object for scoring
+    res_forecast <- tryCatch({
+      as_forecast_sample(
+        data = res_samples,
+        forecast_unit = c("date", "type", "result_list", "gt", "inc", "model", "timepoint"),
+        observed = "true_value",
+        predicted = "prediction",
+        sample_id = "sample"
+      )
+    }, error = function(e) {
+      message(paste("  Error creating forecast object:", e$message))
+      NULL
+    })
+
+    if(is.null(res_forecast)) next
+
+    # Log transform for scoring
+    res_forecast <- res_forecast |>
+      transform_forecasts(fun = log_shift, offset = 1, label = "log")
+
+    # Score
+    scores_cases <- res_forecast |>
+      filter(scale == "log") |>
       score()
-    
-    scores_rt <- res_R |>
-      # filtering out what I don't need to save memory
-      filter(type=="forecast", scale=="log") |>
-      score()
-    
-    scores_cases <- scores_cases |>
-      left_join(res_id, by = c("result_list", "gt")) |>
-      group_by(timepoint) |>
-      filter(date == max(date)) |>
-      ungroup() 
-    
-    scores_rt <- scores_rt |>
-      left_join(res_id, by = c("result_list", "gt")) |>
-      group_by(timepoint) |>
+
+    # Get rankings by GT and INC
+    # First, get the last forecast date per timepoint (the actual forecast target)
+    scores_summary <- scores_cases |>
+      left_join(res_id |> select(result_list, gt, inc, timepoint, gen_time, inc_period),
+                by = c("result_list", "gt", "inc", "timepoint")) |>
+      group_by(timepoint, gt, inc) |>
       filter(date == max(date)) |>
       ungroup()
 
-    # Add scores to a list
-    scores_cases_list[[j]] <- scores_cases
-    scores_rt_list[[j]] <- scores_rt
+    # Calculate mean CRPS by GT and INC
+    rankings_cases <- scores_summary |>
+      group_by(gt, inc, gen_time, inc_period) |>
+      summarise(crps = mean(crps, na.rm = TRUE), .groups = "drop") |>
+      mutate(rank = rank(crps))
+
+    # Add scenario label
+    rankings_cases$scenario <- scen_labels[scen]
+
+    # Make factor levels for proper ordering
+    rankings_cases <- rankings_cases |>
+      mutate(
+        inc_period = factor(inc_period, levels = c("no delay", "very low", "low", "correct", "high", "very high")),
+        gen_time = factor(gen_time, levels = c("no delay", "very low", "low", "correct", "high", "very high"))
+      )
+
+    rankings_cases_all[[scen]] <- rankings_cases
+    message(paste("  Done:", nrow(rankings_cases), "GT×INC combinations"))
   }
-  
-  scores_cases <- bind_rows(scores_cases)
-  scores_rt <- bind_rows(scores_rt)
-  
-  # Get rankings
-  rankings_cases <- scores_cases |>
-    group_by(gen_time, inc_period) |>
-    summarise(crps=mean(crps)) |>
-    ungroup() |>
-    mutate(rank = rank(crps))
-  
-  rankings_rt <- scores_rt |>
-    group_by(gen_time, inc_period) |>
-    summarise(crps=mean(crps)) |>
-    ungroup() |>
-    mutate(rank = rank(crps))
-  
-  # Making sure ordering is correct on plot
-  rankings_cases <- rankings_cases |>
-    mutate(
-      inc_period = factor(
-        inc_period, levels=c("no delay", "very low", "low", "correct", "high", "very high")
-      ),
-      gen_time = factor(
-        gen_time, levels=c("no delay", "very low", "low", "correct", "high", "very high")
-      ),
-      rt_traj=scen_lab)
-  
-  rankings_rt <- rankings_rt |>
-    mutate(
-      inc_period = factor(
-        inc_period, levels=c("no delay", "very low", "low", "correct", "high", "very high")
-      ),
-      gen_time = factor(
-        gen_time, levels=c("no delay", "very low", "low", "correct", "high", "very high")
-      ),
-      rt_traj=scen_lab)
-  
-  rankings_cases_list <- c(rankings_cases_list, list(rankings_cases))
-  rankings_rt_list <- c(rankings_rt_list, list(rankings_rt))
+
+  if(length(rankings_cases_all) == 0) {
+    message(paste("No results for", disease))
+    next
+  }
+
+  # Combine all scenarios
+  rankings_combined <- bind_rows(rankings_cases_all)
+
+  # Create heatmap plot
+  p_heatmap <- ggplot(rankings_combined, aes(x = gen_time, y = inc_period)) +
+    geom_tile(aes(fill = crps)) +
+    scale_fill_viridis_c(option = "plasma", name = "CRPS\n(log scale)") +
+    facet_wrap(~scenario, ncol = 2) +
+    xlab("Generation time misspecification") +
+    ylab("Incubation period misspecification") +
+    theme_classic() +
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1),
+      strip.background = element_blank(),
+      strip.text = element_text(face = "bold")
+    ) +
+    ggtitle(paste0(toupper(disease), ": Forecast performance by delay misspecification"))
+
+  # Save plot
+  ggsave(
+    here("results", paste0("fig1_", disease, "_crps_heatmap.png")),
+    p_heatmap,
+    width = 10,
+    height = 8,
+    dpi = 150
+  )
+
+  message(paste("Saved figure for", disease))
+
+  # Also create a rank-based heatmap
+  p_rank <- ggplot(rankings_combined, aes(x = gen_time, y = inc_period)) +
+    geom_tile(aes(fill = rank)) +
+    scale_fill_viridis_c(option = "viridis", name = "Rank\n(1 = best)", direction = -1) +
+    facet_wrap(~scenario, ncol = 2) +
+    xlab("Generation time misspecification") +
+    ylab("Incubation period misspecification") +
+    theme_classic() +
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1),
+      strip.background = element_blank(),
+      strip.text = element_text(face = "bold")
+    ) +
+    ggtitle(paste0(toupper(disease), ": Forecast ranking by delay misspecification"))
+
+  ggsave(
+    here("results", paste0("fig1_", disease, "_rank_heatmap.png")),
+    p_rank,
+    width = 10,
+    height = 8,
+    dpi = 150
+  )
+
+  # Create bar charts showing marginal effects
+  # By generation time
+  marginal_gt <- rankings_combined |>
+    group_by(gen_time, scenario) |>
+    summarise(mean_crps = mean(crps, na.rm = TRUE), .groups = "drop")
+
+  p_gt <- ggplot(marginal_gt, aes(x = gen_time, y = mean_crps)) +
+    geom_col(fill = "steelblue") +
+    facet_wrap(~scenario, scales = "free_y", ncol = 2) +
+    xlab("Generation time misspecification") +
+    ylab("Mean CRPS (log scale)") +
+    theme_classic() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+  # By incubation period
+  marginal_inc <- rankings_combined |>
+    group_by(inc_period, scenario) |>
+    summarise(mean_crps = mean(crps, na.rm = TRUE), .groups = "drop")
+
+  p_inc <- ggplot(marginal_inc, aes(x = inc_period, y = mean_crps)) +
+    geom_col(fill = "darkgreen") +
+    facet_wrap(~scenario, scales = "free_y", ncol = 2) +
+    xlab("Incubation period misspecification") +
+    ylab("Mean CRPS (log scale)") +
+    theme_classic() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+  # Combine marginal plots
+  p_marginal <- cowplot::plot_grid(p_gt, p_inc, ncol = 2, labels = c("A", "B"))
+
+  ggsave(
+    here("results", paste0("fig1_", disease, "_marginal.png")),
+    p_marginal,
+    width = 14,
+    height = 8,
+    dpi = 150
+  )
 }
 
-## Plotting
-rankings_cases_list <- bind_rows(rankings_cases_list)
-rankings_rt_list <- bind_rows(rankings_rt_list)
-
-rank_cases_plot <- ggplot(rankings_cases_list, aes(x=gen_time, y=inc_period)) +
-  geom_tile(aes(fill=rank)) +
-  xlab("Generation time") +
-  ylab("Incubation period") +
-  scale_fill_gradientn(colours = terrain.colors(50), name="Ranking of two-week forecast") +
-  theme_classic() +
-  theme(axis.text.x = element_text(angle=45, hjust=1), legend.position="none") +
-  lshtm_theme() +
-  facet_wrap(~rt_traj, scales="free")
-
-rank_rt_plot <- ggplot(rankings_rt_list, aes(x=gen_time, y=inc_period)) +
-  geom_tile(aes(fill=rank)) +
-  xlab("Generation time") +
-  ylab("Incubation period") +
-  scale_fill_gradientn(colours = terrain.colors(50), name="Ranking of two-weeks forecast") +
-  theme_classic() +
-  theme(axis.text.x = element_text(angle=45, hjust=1)) +
-  lshtm_theme() +
-  facet_wrap(~rt_traj, scales="free")
-
-plot_grid(rank_cases_plot, rank_rt_plot, ncol=2, rel_widths=c(1, 1.5), labels=c("A", "B"))
-
-####### Would also be good to show as a barchart -> but want to show CRPS values rather than rank
-mean_rt_gen_time <- rankings_rt_list |> 
-  group_by(gen_time, rt_traj) |>
-  summarise(mean_crps=mean(crps))
-
-mean_rank_rt_inc_period <- rankings_rt_list |>
-  group_by(inc_period, rt_traj) |>
-  summarise(mean_crps=mean(crps))
-
-mean_rank_rt_gen_plot <- ggplot(mean_rank_rt_gen_time, aes(x=gen_time, y=mean_crps)) +
-  geom_col() +
-  xlab("Generation time") +
-  ylab("Mean CRPS") +
-  theme_classic() +
-  theme(axis.text.x = element_text(angle=45, hjust=1)) +
-  lshtm_theme() +
-  facet_wrap(~rt_traj, scales="free")
-
-mean_rank_rt_inc_plot <- ggplot(mean_rank_rt_inc_period, aes(x=inc_period, y=mean_crps)) +
-  geom_col() +
-  xlab("Incubation period") +
-  ylab("Mean CRPS") +
-  theme_classic() +
-  theme(axis.text.x = element_text(angle=45, hjust=1)) +
-  lshtm_theme() +
-  facet_wrap(~rt_traj, scales="free")
-
-plot_grid(mean_rank_rt_gen_plot, mean_rank_rt_inc_plot, ncol=2, rel_widths=c(1, 1), labels=c("A", "B"))
-
-## For cases ##
-
-mean_rank_cases_gen_time <- rankings_cases_list |> 
-  group_by(gen_time, rt_traj) |>
-  summarise(mean_rank=mean(rank),
-            mean_crps=mean(crps))
-
-mean_rank_cases_inc_period <- rankings_cases_list |>
-  group_by(inc_period, rt_traj) |>
-  summarise(mean_rank=mean(rank),
-            mean_crps=mean(crps))
-
-mean_rank_cases_gen_plot <- ggplot(mean_rank_cases_gen_time, aes(x=gen_time, y=mean_crps)) +
-  geom_col() +
-  xlab("Generation time") +
-  ylab("Mean CRPS") +
-  theme_classic() +
-  theme(axis.text.x = element_text(angle=45, hjust=1)) +
-  lshtm_theme() +
-  facet_wrap(~rt_traj, scales="free")
-
-mean_rank_cases_inc_plot <- ggplot(mean_rank_cases_inc_period, aes(x=inc_period, y=mean_crps)) +
-  geom_col() +
-  xlab("Incubation period") +
-  ylab("Mean CRPS") +
-  theme_classic() +
-  theme(axis.text.x = element_text(angle=45, hjust=1)) +
-  lshtm_theme() +
-  facet_wrap(~rt_traj, scales="free")
-
-plot_grid(mean_rank_cases_gen_plot, mean_rank_cases_inc_plot, ncol=2, rel_widths=c(1, 1), labels=c("A", "B"))
-
-
+message("\n=== Figure generation complete ===\n")

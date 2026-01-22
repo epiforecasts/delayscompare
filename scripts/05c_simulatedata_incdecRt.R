@@ -4,8 +4,21 @@ source(here("scripts", "01_packages.R"))
 source(here("scripts", "02b_definedelays.R"))
 source(here("R", "funcs_data.R"))
 source(here("R", "scenario_loop.R"))
- 
-disease <- "ebola"
+
+## Load argument(s) ##
+var <- commandArgs(trailingOnly = TRUE)
+if (length(var) == 0) {
+  stop("Usage: Rscript 05c_simulatedata_incdecRt.R <disease>")
+}
+disease <- var[1]
+print(disease)
+
+# Validate disease exists in delays
+if (!disease %in% names(delays)) {
+  stop("Invalid disease '", disease, "'. Must be one of: ",
+       paste(names(delays), collapse = ", "))
+}
+
 d <- delays[[disease]]
 
 ######################################
