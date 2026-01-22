@@ -61,12 +61,12 @@ case $SLURM_ARRAY_TASK_ID in
                                weight_prior=TRUE,
                                obs_scale=d\$underreport)
 
-        save_latest(res[[1]], here('results'), paste0('res_${DISEASE}_weightprior_TRUE${RT_OPTS}_samples', $GT, $INC))
-        save_latest(res[[2]], here('results'), paste0('res_${DISEASE}_weightprior_TRUE${RT_OPTS}_id', $GT, $INC))
-        save_latest(res[[3]], here('results'), paste0('res_${DISEASE}_weightprior_TRUE${RT_OPTS}_R', $GT, $INC))
-        save_latest(res[[4]], here('results'), paste0('res_${DISEASE}_weightprior_TRUE${RT_OPTS}_summary', $GT, $INC))
-        save_latest(res[[5]], here('results'), paste0('res_${DISEASE}_weightprior_TRUE${RT_OPTS}_warnings', $GT, $INC))
-        save_latest(res[[6]], here('results'), paste0('res_${DISEASE}_weightprior_TRUE${RT_OPTS}_timing', $GT, $INC))
+        save_latest(res[[1]], here('results'), paste0('res_${DISEASE}_weightprior_TRUE_${RT_OPTS}_samples', $GT, $INC))
+        save_latest(res[[2]], here('results'), paste0('res_${DISEASE}_weightprior_TRUE_${RT_OPTS}_id', $GT, $INC))
+        save_latest(res[[3]], here('results'), paste0('res_${DISEASE}_weightprior_TRUE_${RT_OPTS}_R', $GT, $INC))
+        save_latest(res[[4]], here('results'), paste0('res_${DISEASE}_weightprior_TRUE_${RT_OPTS}_summary', $GT, $INC))
+        save_latest(res[[5]], here('results'), paste0('res_${DISEASE}_weightprior_TRUE_${RT_OPTS}_warnings', $GT, $INC))
+        save_latest(res[[6]], here('results'), paste0('res_${DISEASE}_weightprior_TRUE_${RT_OPTS}_timing', $GT, $INC))
         "
         ;;
     1) # weight_prior=FALSE only
@@ -104,12 +104,12 @@ case $SLURM_ARRAY_TASK_ID in
                                weight_prior=FALSE,
                                obs_scale=d\$underreport)
 
-        save_latest(res[[1]], here('results'), paste0('res_${DISEASE}_weightprior_FALSE${RT_OPTS}_samples', $GT, $INC))
-        save_latest(res[[2]], here('results'), paste0('res_${DISEASE}_weightprior_FALSE${RT_OPTS}_id', $GT, $INC))
-        save_latest(res[[3]], here('results'), paste0('res_${DISEASE}_weightprior_FALSE${RT_OPTS}_R', $GT, $INC))
-        save_latest(res[[4]], here('results'), paste0('res_${DISEASE}_weightprior_FALSE${RT_OPTS}_summary', $GT, $INC))
-        save_latest(res[[5]], here('results'), paste0('res_${DISEASE}_weightprior_FALSE${RT_OPTS}_warnings', $GT, $INC))
-        save_latest(res[[6]], here('results'), paste0('res_${DISEASE}_weightprior_FALSE${RT_OPTS}_timing', $GT, $INC))
+        save_latest(res[[1]], here('results'), paste0('res_${DISEASE}_weightprior_FALSE_${RT_OPTS}_samples', $GT, $INC))
+        save_latest(res[[2]], here('results'), paste0('res_${DISEASE}_weightprior_FALSE_${RT_OPTS}_id', $GT, $INC))
+        save_latest(res[[3]], here('results'), paste0('res_${DISEASE}_weightprior_FALSE_${RT_OPTS}_R', $GT, $INC))
+        save_latest(res[[4]], here('results'), paste0('res_${DISEASE}_weightprior_FALSE_${RT_OPTS}_summary', $GT, $INC))
+        save_latest(res[[5]], here('results'), paste0('res_${DISEASE}_weightprior_FALSE_${RT_OPTS}_warnings', $GT, $INC))
+        save_latest(res[[6]], here('results'), paste0('res_${DISEASE}_weightprior_FALSE_${RT_OPTS}_timing', $GT, $INC))
         "
         ;;
 esac
