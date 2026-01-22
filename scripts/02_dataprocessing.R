@@ -10,6 +10,7 @@ ebola_suspected_linelist <- read_xlsx(here("data", "ebola_linelist.xlsx"), "susp
 # Formating for EpiNow2
 
 ebola_confirmed <- ebola_confirmed_linelist |>
+  filter(!is.na(`Date of symptom onset`)) |>
   count(`Date of symptom onset`, name = "confirm") |>
   rename(date = `Date of symptom onset`)
 

@@ -309,7 +309,7 @@ res <- pmap(scenarios, \(k) {
 
         # If shape is very high (>100), use Fixed to avoid numerical issues
         if(gen_shape > 100) {
-          gen_time <- Gamma(shape=gen_shape, rate=gen_rate, max=gen_max)
+          gen_time <- Fixed(gen_mean_mean)
         } else {
           # Uncertainty on shape/rate (delta method approximation)
           gen_shape_sd <- gen_shape * sqrt((2*gen_mean_sd/gen_mean_mean)^2 + (2*gen_sd_sd/gen_sd_mean)^2)

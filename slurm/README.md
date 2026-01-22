@@ -14,8 +14,8 @@ mkdir -p logs
 # Option 2: Run only case studies (recommended - most important results)
 sbatch 03_casestudies_only.sh
 
-# Option 3: Run a single analysis
-sbatch run_single.sh 06d_scenariorun_casestudy.R 4 latest covid
+# Option 3: Run a single analysis (gt=4, inc=4, rt_opts=latest, disease=covid)
+sbatch run_single.sh 06d_scenariorun_casestudy.R 4 4 latest covid
 ```
 
 ## Scripts Overview
