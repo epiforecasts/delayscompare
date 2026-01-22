@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 #SBATCH --job-name=rerun_split
 #SBATCH --output=slurm/logs/rerun_%A_%a.out
 #SBATCH --error=slurm/logs/rerun_%A_%a.err

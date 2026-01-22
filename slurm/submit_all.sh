@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 # Master script to submit all analyses to LSHTM HPC
 # Usage: ./submit_all.sh
 

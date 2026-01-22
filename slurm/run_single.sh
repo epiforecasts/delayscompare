@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 #SBATCH --job-name=epinow2
 #SBATCH --output=slurm/logs/single_%J.out
 #SBATCH --error=slurm/logs/single_%J.err

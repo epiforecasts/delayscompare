@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 #SBATCH --job-name=scenarios
 #SBATCH --output=slurm/logs/scenarios_%A_%a.out
 #SBATCH --error=slurm/logs/scenarios_%A_%a.err

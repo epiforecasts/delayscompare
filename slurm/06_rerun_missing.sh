@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 #SBATCH --job-name=rerun_missing
 #SBATCH --output=slurm/logs/rerun_missing_%A_%a.out
 #SBATCH --error=slurm/logs/rerun_missing_%A_%a.err

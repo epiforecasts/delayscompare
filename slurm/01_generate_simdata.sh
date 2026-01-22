@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 #SBATCH --job-name=simdata
 #SBATCH --output=slurm/logs/simdata_%A_%a.out
 #SBATCH --error=slurm/logs/simdata_%A_%a.err

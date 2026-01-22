@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 #SBATCH --job-name=cholera_rerun
 #SBATCH --output=slurm/logs/cholera_%A_%a.out
 #SBATCH --error=slurm/logs/cholera_%A_%a.err

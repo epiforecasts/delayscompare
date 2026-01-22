@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 #SBATCH --job-name=casestudy
 #SBATCH --output=slurm/logs/casestudy_%A_%a.out
 #SBATCH --error=slurm/logs/casestudy_%A_%a.err

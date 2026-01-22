@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 #SBATCH --job-name=cholera_retry
 #SBATCH --output=slurm/logs/cholera_retry_%A_%a.out
 #SBATCH --error=slurm/logs/cholera_retry_%A_%a.err

@@ -20,11 +20,26 @@ print(rt_opts)
 disease <- var[4] # "cholera", "covid" or "ebola"
 print(disease)
 
+if (!disease %in% names(delays)) {
+  stop("Invalid disease. Must be one of: ", paste(names(delays), collapse=", "))
+}
+
 # Optional: specify which timepoints to run (e.g., "1-4" or "5-8")
 tp_arg <- var[5]
 if (!is.na(tp_arg) && tp_arg != "all") {
   tp_parts <- strsplit(tp_arg, "-")[[1]]
-  timepoint_range <- seq(as.numeric(tp_parts[1]), as.numeric(tp_parts[2]))
+  if (length(tp_parts) != 2) {
+    stop("Invalid timepoint range format. Expected 'start-end' (e.g., '1-4')")
+  }
+  tp_start <- as.numeric(tp_parts[1])
+  tp_end <- as.numeric(tp_parts[2])
+  if (is.na(tp_start) || is.na(tp_end)) {
+    stop("Invalid timepoint range: start and end must be numeric")
+  }
+  if (tp_start > tp_end) {
+    stop("Invalid timepoint range: start must be <= end")
+  }
+  timepoint_range <- seq(tp_start, tp_end)
 } else {
   timepoint_range <- NULL
 }
