@@ -27,7 +27,18 @@ print(rt_level)
 tp_arg <- var[6]
 if (!is.na(tp_arg) && tp_arg != "all") {
   tp_parts <- strsplit(tp_arg, "-")[[1]]
-  timepoint_range <- seq(as.numeric(tp_parts[1]), as.numeric(tp_parts[2]))
+  if (length(tp_parts) != 2) {
+    stop("Invalid timepoint range format. Expected 'start-end' (e.g., '1-4')")
+  }
+  tp_start <- as.numeric(tp_parts[1])
+  tp_end <- as.numeric(tp_parts[2])
+  if (is.na(tp_start) || is.na(tp_end)) {
+    stop("Invalid timepoint range: start and end must be numeric")
+  }
+  if (tp_start > tp_end) {
+    stop("Invalid timepoint range: start must be <= end")
+  }
+  timepoint_range <- seq(tp_start, tp_end)
 } else {
   timepoint_range <- NULL
 }
@@ -80,13 +91,12 @@ if (rt_level %in% c("low", "both")) {
                              obs_scale=1,
                              timepoint_range=timepoint_range)
 
+  save_latest(res_disease[[1]], here("results"), paste0("res_", disease, "_const_low_", rt_opts, "_samples", gt, inc, tp_suffix))
   save_latest(res_disease[[2]], here("results"), paste0("res_", disease, "_const_low_", rt_opts, "_id", gt, inc, tp_suffix))
+  save_latest(res_disease[[3]], here("results"), paste0("res_", disease, "_const_low_", rt_opts, "_R", gt, inc, tp_suffix))
+  save_latest(res_disease[[4]], here("results"), paste0("res_", disease, "_const_low_", rt_opts, "_summary", gt, inc, tp_suffix))
   save_latest(res_disease[[5]], here("results"), paste0("res_", disease, "_const_low_", rt_opts, "_warnings", gt, inc, tp_suffix))
   save_latest(res_disease[[6]], here("results"), paste0("res_", disease, "_const_low_", rt_opts, "_timing", gt, inc, tp_suffix))
-
-  ## Saving samples only ##
-  save_latest(res_disease[[1]], here("results"), paste0("res_", disease, "_const_low_", rt_opts, "_samples", gt, inc, tp_suffix))
-  save_latest(res_disease[[3]], here("results"), paste0("res_", disease, "_const_low_", rt_opts, "_R", gt, inc, tp_suffix))
 }
 
 ## Rt const high - under-reporting=no ##
@@ -118,12 +128,11 @@ if (rt_level %in% c("high", "both")) {
                              obs_scale=1,
                              timepoint_range=timepoint_range)
 
+  save_latest(res_disease[[1]], here("results"), paste0("res_", disease, "_const_high_", rt_opts, "_samples", gt, inc, tp_suffix))
   save_latest(res_disease[[2]], here("results"), paste0("res_", disease, "_const_high_", rt_opts, "_id", gt, inc, tp_suffix))
+  save_latest(res_disease[[3]], here("results"), paste0("res_", disease, "_const_high_", rt_opts, "_R", gt, inc, tp_suffix))
+  save_latest(res_disease[[4]], here("results"), paste0("res_", disease, "_const_high_", rt_opts, "_summary", gt, inc, tp_suffix))
   save_latest(res_disease[[5]], here("results"), paste0("res_", disease, "_const_high_", rt_opts, "_warnings", gt, inc, tp_suffix))
   save_latest(res_disease[[6]], here("results"), paste0("res_", disease, "_const_high_", rt_opts, "_timing", gt, inc, tp_suffix))
-
-  ## Saving samples only ##
-  save_latest(res_disease[[1]], here("results"), paste0("res_", disease, "_const_high_", rt_opts, "_samples", gt, inc, tp_suffix))
-  save_latest(res_disease[[3]], here("results"), paste0("res_", disease, "_const_high_", rt_opts, "_R", gt, inc, tp_suffix))
 }
   

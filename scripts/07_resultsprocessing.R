@@ -176,10 +176,10 @@ for(disease in c("ebola", "covid", "cholera")){
     for(gt in 1:6){
       for(inc_val in 1:6){
         tryCatch({
-          disease_id[[idx]] <- read_latest(here("results"), paste0("res_", disease, "_weightprior_", weight_prior, rt_opts, "_id", gt, inc_val))
-          disease_R[[idx]] <- read_latest(here("results"), paste0("res_", disease, "_weightprior_", weight_prior, rt_opts, "_R", gt, inc_val))
-          disease_samples[[idx]] <- read_latest(here("results"), paste0("res_", disease, "_weightprior_", weight_prior, rt_opts, "_samples", gt, inc_val))
-          warnings_data <- read_latest(here("results"), paste0("res_", disease, "_weightprior_", weight_prior, rt_opts, "_warnings", gt, inc_val))
+          disease_id[[idx]] <- read_latest(here("results"), paste0("res_", disease, "_weightprior_", weight_prior, "_", rt_opts, "_id", gt, inc_val))
+          disease_R[[idx]] <- read_latest(here("results"), paste0("res_", disease, "_weightprior_", weight_prior, "_", rt_opts, "_R", gt, inc_val))
+          disease_samples[[idx]] <- read_latest(here("results"), paste0("res_", disease, "_weightprior_", weight_prior, "_", rt_opts, "_samples", gt, inc_val))
+          warnings_data <- read_latest(here("results"), paste0("res_", disease, "_weightprior_", weight_prior, "_", rt_opts, "_warnings", gt, inc_val))
           # Add gt and inc columns
           disease_id[[idx]]$gt <- gt
           disease_id[[idx]]$inc <- inc_val

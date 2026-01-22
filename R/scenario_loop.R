@@ -73,6 +73,11 @@ if(!is.null(timepoint_range)){
   scen_timepoints <- scen_timepoints[timepoint_range[timepoint_range <= length(scen_timepoints)]]
 }
 
+# Check for empty timepoints
+if(length(scen_timepoints) == 0){
+  stop("No valid timepoints found. Check data date range and timepoint_range parameter.")
+}
+
   scenarios <- expand.grid(
     k = seq_along(scen_timepoints)
   )

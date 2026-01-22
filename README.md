@@ -94,16 +94,17 @@ source("R/scenario_loop.R")
 # Run COVID-19 scenario (example)
 res <- sim_scenarios(
   case_data = covid_data,
-  var = 1,  # Generation time scenario
+  var = 1,            # Generation time scenario
+  inc = 4,            # Incubation period scenario (1-6)
   gen_mean = 3.6,
   gen_sd = 3.1,
-  gen_max = 30,
+  gen_max = 15,
   inc_mean = 5.2,
   inc_sd = 1.52,
-  inc_max = 30,
+  inc_max = 21,
   rep_mean = 4.4,
   rep_sd = 5.6,
-  rep_max = 30,
+  rep_max = 18,
   freq_fc = 4,        # Forecast frequency (every 4 weeks)
   weeks_inc = 12,     # Use 12 weeks of data
   rt_opts_choice = "latest",
