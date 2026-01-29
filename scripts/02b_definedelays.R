@@ -10,13 +10,13 @@ library(here)
 
 ebola_gen_time <- Gamma(mean=16.2,
                         sd=9.4,
-                        max=45) # from Park et al. 2019
+                        max=65) # from Park et al. 2019
 
 ## Incubation period
 
-ebola_inc_period <- LogNormal(mean=11.4,
-                              sd=8.1,
-                              max=45) # from Aylward et al. 2014 
+ebola_inc_period <- Gamma(mean=9.7,
+                          sd=5.5,
+                          max=39) # from WHO Ebola Response Team 2014, Table S2 (multiday exposure fitted) 
 
 ## Reporting delay
 
@@ -52,7 +52,7 @@ combined_delay_covid <- covid_inc_period + covid_reporting_delay
 
 cholera_gen_time <- Gamma(mean=8.51,
                           sd=0.54,
-                          max=35) # https://pubmed.ncbi.nlm.nih.gov/21752809/
+                          max=35) # Mari et al. 2012 https://pubmed.ncbi.nlm.nih.gov/21752809/
 
 # cholera_gen_time <- Gamma(mean=5,
 #                           sd=8,
@@ -61,7 +61,7 @@ cholera_gen_time <- Gamma(mean=8.51,
 ## Incubation period 
 
 cholera_inc_period <- LogNormal(mean=1.77,
-                                sd=1.08, max=8) # Azman et al. 2013
+                                sd=1.36, max=8) # Azman et al. 2013
 
 ## Reporting delay
 
@@ -73,8 +73,8 @@ combined_delay_cholera <- cholera_inc_period + cholera_reporting_delay
 ## Saving delays for sim_scenario input 
 delays <- list(
   ebola = list(
-    gen = c(mean = 16.2, mean_sd = 0.16, sd = 9.4, sd_sd = 0.11, max = 45),
-    inc = c(mean = 11.4, mean_sd = 0.14, sd = 8.1, sd_sd = 0.1, max = 45),
+    gen = c(mean = 16.2, mean_sd = 1.62, sd = 9.4, sd_sd = 0.94, max = 65),
+    inc = c(mean = 9.7, mean_sd = 0.97, sd = 5.5, sd_sd = 0.55, max = 39),
     rep = c(mean = 0, sd = 0, max = 0),
     underreport = 0.83,
     init_infs=50
@@ -82,13 +82,13 @@ delays <- list(
   covid = list(
     gen = c(mean = 3.6, mean_sd = 0.7, sd = 3.1, sd_sd = 0.8, max = 15),
     inc = c(mean = 5.2, mean_sd = 1.1, sd = 1.52, sd_sd = 1.1, max = 21),
-    rep = c(mean = 4.4, mean_sd = 0.04, sd = 5.6, sd_sd = 0.03, max = 18),
+    rep = c(mean = 4.4, mean_sd = 0.44, sd = 5.6, sd_sd = 0.56, max = 18),
     underreport = 0.4,
     init_infs=2500
   ),
   cholera = list(
-    gen = c(mean = 8.51, mean_sd = 0.85, sd = 0.66, sd_sd = 0.07, max = 35),
-    inc = c(mean = 1.77, mean_sd = 0.18, sd = 1.08, sd_sd = 0.11, max = 8),
+    gen = c(mean = 8.51, mean_sd = 0.85, sd = 0.54, sd_sd = 0.054, max = 35),
+    inc = c(mean = 1.77, mean_sd = 0.18, sd = 1.36, sd_sd = 0.14, max = 8),
     rep = c(mean = 4.4, mean_sd = 0.66, sd = 4.4, sd_sd = 0.66, max = 22),
     underreport = 0.28,
     init_infs=75
