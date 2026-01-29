@@ -2,6 +2,9 @@
 ### Defining delays ###
 #######################
 
+# Truncation rule: when literature does not provide a maximum value,
+# max is set to mean + 5*sd, rounded to nearest integer.
+
 #### Ebola-like ####
 
 ## Generation time
