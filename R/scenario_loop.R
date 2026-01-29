@@ -15,7 +15,8 @@ sim_scenarios <- function(case_data,
                           weeks_inc=12,
                           rt_opts_choice,
                           obs_scale,
-                          report_freq="day"){
+                          report_freq="day",
+                          timepoint_range=NULL){
   
   ## Scenarios
   
@@ -55,7 +56,7 @@ if(length(available)>0){
 return(min(available))
 }else{
 return(NA)}
-}) |> as.Date()
+}) |> as.Date(origin = "1970-01-01")
 # Remove NAs from end of range 
 scen_timepoints <- scen_timepoints[!is.na(scen_timepoints)]
 
@@ -67,11 +68,21 @@ names(scen_timepoints) <- seq_along(scen_timepoints)
 # Make sure max number of timepoints is 8 to ensure quicker runtime
 if(length(scen_timepoints)>8){scen_timepoints <- scen_timepoints[1:8]}
 
+# Filter to specific timepoint range if provided
+if(!is.null(timepoint_range)){
+  scen_timepoints <- scen_timepoints[timepoint_range[timepoint_range <= length(scen_timepoints)]]
+}
+
+# Check for empty timepoints
+if(length(scen_timepoints) == 0){
+  stop("No valid timepoints found. Check data date range and timepoint_range parameter.")
+}
+
   scenarios <- expand.grid(
     k = seq_along(scen_timepoints)
   )
-  
-  res <- for(i in c(k:length(scen_timepoints))) {
+
+  res <- pmap(scenarios, \(k) {
         # Case data
         case_segment <- case_data |>
           filter(date <= scen_timepoints[k])
@@ -90,8 +101,8 @@ if(length(scen_timepoints)>8){scen_timepoints <- scen_timepoints[1:8]}
         } else {
           gen_time <- Fixed(1)
         }
-        
-        # Incubation period
+
+        # Incubation period and reporting delay (both vary with inc parameter)
         if(inc!=1){
         inc_period <- LogNormal(mean=inc_mean*scen_values[inc],
                                 sd=inc_sd,
@@ -131,24 +142,29 @@ start_runtime <- Sys.time()
           elapsed_seconds=elapsed_seconds
         )
 
-         res_samples <-
-          def$samples[
-                variable=="reported_cases" & type != "estimate",
-                list(date, sample, value, type)
-              ]
-        
-        res_R <-
-          def$samples[
-                variable=="R" & type != "estimate",
-                list(date, sample, value, type)
-              ]
+        # Handle case where samples are NULL (model fit failed)
+        if (is.null(def$samples)) {
+          warning(paste("Model fit failed for timepoint", k, "- samples are NULL"))
+          res_samples <- data.frame(date = as.Date(character()), sample = integer(),
+                                    value = numeric(), type = character())
+          res_R <- data.frame(date = as.Date(character()), sample = integer(),
+                              value = numeric(), type = character())
+        } else {
+          res_samples <- def$samples |>
+            filter(variable == "reported_cases", type != "estimate") |>
+            select(date, sample, value, type)
+
+          res_R <- def$samples |>
+            filter(variable == "R", type != "estimate") |>
+            select(date, sample, value, type)
+        }
 
         def$samples <- NULL
-        
+
         res_id <- data.frame(timepoint=k,
                              gen_time=names(scen_values)[var],
                              inc_period=names(scen_values)[inc])
-        
+
         print(paste("timepoint =", k, "gen time =", var, "inc period =", inc))
         return(list(samples = res_samples,
                     R = res_R,
@@ -161,15 +177,18 @@ start_runtime <- Sys.time()
   res <- transpose(res)
   
   res_samples <- lapply(seq_along(res$samples), function(i) {
+    if (is.null(res$samples[[i]]) || nrow(res$samples[[i]]) == 0) {
+      stop(paste("Timepoint", i, "has NULL or empty samples - model fit likely failed"))
+    }
     samples_scen <- res$samples[[i]] |>
       mutate(model="EpiNow2")
-    
+
     # Add ID
     samples_scen$result_list <- i
-    
+
     # Bind to dataframe
     return(samples_scen)
-    
+
   })
   
   res_id <- lapply(seq_along(res$id), function(i){
@@ -179,15 +198,18 @@ start_runtime <- Sys.time()
   })
   
   res_R <- lapply(seq_along(res$R), function(i) {
+    if (is.null(res$R[[i]]) || nrow(res$R[[i]]) == 0) {
+      stop(paste("Timepoint", i, "has NULL or empty R samples - model fit likely failed"))
+    }
     samples_scen <- res$R[[i]] |>
       mutate(model="EpiNow2")
-    
+
     # Add ID
     samples_scen$result_list <- i
-    
+
     # Bind to dataframe
     return(samples_scen)
-    
+
   })
   
   res_samples <- bind_rows(res_samples) |>
@@ -229,7 +251,15 @@ sim_weightprior <- function(case_data,
                           rt_opts_choice,
                           weight_prior,
                           obs_scale){
-  
+
+  # Handle missing dates (casestudy data is daily)
+  case_data <- fill_missing(
+    case_data,
+    missing_dates = c("ignore"),
+    missing_obs = c("ignore"),
+    obs_column = "confirm",
+    by = NULL
+  )
 
   # Define start and end dates
 start_date <- min(case_data$date)
@@ -245,7 +275,7 @@ return(min(available))
 } else {
 return(NA)
 }
-}) |> as.Date()
+}) |> as.Date(origin = "1970-01-01")
 
 # Remove NAs from end of range
 scen_timepoints <- scen_timepoints[!is.na(scen_timepoints)]
@@ -273,19 +303,47 @@ res <- pmap(scenarios, \(k) {
         
         print(nrow(case_segment))
         
-        # Generation interval
-        gen_time <- Gamma(mean=Normal(gen_mean_mean, gen_mean_sd),
-                          sd=Normal(gen_sd_mean, gen_sd_sd),
-                          max=gen_max)
-        
-        # Incubation period
-        inc_period <- LogNormal(mean=Normal(inc_mean_mean, inc_mean_sd),
-                                sd=Normal(inc_sd_mean, inc_sd_sd),
+        # Generation interval - use natural parameters (shape/rate) to avoid crude conversion
+        gen_shape <- gen_mean_mean^2 / gen_sd_mean^2
+        gen_rate <- gen_mean_mean / gen_sd_mean^2
+
+        # If shape is very high (>100), use Fixed to avoid numerical issues
+        if(gen_shape > 100) {
+          gen_time <- Fixed(gen_mean_mean)
+        } else {
+          # Uncertainty on shape/rate (delta method approximation)
+          gen_shape_sd <- gen_shape * sqrt((2*gen_mean_sd/gen_mean_mean)^2 + (2*gen_sd_sd/gen_sd_mean)^2)
+          gen_rate_sd <- gen_rate * sqrt((gen_mean_sd/gen_mean_mean)^2 + (2*gen_sd_sd/gen_sd_mean)^2)
+          gen_time <- Gamma(shape=Normal(gen_shape, gen_shape_sd),
+                            rate=Normal(gen_rate, gen_rate_sd),
+                            max=gen_max)
+        }
+
+        # Incubation period - use natural parameters (meanlog/sdlog)
+        inc_var <- inc_sd_mean^2
+        inc_meanlog <- log(inc_mean_mean^2 / sqrt(inc_var + inc_mean_mean^2))
+        inc_sdlog <- sqrt(log(1 + inc_var / inc_mean_mean^2))
+        # Uncertainty (approximate)
+        inc_meanlog_sd <- inc_mean_sd / inc_mean_mean
+        inc_sdlog_sd <- inc_sd_sd / (2 * inc_sd_mean)
+
+        inc_period <- LogNormal(meanlog=Normal(inc_meanlog, inc_meanlog_sd),
+                                sdlog=Normal(inc_sdlog, inc_sdlog_sd),
                                 max=inc_max)
-        
-        if(rep_max>0) {reporting_delay <- LogNormal(mean=Normal(rep_mean_mean, rep_mean_sd),
-                                     sd=Normal(rep_sd_mean, rep_sd_sd),
-                                     max=rep_max)} else {reporting_delay <- Fixed(0)}
+
+        if(rep_mean_mean>0) {
+          rep_var <- rep_sd_mean^2
+          rep_meanlog <- log(rep_mean_mean^2 / sqrt(rep_var + rep_mean_mean^2))
+          rep_sdlog <- sqrt(log(1 + rep_var / rep_mean_mean^2))
+          rep_meanlog_sd <- rep_mean_sd / rep_mean_mean
+          rep_sdlog_sd <- rep_sd_sd / (2 * rep_sd_mean)
+
+          reporting_delay <- LogNormal(meanlog=Normal(rep_meanlog, rep_meanlog_sd),
+                                       sdlog=Normal(rep_sdlog, rep_sdlog_sd),
+                                       max=rep_max)
+        } else {
+          reporting_delay <- Fixed(0)
+        }
 
 case_segment <- case_segment[order(case_segment$date), ]
 
@@ -294,14 +352,14 @@ start_runtime <- Sys.time()
           def <- estimate_infections(case_segment,
                                      generation_time = generation_time_opts(gen_time, weight_prior=weight_prior),
                                      delays = delay_opts(inc_period + reporting_delay, weight_prior=weight_prior),
-                                     obs=obs_opts(family="negbin", scale=obs_scale, na="missing"),
+                                     obs=obs_opts(family="negbin", scale=Fixed(obs_scale)),
                                      rt=rt_opts(future=rt_opts_choice),
                                      stan = stan_opts(samples = 3000,
                                                       return_fit = FALSE,
                                                       control=list(adapt_delta=0.99,
                                                                    max_treedepth=20)),
-                                    horizon=14,
-                                    verbose = FALSE)
+                                     forecast = forecast_opts(horizon=14),
+                                     verbose = FALSE)
           
         # Recording runtime
         end_runtime <- Sys.time()
@@ -310,22 +368,27 @@ start_runtime <- Sys.time()
           timepoint=k, 
           elapsed_seconds=elapsed_seconds)
 
-         res_samples <-
-          def$samples[
-                variable=="reported_cases" & type != "estimate",
-                list(date, sample, value, type)
-              ]
-        
-        res_R <-
-          def$samples[
-                variable=="R" & type != "estimate",
-                list(date, sample, value, type)
-              ]
+        # Handle case where samples are NULL (model fit failed)
+        if (is.null(def$samples)) {
+          warning(paste("Model fit failed for timepoint", k, "- samples are NULL"))
+          res_samples <- data.frame(date = as.Date(character()), sample = integer(),
+                                    value = numeric(), type = character())
+          res_R <- data.frame(date = as.Date(character()), sample = integer(),
+                              value = numeric(), type = character())
+        } else {
+          res_samples <- def$samples |>
+            filter(variable == "reported_cases", type != "estimate") |>
+            select(date, sample, value, type)
+
+          res_R <- def$samples |>
+            filter(variable == "R", type != "estimate") |>
+            select(date, sample, value, type)
+        }
 
         def$samples <- NULL
-        
+
         res_id <- data.frame(timepoint=k)
-        
+
         print(paste("timepoint =", k))
         return(list(samples = res_samples,
                     R = res_R,
@@ -338,15 +401,18 @@ save_warnings <- warnings()
 res <- transpose(res)
 
 res_samples <- lapply(seq_along(res$samples), function(i) {
+  if (is.null(res$samples[[i]]) || nrow(res$samples[[i]]) == 0) {
+    stop(paste("Timepoint", i, "has NULL or empty samples - model fit likely failed"))
+  }
   samples_scen <- res$samples[[i]] |>
     mutate(model="EpiNow2")
-  
+
   # Add ID
   samples_scen$result_list <- i
-  
+
   # Bind to dataframe
   return(samples_scen)
-  
+
 })
 
 res_id <- lapply(seq_along(res$id), function(i){
@@ -356,15 +422,18 @@ res_id <- lapply(seq_along(res$id), function(i){
 })
 
 res_R <- lapply(seq_along(res$R), function(i) {
+  if (is.null(res$R[[i]]) || nrow(res$R[[i]]) == 0) {
+    stop(paste("Timepoint", i, "has NULL or empty R samples - model fit likely failed"))
+  }
   samples_scen <- res$R[[i]] |>
     mutate(model="EpiNow2")
-  
+
   # Add ID
   samples_scen$result_list <- i
-  
+
   # Bind to dataframe
   return(samples_scen)
-  
+
 })
 
 res_samples <- bind_rows(res_samples) |>

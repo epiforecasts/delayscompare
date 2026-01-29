@@ -21,10 +21,11 @@ print(disease)
 
 ## Loading data ##
 
-# Verify required data exists
-  if (!file.exists(here("data", paste0(disease, "_sim_data.rds")))) {
-      stop("Simulated data not found. Please run 05_simulate_data.R first.")
-    }
+# Verify required data exists (check for files matching pattern with date suffix)
+sim_data_files <- list.files(here("data"), pattern = paste0("^", disease, "_sim_data[0-9]"))
+if (length(sim_data_files) == 0) {
+    stop("Simulated data not found for ", disease, ". Please run 05_simulatedata.R first.")
+}
 
 sim_data <- read_latest(here("data"), paste0(disease, "_sim_data"))
 d <- delays[[disease]]
@@ -53,10 +54,10 @@ res_disease <- sim_scenarios(case_data=sim_data_cases,
                              rt_opts_choice = rt_opts,
                              obs_scale = d$underreport)
 
-save_latest(res_disease[[1]], here("results"), paste0("res_", disease, "_resim_", rt_opts, "_samples_", gt, "_", inc))
-save_latest(res_disease[[2]], here("results"), paste0("res_", disease, "_resim_", rt_opts, "_id_", gt, "_", inc))
-save_latest(res_disease[[3]], here("results"), paste0("res_", disease, "_resim_", rt_opts, "_R_", gt, "_", inc))
-save_latest(res_disease[[4]], here("results"), paste0("res_", disease, "_resim_", rt_opts, "_summary_", gt, "_", inc))
-save_latest(res_disease[[5]], here("results"), paste0("res_", disease, "_resim_", rt_opts, "_warnings_", gt, "_", inc))
-save_latest(res_disease[[6]], here("results"), paste0("res_", disease, "_resim_", rt_opts, "_timing_", gt, "_", inc))
+save_latest(res_disease[[1]], here("results"), paste0("res_", disease, "_resim_", rt_opts, "_samples", gt, inc))
+save_latest(res_disease[[2]], here("results"), paste0("res_", disease, "_resim_", rt_opts, "_id", gt, inc))
+save_latest(res_disease[[3]], here("results"), paste0("res_", disease, "_resim_", rt_opts, "_R", gt, inc))
+save_latest(res_disease[[4]], here("results"), paste0("res_", disease, "_resim_", rt_opts, "_summary", gt, inc))
+save_latest(res_disease[[5]], here("results"), paste0("res_", disease, "_resim_", rt_opts, "_warnings", gt, inc))
+save_latest(res_disease[[6]], here("results"), paste0("res_", disease, "_resim_", rt_opts, "_timing", gt, inc))
 

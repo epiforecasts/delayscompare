@@ -28,21 +28,21 @@ ebola_inc_period <- LogNormal(mean=11.4,
 
 ## Generation time
 
-covid_gen_time <- Gamma(mean=3.6, 
+covid_gen_time <- Gamma(mean=3.6,
                         sd=3.1,
-                        max=30) # from Sherratt et al. 2021 - surveillance paper
+                        max=15) # from Sherratt et al. 2021 - surveillance paper
 
 ## Incubation period
 
 covid_inc_period <- LogNormal(mean=5.2,
                               sd=1.52,
-                              max=30) # from Sherratt et al. 2021 - surveillance paper
+                              max=21) # from Sherratt et al. 2021 - surveillance paper
 
 ## Reporting delay
 
 covid_reporting_delay <- LogNormal(mean=4.4,
                              sd=5.6,
-                             max=30) # MAXIMUM IS JUST A PLACEHOLDER # from Sherratt et al. 2021 - surveillance paper
+                             max=18) # from Sherratt et al. 2021 - surveillance paper
 
 combined_delay_covid <- covid_inc_period + covid_reporting_delay
 
@@ -52,7 +52,7 @@ combined_delay_covid <- covid_inc_period + covid_reporting_delay
 
 cholera_gen_time <- Gamma(mean=8.51,
                           sd=0.54,
-                          max=50) # max is placeholder # https://pubmed.ncbi.nlm.nih.gov/21752809/
+                          max=35) # https://pubmed.ncbi.nlm.nih.gov/21752809/
 
 # cholera_gen_time <- Gamma(mean=5,
 #                           sd=8,
@@ -61,12 +61,11 @@ cholera_gen_time <- Gamma(mean=8.51,
 ## Incubation period 
 
 cholera_inc_period <- LogNormal(mean=1.77,
-                                sd=1.08, max=30) # max is a placeholder # Azman et al. 2013
+                                sd=1.08, max=8) # Azman et al. 2013
 
 ## Reporting delay
 
-cholera_reporting_delay <- LogNormal(mean=4.4,
-                               sd=0.67, max=30) # max is placeholder # https://tbiomed.biomedcentral.com/articles/10.1186/s12976-017-0061-x 
+cholera_reporting_delay <- Gamma(shape=1, rate=1/4.4, max=22) # Exponential with mean 4.4 from Nishiura et al. 2017 https://pmc.ncbi.nlm.nih.gov/articles/PMC5527441/
 
 
 combined_delay_cholera <- cholera_inc_period + cholera_reporting_delay
@@ -81,16 +80,16 @@ delays <- list(
     init_infs=50
   ),
   covid = list(
-    gen = c(mean = 3.6, mean_sd = 0.7, sd = 3.1, sd_sd = 0.8, max = 30),
-    inc = c(mean = 5.2, mean_sd = 1.1, sd = 1.52, sd_sd = 1.1, max = 30),
-    rep = c(mean = 4.4, mean_sd = 0.04, sd = 5.6, sd_sd = 0.03, max = 30),
+    gen = c(mean = 3.6, mean_sd = 0.7, sd = 3.1, sd_sd = 0.8, max = 15),
+    inc = c(mean = 5.2, mean_sd = 1.1, sd = 1.52, sd_sd = 1.1, max = 21),
+    rep = c(mean = 4.4, mean_sd = 0.04, sd = 5.6, sd_sd = 0.03, max = 18),
     underreport = 0.4,
     init_infs=2500
   ),
   cholera = list(
-    gen = c(mean = 8.51, mean_sd = 0.0006, sd = 0.54, sd_sd = 0.0004, max = 50),
-    inc = c(mean = 1.77, mean_sd = 0.06, sd = 1.08, sd_sd = 0.04, max = 30),
-    rep = c(mean = 4.4, mean_sd = 0.07, sd = 0.67, sd_sd = 0.05, max = 30),
+    gen = c(mean = 8.51, mean_sd = 0.85, sd = 0.66, sd_sd = 0.07, max = 35),
+    inc = c(mean = 1.77, mean_sd = 0.18, sd = 1.08, sd_sd = 0.11, max = 8),
+    rep = c(mean = 4.4, mean_sd = 0.66, sd = 4.4, sd_sd = 0.66, max = 22),
     underreport = 0.28,
     init_infs=75
   ))

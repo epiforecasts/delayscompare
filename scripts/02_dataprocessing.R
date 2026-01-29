@@ -9,13 +9,10 @@ ebola_suspected_linelist <- read_xlsx(here("data", "ebola_linelist.xlsx"), "susp
 
 # Formating for EpiNow2
 
-ebola_confirmed <- incidence(ebola_confirmed_linelist,
-                             date_index="Date of symptom onset",
-                             interval="day")
-
-ebola_confirmed <- ebola_confirmed |>
-  select(date_index, count) |>
-  rename(date=date_index, confirm=count)
+ebola_confirmed <- ebola_confirmed_linelist |>
+  filter(!is.na(`Date of symptom onset`)) |>
+  count(`Date of symptom onset`, name = "confirm") |>
+  rename(date = `Date of symptom onset`)
 
 # Assuming no data reported on missing days
 extra_dates <- data.frame(date=seq(ebola_confirmed$date[1], ebola_confirmed$date[nrow(ebola_confirmed)], by="day"))
@@ -34,8 +31,11 @@ if (file.exists(covid_eng_file)) {
   covid_eng <- read_csv(covid_eng_file)
 } else {
   message("Fetching COVID-19 data from UKHSA API...")
+  if (!requireNamespace("ukhsadatR", quietly = TRUE)) {
+    stop("Package 'ukhsadatR' needed to fetch COVID data. Install with: install.packages('ukhsadatR')")
+  }
   tryCatch({
-    covid_eng <- get_data(
+    covid_eng <- ukhsadatR::get_data(
       theme = "infectious_disease",
       sub_theme = "respiratory",
       topic = "COVID-19",

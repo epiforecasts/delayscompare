@@ -2,6 +2,7 @@ library(here)
 
 source(here("scripts", "01_packages.R"))
 source(here("scripts", "02b_definedelays.R"))
+source(here("scripts", "datacollect_casestudy.R"))
 source(here("R", "funcs_data.R"))
 source(here("R", "scenario_loop.R"))
 
@@ -19,6 +20,10 @@ print(rt_opts)
 disease <- var[4] # "cholera", "covid" or "ebola"
 print(disease)
 
+if (!disease %in% names(delays)) {
+  stop("Invalid disease. Must be one of: ", paste(names(delays), collapse=", "))
+}
+
 d <- delays[[disease]]
 
 ## Load data ##
@@ -30,7 +35,7 @@ d <- delays[[disease]]
 
 ## under-reporting=yes, weight_prior=TRUE ##
 
-res_disease <- sim_weightprior(case_data=covid_eng,
+res_disease <- sim_weightprior(case_data=case_data,
                            gt,
                            inc,
                            gen_mean_mean=d$gen[["mean"]],
@@ -50,19 +55,20 @@ res_disease <- sim_weightprior(case_data=covid_eng,
                            rep_max=d$rep[["max"]],
                            freq_fc=4,
                            weeks_inc=12,
-                           rt_opts_choice="latest",
+                           rt_opts_choice=rt_opts,
                            weight_prior=TRUE,
                            obs_scale=d$underreport)
 
-save_latest(res_disease[[1]], here("results"), paste0("res_", disease, "_weightprior_TRUE", rt_opts, "_samples", gt))
-save_latest(res_disease[[2]], here("results"), paste0("res_", disease, "_weightprior_TRUE", rt_opts, "_id", gt))
-save_latest(res_disease[[3]], here("results"), paste0("res_", disease, "_weightprior_TRUE", rt_opts, "_R", gt))
-save_latest(res_disease[[4]], here("results"), paste0("res_", disease, "_weightprior_TRUE", rt_opts, "_summary", gt))
-save_latest(res_disease[[5]], here("results"), paste0("res_", disease, "_weightprior_TRUE", rt_opts, "_warnings", gt))
+save_latest(res_disease[[1]], here("results"), paste0("res_", disease, "_weightprior_TRUE_", rt_opts, "_samples", gt, inc))
+save_latest(res_disease[[2]], here("results"), paste0("res_", disease, "_weightprior_TRUE_", rt_opts, "_id", gt, inc))
+save_latest(res_disease[[3]], here("results"), paste0("res_", disease, "_weightprior_TRUE_", rt_opts, "_R", gt, inc))
+save_latest(res_disease[[4]], here("results"), paste0("res_", disease, "_weightprior_TRUE_", rt_opts, "_summary", gt, inc))
+save_latest(res_disease[[5]], here("results"), paste0("res_", disease, "_weightprior_TRUE_", rt_opts, "_warnings", gt, inc))
+save_latest(res_disease[[6]], here("results"), paste0("res_", disease, "_weightprior_TRUE_", rt_opts, "_timing", gt, inc))
 
-## under-reporting=yes, weight_prior=TRUE ##
+## under-reporting=yes, weight_prior=FALSE ##
 
-res_disease <- sim_weightprior(case_data=covid_eng,
+res_disease <- sim_weightprior(case_data=case_data,
                                gt,
                                inc,
                                gen_mean_mean=d$gen[["mean"]],
@@ -82,13 +88,13 @@ res_disease <- sim_weightprior(case_data=covid_eng,
                                rep_max=d$rep[["max"]],
                                freq_fc=4,
                                weeks_inc=12,
-                               rt_opts_choice="latest",
+                               rt_opts_choice=rt_opts,
                                weight_prior=FALSE,
                                obs_scale=d$underreport)
 
-save_latest(res_disease[[1]], here("results"), paste0("res_", disease, "_weightprior_FALSE", rt_opts, "_samples", gt,inc))
-save_latest(res_disease[[2]], here("results"), paste0("res_", disease, "_weightprior_FALSE", rt_opts, "_id", gt,inc))
-save_latest(res_disease[[3]], here("results"), paste0("res_", disease, "_weightprior_FALSE", rt_opts, "_R", gt,inc))
-save_latest(res_disease[[4]], here("results"), paste0("res_", disease, "_weightprior_FALSE", rt_opts, "_summary", gt,inc))
-save_latest(res_disease[[5]], here("results"), paste0("res_", disease, "_weightprior_FALSE", rt_opts, "_warnings", gt,inc))
-save_latest(res_disease[[6]], here("results"), paste0("res_", disease, "_weightprior_FALSE", rt_opts, "_timing", gt,inc))
+save_latest(res_disease[[1]], here("results"), paste0("res_", disease, "_weightprior_FALSE_", rt_opts, "_samples", gt, inc))
+save_latest(res_disease[[2]], here("results"), paste0("res_", disease, "_weightprior_FALSE_", rt_opts, "_id", gt, inc))
+save_latest(res_disease[[3]], here("results"), paste0("res_", disease, "_weightprior_FALSE_", rt_opts, "_R", gt, inc))
+save_latest(res_disease[[4]], here("results"), paste0("res_", disease, "_weightprior_FALSE_", rt_opts, "_summary", gt, inc))
+save_latest(res_disease[[5]], here("results"), paste0("res_", disease, "_weightprior_FALSE_", rt_opts, "_warnings", gt, inc))
+save_latest(res_disease[[6]], here("results"), paste0("res_", disease, "_weightprior_FALSE_", rt_opts, "_timing", gt, inc))
