@@ -75,7 +75,10 @@ if(!is.null(timepoint_range)){
 
 # Check for empty timepoints
 if(length(scen_timepoints) == 0){
-  stop("No valid timepoints found. Check data date range and timepoint_range parameter.")
+  message("No valid timepoints in requested range - skipping")
+  return(list(samples = data.frame(), id = data.frame(),
+              R = data.frame(), summary = list(),
+              warnings = NULL, timing = data.frame()))
 }
 
   scenarios <- expand.grid(
@@ -297,6 +300,13 @@ if(length(scen_timepoints)>8){scen_timepoints <- scen_timepoints[1:8]}
   }
   if (!is.null(timepoint_end)) {
     all_k <- all_k[all_k <= timepoint_end]
+  }
+
+  if (length(all_k) == 0) {
+    message("No timepoints in requested range - skipping")
+    return(list(samples = data.frame(), id = data.frame(),
+                R = data.frame(), summary = list(),
+                warnings = NULL, timing = data.frame()))
   }
 
   scenarios <- expand.grid(
