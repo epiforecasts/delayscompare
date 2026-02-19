@@ -75,7 +75,10 @@ if(!is.null(timepoint_range)){
 
 # Check for empty timepoints
 if(length(scen_timepoints) == 0){
-  stop("No valid timepoints found. Check data date range and timepoint_range parameter.")
+  message("No valid timepoints in requested range - skipping")
+  return(list(samples = data.frame(), id = data.frame(),
+              R = data.frame(), summary = list(),
+              warnings = NULL, timing = data.frame()))
 }
 
   scenarios <- expand.grid(
@@ -250,7 +253,9 @@ sim_weightprior <- function(case_data,
                           weeks_inc=12,
                           rt_opts_choice,
                           weight_prior,
-                          obs_scale){
+                          obs_scale,
+                          timepoint_start=NULL,
+                          timepoint_end=NULL){
 
   # Handle missing dates (casestudy data is daily)
   case_data <- fill_missing(
@@ -287,9 +292,25 @@ scen_timepoints <- scen_timepoints[-1]
 
 # Make sure max number of timepoints is 8 to ensure quicker runtime
 if(length(scen_timepoints)>8){scen_timepoints <- scen_timepoints[1:8]}
-  
+
+  # Filter to specified timepoint range if provided
+  all_k <- seq_along(scen_timepoints)
+  if (!is.null(timepoint_start)) {
+    all_k <- all_k[all_k >= timepoint_start]
+  }
+  if (!is.null(timepoint_end)) {
+    all_k <- all_k[all_k <= timepoint_end]
+  }
+
+  if (length(all_k) == 0) {
+    message("No timepoints in requested range - skipping")
+    return(list(samples = data.frame(), id = data.frame(),
+                R = data.frame(), summary = list(),
+                warnings = NULL, timing = data.frame()))
+  }
+
   scenarios <- expand.grid(
-    k = seq_along(scen_timepoints)
+    k = all_k
   )
   
 res <- pmap(scenarios, \(k) {
