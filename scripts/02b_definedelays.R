@@ -3,7 +3,8 @@
 #######################
 
 # Truncation rule: when literature does not provide a maximum value,
-# max is set to mean + 5*sd, rounded to nearest integer.
+# max is set to round(mean + 5*sd). Where a literature source provides
+# a max value directly, that is used instead (noted inline).
 
 #### Ebola-like ####
 
@@ -13,13 +14,13 @@ library(here)
 
 ebola_gen_time <- Gamma(mean=16.2,
                         sd=9.4,
-                        max=65) # from Park et al. 2019
+                        max=65) # from Park et al. 2019 (max from literature)
 
 ## Incubation period
 
 ebola_inc_period <- Gamma(mean=9.7,
                           sd=5.5,
-                          max=39) # from WHO Ebola Response Team 2014, Table S2 (multiday exposure fitted) 
+                          max=39) # from WHO Ebola Response Team 2014, Table S2 (multiday exposure fitted; max from literature)
 
 ## Reporting delay
 
@@ -53,9 +54,10 @@ combined_delay_covid <- covid_inc_period + covid_reporting_delay
 
 ## Generation time
 
+# sd derived from reported range (7.13-9.29): sd ≈ (9.29-7.13)/4 = 0.54
 cholera_gen_time <- Gamma(mean=8.51,
                           sd=0.54,
-                          max=35) # Mari et al. 2012 https://pubmed.ncbi.nlm.nih.gov/21752809/
+                          max=35) # Mari et al. 2012 https://pubmed.ncbi.nlm.nih.gov/21752809/ (max from literature)
 
 # cholera_gen_time <- Gamma(mean=5,
 #                           sd=8,

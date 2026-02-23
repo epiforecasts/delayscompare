@@ -16,7 +16,8 @@ sim_scenarios <- function(case_data,
                           rt_opts_choice,
                           obs_scale,
                           report_freq="day",
-                          timepoint_range=NULL){
+                          timepoint_range=NULL,
+                          adapt_delta=0.99){
   
   ## Scenarios
   
