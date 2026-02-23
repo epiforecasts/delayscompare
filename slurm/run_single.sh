@@ -1,5 +1,4 @@
 #!/bin/bash
-set -euo pipefail
 #SBATCH --job-name=epinow2
 #SBATCH --output=slurm/logs/single_%J.out
 #SBATCH --error=slurm/logs/single_%J.err
@@ -7,6 +6,7 @@ set -euo pipefail
 #SBATCH --mem=16gb
 #SBATCH --ntasks=4
 #SBATCH --nodes=1
+set -euo pipefail
 
 # Run a single scenario analysis
 # Usage: sbatch run_single.sh <script> <gt> <inc> <rt_opts> <disease>
