@@ -1,5 +1,4 @@
 #!/bin/bash
-set -euo pipefail
 #SBATCH --job-name=postprocess
 #SBATCH --output=slurm/logs/postprocess_%j.out
 #SBATCH --error=slurm/logs/postprocess_%j.err
@@ -7,6 +6,7 @@ set -euo pipefail
 #SBATCH --mem=32gb
 #SBATCH --ntasks=1
 #SBATCH --nodes=1
+set -euo pipefail
 
 # Run results processing and figure generation
 

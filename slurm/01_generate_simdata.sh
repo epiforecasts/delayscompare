@@ -1,5 +1,4 @@
 #!/bin/bash
-set -euo pipefail
 #SBATCH --job-name=simdata
 #SBATCH --output=slurm/logs/simdata_%A_%a.out
 #SBATCH --error=slurm/logs/simdata_%A_%a.err
@@ -8,6 +7,7 @@ set -euo pipefail
 #SBATCH --ntasks=1
 #SBATCH --nodes=1
 #SBATCH --array=1-6
+set -euo pipefail
 
 # Generate simulation data for all diseases
 # Array index: 1-3 = constRt, 4-6 = incdecRt

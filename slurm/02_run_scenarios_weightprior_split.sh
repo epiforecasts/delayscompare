@@ -1,5 +1,4 @@
 #!/bin/bash
-set -euo pipefail
 #SBATCH --job-name=wp_split
 #SBATCH --output=slurm/logs/wp_split_%A_%a.out
 #SBATCH --error=slurm/logs/wp_split_%A_%a.err
@@ -7,6 +6,7 @@ set -euo pipefail
 #SBATCH --mem=32gb
 #SBATCH --ntasks=4
 #SBATCH --nodes=1
+set -euo pipefail
 
 # Run weightprior scenarios split by timepoint
 # Each original job (36 GT×INC combos) is split into 4 parts (2 timepoints each)

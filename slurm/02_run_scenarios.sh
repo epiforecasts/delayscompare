@@ -1,5 +1,4 @@
 #!/bin/bash
-set -euo pipefail
 #SBATCH --job-name=scenarios
 #SBATCH --output=slurm/logs/scenarios_%A_%a.out
 #SBATCH --error=slurm/logs/scenarios_%A_%a.err
@@ -8,6 +7,7 @@ set -euo pipefail
 #SBATCH --ntasks=4
 #SBATCH --nodes=1
 #SBATCH --array=1-432%40
+set -euo pipefail
 
 # Run all scenario analyses with independent GT and INC variation
 # Array structure: 432 jobs = 3 diseases × 4 scenario_types × 6 GT × 6 INC

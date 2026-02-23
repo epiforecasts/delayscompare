@@ -1,5 +1,4 @@
 #!/bin/bash
-set -euo pipefail
 #SBATCH --job-name=casestudy
 #SBATCH --output=slurm/logs/casestudy_%A_%a.out
 #SBATCH --error=slurm/logs/casestudy_%A_%a.err
@@ -8,6 +7,7 @@ set -euo pipefail
 #SBATCH --ntasks=4
 #SBATCH --nodes=1
 #SBATCH --array=1-108%40
+set -euo pipefail
 
 # Run ONLY case study analyses (real data)
 # Array: 108 jobs = 3 diseases × 6 gt_levels × 6 inc_levels

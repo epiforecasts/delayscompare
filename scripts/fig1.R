@@ -6,7 +6,7 @@ library(here)
 source(here("scripts", "01_packages.R"))
 source(here("R", "funcs_plots.R"))
 source(here("R", "funcs_data.R"))
-source(here("R", "generate_scores_func.R"))
+source(here("R", "funcs_scoring.R"))
 source(here("R", "lshtm_theme.R"))
 
 rt_opts <- "latest"
@@ -19,38 +19,18 @@ scen_labels <- c(
   "dec" = "Decreasing Rt"
 )
 
-# GT/INC level labels
-level_labels <- c("1" = "no delay", "2" = "very low", "3" = "low",
-                  "4" = "correct", "5" = "high", "6" = "very high")
+# Sim data file suffix for each scenario
+sim_data_suffix <- c(
+  "const_low" = "const_low",
+  "const_high" = "const_hi",
+  "inc" = "inc",
+  "dec" = "dec"
+)
 
 # Process each disease
 for(disease in c("ebola", "covid", "cholera")) {
 
   message(paste("\n=== Processing", disease, "===\n"))
-
-  # Load simulated data for true values
-  # Try scenario-specific files first, then fall back to generic
-  sim_data_const <- tryCatch(
-    read_latest(here("data"), paste0(disease, "_sim_data_const")),
-    error = function(e) NULL
-  )
-  sim_data_inc <- tryCatch(
-    read_latest(here("data"), paste0(disease, "_sim_data_inc")),
-    error = function(e) NULL
-  )
-  sim_data_dec <- tryCatch(
-    read_latest(here("data"), paste0(disease, "_sim_data_dec")),
-    error = function(e) NULL
-  )
-
-  # Fall back to generic sim data if scenario-specific not found
-  sim_data_generic <- tryCatch(
-    read_latest(here("data"), paste0(disease, "_sim_data")),
-    error = function(e) NULL
-  )
-  if(is.null(sim_data_const)) sim_data_const <- sim_data_generic
-  if(is.null(sim_data_inc)) sim_data_inc <- sim_data_generic
-  if(is.null(sim_data_dec)) sim_data_dec <- sim_data_generic
 
   # Store rankings for all scenarios
   rankings_cases_all <- list()
@@ -71,27 +51,31 @@ for(disease in c("ebola", "covid", "cholera")) {
 
     if(is.null(res_samples) || is.null(res_id)) next
 
-    # Select appropriate sim data for true values
-    if(grepl("const", scen)) {
-      sim_data <- sim_data_const
-    } else if(scen == "inc") {
-      sim_data <- sim_data_inc
-    } else {
-      sim_data <- sim_data_dec
+    # Load and apply diagnostics filter
+    diagnostics <- tryCatch(
+      read_latest(here("results/sim"), paste0("res_", disease, "_", scen, "_", rt_opts, "_all_diagnostics")),
+      error = function(e) { message(paste("  No diagnostics for", scen)); NULL }
+    )
+    if(!is.null(diagnostics)) {
+      res_samples <- filter_by_diagnostics(res_samples, diagnostics)
     }
+
+    # Load appropriate sim data for true values
+    sim_data <- tryCatch(
+      read_latest(here("data"), paste0(disease, "_sim_data_", sim_data_suffix[scen])),
+      error = function(e) {
+        message(paste("  No sim data for", scen, "- trying generic"))
+        tryCatch(
+          read_latest(here("data"), paste0(disease, "_sim_data")),
+          error = function(e2) NULL
+        )
+      }
+    )
 
     if(is.null(sim_data)) {
       message(paste("  No sim data for", scen))
       next
     }
-
-    # Filter to forecasts only
-    res_samples <- res_samples |>
-      filter(type == "forecast")
-
-    # Join with id info
-    res_samples <- res_samples |>
-      left_join(res_id, by = c("result_list", "gt", "inc"))
 
     # Get true values (reported cases)
     true_cases <- sim_data |>
@@ -99,71 +83,26 @@ for(disease in c("ebola", "covid", "cholera")) {
       rename(true_value = value) |>
       select(date, true_value)
 
-    # Join with true values
-    res_samples <- res_samples |>
-      left_join(true_cases, by = "date")
-
-    # Remove rows without true values
-    res_samples <- res_samples |>
-      filter(!is.na(true_value))
-
-    if(nrow(res_samples) == 0) {
-      message(paste("  No matching data for", scen))
+    # Score forecasts
+    scores_cases <- score_case_forecasts(res_samples, res_id, true_cases)
+    if(is.null(scores_cases)) {
+      message(paste("  No scores for", scen))
       next
     }
 
-    # Create forecast object for scoring
-    res_forecast <- tryCatch({
-      as_forecast_sample(
-        data = res_samples,
-        forecast_unit = c("date", "type", "result_list", "gt", "inc", "model", "timepoint"),
-        observed = "true_value",
-        predicted = "prediction",
-        sample_id = "sample"
-      )
-    }, error = function(e) {
-      message(paste("  Error creating forecast object:", e$message))
-      NULL
-    })
+    # Summarise into rankings
+    rankings_cases <- summarise_rankings(scores_cases)
 
-    if(is.null(res_forecast)) next
-
-    # Log transform for scoring
-    res_forecast <- res_forecast |>
-      transform_forecasts(fun = log_shift, offset = 1, label = "log")
-
-    # Score
-    scores_cases <- res_forecast |>
-      filter(scale == "log") |>
-      score()
-
-    # Get rankings by GT and INC
-    # First, get the last forecast date per timepoint (the actual forecast target)
-    scores_summary <- scores_cases |>
-      left_join(res_id |> select(result_list, gt, inc, timepoint, gen_time, inc_period),
-                by = c("result_list", "gt", "inc", "timepoint")) |>
-      group_by(timepoint, gt, inc) |>
-      filter(date == max(date)) |>
-      ungroup()
-
-    # Calculate mean CRPS by GT and INC
-    rankings_cases <- scores_summary |>
-      group_by(gt, inc, gen_time, inc_period) |>
-      summarise(crps = mean(crps, na.rm = TRUE), .groups = "drop") |>
-      mutate(rank = rank(crps))
-
-    # Add scenario label
-    rankings_cases$scenario <- scen_labels[scen]
-
-    # Make factor levels for proper ordering
+    # Add scenario label and factor levels
     rankings_cases <- rankings_cases |>
       mutate(
-        inc_period = factor(inc_period, levels = c("no delay", "very low", "low", "correct", "high", "very high")),
-        gen_time = factor(gen_time, levels = c("no delay", "very low", "low", "correct", "high", "very high"))
+        scenario = scen_labels[scen],
+        inc_period = factor(inc_period, levels = level_order),
+        gen_time = factor(gen_time, levels = level_order)
       )
 
     rankings_cases_all[[scen]] <- rankings_cases
-    message(paste("  Done:", nrow(rankings_cases), "GT×INC combinations"))
+    message(paste("  Done:", nrow(rankings_cases), "GT x INC combinations"))
   }
 
   if(length(rankings_cases_all) == 0) {
