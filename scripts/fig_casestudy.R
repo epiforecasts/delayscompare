@@ -3,20 +3,16 @@
 ##########################
 
 # Generates figures for real data (casestudy) results
-# Shows forecast performance by GT×INC misspecification on actual outbreak data
+# Shows forecast performance by GT x INC misspecification on actual outbreak data
 
 library(here)
 source(here("scripts", "01_packages.R"))
 source(here("R", "funcs_plots.R"))
 source(here("R", "funcs_data.R"))
-source(here("R", "generate_scores_func.R"))
+source(here("R", "funcs_scoring.R"))
 source(here("R", "lshtm_theme.R"))
 
 rt_opts <- "latest"
-
-# GT/INC level labels
-level_labels <- c("1" = "no delay", "2" = "very low", "3" = "low",
-                  "4" = "correct", "5" = "high", "6" = "very high")
 
 # Load casestudy real data for true values
 source(here("scripts", "datacollect_casestudy.R"))
@@ -51,6 +47,15 @@ for(disease in c("ebola", "covid", "cholera")) {
     next
   }
 
+  # Load and apply diagnostics filter
+  diagnostics <- tryCatch(
+    read_latest(here("results/casestudy"), paste0("res_", disease, "_casestudy_", rt_opts, "_all_diagnostics")),
+    error = function(e) { message(paste("  No diagnostics for", disease)); NULL }
+  )
+  if(!is.null(diagnostics)) {
+    res_samples <- filter_by_diagnostics(res_samples, diagnostics)
+  }
+
   # Get true values from casestudy data
   case_data <- casestudydata[[disease]]
 
@@ -68,79 +73,22 @@ for(disease in c("ebola", "covid", "cholera")) {
     rename(true_value = !!sym(case_col)) |>
     select(date, true_value)
 
-  # Filter to forecasts only
-  res_samples <- res_samples |>
-    filter(type == "forecast")
-
-  # Join with id info
-  res_samples <- res_samples |>
-    left_join(res_id, by = c("result_list", "gt", "inc"))
-
-  # Join with true values
-  res_samples <- res_samples |>
-    left_join(true_cases, by = "date")
-
-  # Remove rows without true values
-  res_samples <- res_samples |>
-    filter(!is.na(true_value))
-
-  if(nrow(res_samples) == 0) {
-    message(paste("  No matching data for", disease))
+  # Score forecasts
+  scores_cases <- score_case_forecasts(res_samples, res_id, true_cases)
+  if(is.null(scores_cases)) {
+    message(paste("  No scores for", disease))
     next
   }
 
-  message(paste("  Found", nrow(res_samples), "sample rows"))
-  message(paste("  GT×INC combinations:", length(unique(paste(res_samples$gt, res_samples$inc)))))
-
-  # Create forecast object for scoring
-  res_forecast <- tryCatch({
-    as_forecast_sample(
-      data = res_samples,
-      forecast_unit = c("date", "type", "result_list", "gt", "inc", "model", "timepoint"),
-      observed = "true_value",
-      predicted = "prediction",
-      sample_id = "sample"
-    )
-  }, error = function(e) {
-    message(paste("  Error creating forecast object:", e$message))
-    NULL
-  })
-
-  if(is.null(res_forecast)) next
-
-  # Log transform for scoring
-  res_forecast <- res_forecast |>
-    transform_forecasts(fun = log_shift, offset = 1, label = "log")
-
-  # Score
-  scores_cases <- res_forecast |>
-    filter(scale == "log") |>
-    score()
-
-  # Get rankings by GT and INC
-  # Get the last forecast date per timepoint
-  scores_summary <- scores_cases |>
-    left_join(res_id |> select(result_list, gt, inc, timepoint, gen_time, inc_period),
-              by = c("result_list", "gt", "inc", "timepoint")) |>
-    group_by(timepoint, gt, inc) |>
-    filter(date == max(date)) |>
-    ungroup()
-
-  # Calculate mean CRPS by GT and INC
-  rankings_cases <- scores_summary |>
-    group_by(gt, inc, gen_time, inc_period) |>
-    summarise(crps = mean(crps, na.rm = TRUE), .groups = "drop") |>
-    mutate(rank = rank(crps))
-
-  # Make factor levels for proper ordering
-  rankings_cases <- rankings_cases |>
+  # Summarise into rankings
+  rankings_cases <- summarise_rankings(scores_cases) |>
     mutate(
-      inc_period = factor(inc_period, levels = c("no delay", "very low", "low", "correct", "high", "very high")),
-      gen_time = factor(gen_time, levels = c("no delay", "very low", "low", "correct", "high", "very high")),
+      inc_period = factor(inc_period, levels = level_order),
+      gen_time = factor(gen_time, levels = level_order),
       disease_label = disease_names[disease]
     )
 
-  message(paste("  Done:", nrow(rankings_cases), "GT×INC combinations"))
+  message(paste("  Done:", nrow(rankings_cases), "GT x INC combinations"))
 
   # Store for combined plot
   all_disease_rankings[[disease]] <- rankings_cases
