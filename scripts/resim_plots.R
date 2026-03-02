@@ -1,80 +1,55 @@
 library(here)
 source(here("scripts", "01_packages.R"))
 source(here("scripts", "02b_definedelays.R"))
+source(here("R", "funcs_data.R"))
 source(here("R", "generate_scores_func.R"))
-source("plots_baseline.R")
+source(here("R", "plots_baseline.R"))
 source(here("R", "lshtm_theme.R"))
 
 ###############################################################################################
 ###### Figure 1: CRPS across gen time and inc period assumptions - Rt and case forecasts ######
 ###############################################################################################
 
-#### COVID-LIKE ####
+args <- commandArgs(trailingOnly = TRUE)
+diseases <- if (length(args) > 0) args else c("covid", "ebola", "cholera")
 
-## Data
-covid_resim_data <- readRDS(here("data","covid_sim_data2025-10-15.rds"))
+for (disease in diseases) {
+  message(paste("=== Processing", disease, "==="))
 
-## Forecasts
-covid_resim_samples <- readRDS("results/resim_covid/resim_covid_latest_all_samples2025-10-21.rds")
-covid_resim_id <- readRDS("results/resim_covid/resim_covid_latest_all_id2025-10-21.rds")
-covid_resim_R <- readRDS("results/resim_covid/resim_covid_latest_all_R2025-10-21.rds")
+  ## Data
+  resim_data <- read_latest(here("data"), paste0(disease, "_sim_data"))
 
-rt_covid <- rt_covid |>
-  select(date, median) |>
-  rename(R=median) |>
-  mutate(scen=1)
+  ## Forecasts
+  resim_samples <- read_latest(here("results/sim"), paste0("res_", disease, "_resim_latest_all_samples"))
+  resim_id <- read_latest(here("results/sim"), paste0("res_", disease, "_resim_latest_all_id"))
+  resim_R <- read_latest(here("results/sim"), paste0("res_", disease, "_resim_latest_all_R"))
 
-## Score
-covid_scores_cases <- generate_scores_cases(covid_resim_samples, covid_resim_id, covid_resim_data) |> 
-  mutate(scen=1,
-         rt_opts="latest",
-         rt_traj="resim",
-         ur="y")
-covid_scores_rt <- generate_scores_rt(covid_resim_R, covid_resim_id, rt_covid) |>
-  mutate(scen=1, 
-         rt_opts="latest",
-         rt_traj="resim",
-         ur="y")
+  ## Rt truth
+  rt_truth <- readRDS(here("data", paste0("rt_", disease, ".rds")))
+  if ("median" %in% names(rt_truth)) {
+    rt_truth <- rt_truth |> select(date, median) |> rename(R = median)
+  } else {
+    rt_truth <- rt_truth |> select(date, R)
+  }
+  rt_truth <- rt_truth |> mutate(scen = 1)
 
-covid_caseplots <- plot_baseline_cases(covid_resim_samples,
-                    covid_resim_id,
-                    covid_resim_data,
-                    covid_scores_cases,
-                    forecast_freq = 4
-                    )
+  ## Score
+  scores_cases <- generate_scores_cases(resim_samples, resim_id, resim_data) |>
+    mutate(scen = 1, rt_opts = "latest", rt_traj = "resim", ur = "y")
+  scores_rt <- generate_scores_rt(resim_R, resim_id, rt_truth) |>
+    mutate(scen = 1, rt_opts = "latest", rt_traj = "resim", ur = "y")
 
-#### EBOLA-LIKE ####
+  ## Case plots
+  caseplots <- plot_baseline_cases(resim_samples, resim_id, resim_data,
+                                   scores_cases, forecast_freq = 4)
+  ggsave(here("results", paste0("fig_resim_", disease, "_cases.png")),
+         caseplots$final_plot, width = 13.5, height = 8.5)
 
-## Data
-ebola_resim_data <- readRDS(here("data","ebola_sim_data2025-10-15.rds"))
+  ## Rt plots
+  rtplots <- plot_baseline_rt(resim_R, resim_id, rt_truth,
+                              scores_rt, forecast_freq = 4)
+  ggsave(here("results", paste0("fig_resim_", disease, "_rt.png")),
+         rtplots$final_plot, width = 13.5, height = 8.5)
 
-## Forecasts
-ebola_resim_samples <- readRDS("results/resim_ebola/resim_ebola_latest_all_samples2025-10-21.rds")
-ebola_resim_id <- readRDS("results/resim_ebola/resim_ebola_latest_all_id2025-10-21.rds")
-ebola_resim_R <- readRDS("results/resim_ebola/resim_ebola_latest_all_R2025-10-21.rds")
-
-rt_ebola <- rt_ebola |>
-  select(date, R) |>
-  mutate(scen=1)
-
-## Score
-ebola_scores_cases <- generate_scores_cases(ebola_resim_samples, ebola_resim_id, ebola_resim_data) |> 
-  mutate(scen=1,
-         rt_opts="latest",
-         rt_traj="resim",
-         ur="y")
-ebola_scores_rt <- generate_scores_rt(ebola_resim_R, ebola_resim_id, rt_ebola) |>
-  mutate(scen=1, 
-         rt_opts="latest",
-         rt_traj="resim",
-         ur="y")
-
-ebola_caseplots <- plot_baseline_cases(ebola_resim_samples,
-                               ebola_resim_id,
-                               ebola_resim_data,
-                               ebola_scores_cases,
-                               forecast_freq = 4
-)
-
-
-
+  message(paste("Saved figures for", disease))
+}
