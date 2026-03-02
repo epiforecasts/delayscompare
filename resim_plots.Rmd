@@ -66,7 +66,7 @@ covid_caseplots <- plot_baseline_cases(covid_resim_samples,
                     forecast_freq = 4
                     )
 
-covid_caseplots$timeseries
+covid_caseplots$final_plot
 covid_caseplots$barchart_mean_gen_time
 covid_caseplots$barchart_mean_inc_period
 ```
@@ -118,7 +118,7 @@ ebola_caseplots <- plot_baseline_cases(ebola_resim_samples,
                                forecast_freq = 4
 )
 
-ebola_caseplots$timeseries
+ebola_caseplots$final_plot
 ebola_caseplots$barchart_mean_gen_time
 ebola_caseplots$barchart_mean_inc_period
 ```
@@ -170,7 +170,7 @@ cholera_caseplots <- plot_baseline_cases(cholera_resim_samples,
                                forecast_freq = 4
 )
 
-cholera_caseplots$timeseries
+cholera_caseplots$final_plot
 cholera_caseplots$barchart_mean_gen_time
 cholera_caseplots$barchart_mean_inc_period
 ```

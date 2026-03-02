@@ -62,7 +62,8 @@ res_samples_wpf <- res_samples_wp_false |>
 res_samples <- res_samples_correct |>
   bind_rows(res_samples_wpt) |>
   bind_rows(res_samples_wpf) |>
-  select(-any_of(c("result_list", "gt", "inc")))
+  select(-any_of(c("result_list", "gt", "inc"))) |>
+  filter(type == "forecast")
 
 
 ## Plot

@@ -27,6 +27,11 @@ module load R
 
 TASK_ID=$SLURM_ARRAY_TASK_ID
 
+if (( TASK_ID < 1 || TASK_ID > 36 )); then
+  echo "Error: SLURM_ARRAY_TASK_ID must be in [1,36], got ${TASK_ID}" >&2
+  exit 2
+fi
+
 GT=$(( ((TASK_ID - 1) / 6) + 1 ))
 INC=$(( ((TASK_ID - 1) % 6) + 1 ))
 
