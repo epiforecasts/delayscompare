@@ -6,7 +6,11 @@ plot_baseline_rt <- function(res_rt_samples,
   
   dis_timepoints <- rt_dis$date[c(1:(nrow(rt_dis) %/% (forecast_freq*7)))*forecast_freq*7]
   
-  res_rt_samples <- res_rt_samples |> left_join(res_id, by=c("gt", "result_list"))
+  join_keys <- c("gt", "result_list")
+  if ("inc" %in% names(res_rt_samples) && "inc" %in% names(res_id)) {
+    join_keys <- c(join_keys, "inc")
+  }
+  res_rt_samples <- res_rt_samples |> left_join(res_id, by = join_keys)
   
   ## Rankings scores 
   
@@ -72,11 +76,11 @@ plot_baseline_rt <- function(res_rt_samples,
     group_by(timepoint, date, gen_time, inc_period, type, performance) |>
     filter(type=="forecast") |>
     summarise(
-      q0.025 = quantile(value, 0.025),
-      q0.25 = quantile(value, 0.25),
-      q0.5 = quantile(value, 0.5),
-      q0.75 = quantile(value, 0.75),
-      q0.975 = quantile(value, 0.975),
+      q0.025 = quantile(value, 0.025, na.rm = TRUE),
+      q0.25 = quantile(value, 0.25, na.rm = TRUE),
+      q0.5 = quantile(value, 0.5, na.rm = TRUE),
+      q0.75 = quantile(value, 0.75, na.rm = TRUE),
+      q0.975 = quantile(value, 0.975, na.rm = TRUE),
     )
   
   # Add all dates for plotting
@@ -384,10 +388,14 @@ plot_baseline_cases <- function(res_samples,
   
   dis_timepoints <- sim_data$date[c(1:(nrow(sim_data) %/% (forecast_freq*7)))*forecast_freq*7]
   
-  res_samples <- res_samples |> 
+  join_keys <- c("gt", "result_list")
+  if ("inc" %in% names(res_samples) && "inc" %in% names(res_id)) {
+    join_keys <- c(join_keys, "inc")
+  }
+  res_samples <- res_samples |>
     # Make sure I have forecasts only
     filter(type=="forecast") |>
-    left_join(res_id, by=c("gt", "result_list"))
+    left_join(res_id, by = join_keys)
   
   ## Rankings scores 
   
@@ -453,11 +461,11 @@ plot_baseline_cases <- function(res_samples,
     group_by(timepoint, date, gen_time, inc_period, type, performance) |>
     filter(type=="forecast") |>
     summarise(
-      q0.025 = quantile(prediction, 0.025),
-      q0.25 = quantile(prediction, 0.25),
-      q0.5 = quantile(prediction, 0.5),
-      q0.75 = quantile(prediction, 0.75),
-      q0.975 = quantile(prediction, 0.975),
+      q0.025 = quantile(prediction, 0.025, na.rm = TRUE),
+      q0.25 = quantile(prediction, 0.25, na.rm = TRUE),
+      q0.5 = quantile(prediction, 0.5, na.rm = TRUE),
+      q0.75 = quantile(prediction, 0.75, na.rm = TRUE),
+      q0.975 = quantile(prediction, 0.975, na.rm = TRUE),
     )
   
   # Add all dates for plotting

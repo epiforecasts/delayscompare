@@ -10,8 +10,9 @@ date: "2025-10-22"
 library(here)
 source(here("scripts", "01_packages.R"))
 source(here("scripts", "02b_definedelays.R"))
+source(here("R", "funcs_data.R"))
 source(here("R", "generate_scores_func.R"))
-source("~/delayscompare/plots_baseline.R")
+source(here("R", "plots_baseline.R"))
 source(here("R", "lshtm_theme.R"))
 ```
 
@@ -22,17 +23,16 @@ source(here("R", "lshtm_theme.R"))
 #### Load Data
 
 ```{r echo=FALSE}
-covid_resim_data <- readRDS(here("data","covid_sim_data2025-10-15.rds"))
+covid_resim_data <- read_latest(here("data"), "covid_sim_data")
 rt_covid <- readRDS(here("data", "rt_covid.rds"))
 ```
 
 #### Load Forecasts
 
 ```{r echo=FALSE}
-library(here)
-covid_resim_samples <- readRDS("results/resim_covid/resim_covid_latest_all_samples2025-10-21.rds")
-covid_resim_id <- readRDS("results/resim_covid/resim_covid_latest_all_id2025-10-21.rds")
-covid_resim_R <- readRDS("results/resim_covid/resim_covid_latest_all_R2025-10-21.rds")
+covid_resim_samples <- read_latest(here("results/sim"), "res_covid_resim_latest_all_samples")
+covid_resim_id <- read_latest(here("results/sim"), "res_covid_resim_latest_all_id")
+covid_resim_R <- read_latest(here("results/sim"), "res_covid_resim_latest_all_R")
 
 rt_covid <- rt_covid |>
   select(date, median) |>
@@ -43,14 +43,14 @@ rt_covid <- rt_covid |>
 #### Generate Scores
 
 ```{r echo=FALSE}
-covid_scores_cases <- generate_scores_cases(covid_resim_samples, covid_resim_id, covid_resim_data) |> 
+covid_scores_cases <- generate_scores_cases(covid_resim_samples, covid_resim_id, covid_resim_data) |>
   mutate(scen=1,
          rt_opts="latest",
          rt_traj="resim",
          ur="y")
 
 covid_scores_rt <- generate_scores_rt(covid_resim_R, covid_resim_id, rt_covid) |>
-  mutate(scen=1, 
+  mutate(scen=1,
          rt_opts="latest",
          rt_traj="resim",
          ur="y")
@@ -76,16 +76,16 @@ covid_caseplots$barchart_mean_inc_period
 #### Load Data
 
 ```{r echo=FALSE}
-ebola_resim_data <- readRDS(here("data","ebola_sim_data2025-10-15.rds"))
+ebola_resim_data <- read_latest(here("data"), "ebola_sim_data")
 rt_ebola <- readRDS(here("data", "rt_ebola.rds"))
 ```
 
 #### Load Forecasts
 
 ```{r echo=FALSE}
-ebola_resim_samples <- readRDS("results/resim_ebola/resim_ebola_latest_all_samples2025-10-21.rds")
-ebola_resim_id <- readRDS("results/resim_ebola/resim_ebola_latest_all_id2025-10-21.rds")
-ebola_resim_R <- readRDS("results/resim_ebola/resim_ebola_latest_all_R2025-10-21.rds")
+ebola_resim_samples <- read_latest(here("results/sim"), "res_ebola_resim_latest_all_samples")
+ebola_resim_id <- read_latest(here("results/sim"), "res_ebola_resim_latest_all_id")
+ebola_resim_R <- read_latest(here("results/sim"), "res_ebola_resim_latest_all_R")
 
 rt_ebola <- rt_ebola |>
   select(date, R) |>
@@ -95,14 +95,14 @@ rt_ebola <- rt_ebola |>
 #### Generate Scores
 
 ```{r echo=FALSE}
-ebola_scores_cases <- generate_scores_cases(ebola_resim_samples, ebola_resim_id, ebola_resim_data) |> 
+ebola_scores_cases <- generate_scores_cases(ebola_resim_samples, ebola_resim_id, ebola_resim_data) |>
   mutate(scen=1,
          rt_opts="latest",
          rt_traj="resim",
          ur="y")
 
 ebola_scores_rt <- generate_scores_rt(ebola_resim_R, ebola_resim_id, rt_ebola) |>
-  mutate(scen=1, 
+  mutate(scen=1,
          rt_opts="latest",
          rt_traj="resim",
          ur="y")
@@ -121,4 +121,56 @@ ebola_caseplots <- plot_baseline_cases(ebola_resim_samples,
 ebola_caseplots$timeseries
 ebola_caseplots$barchart_mean_gen_time
 ebola_caseplots$barchart_mean_inc_period
+```
+
+### CHOLERA-LIKE
+
+#### Load Data
+
+```{r echo=FALSE}
+cholera_resim_data <- read_latest(here("data"), "cholera_sim_data")
+rt_cholera <- readRDS(here("data", "rt_cholera.rds"))
+```
+
+#### Load Forecasts
+
+```{r echo=FALSE}
+cholera_resim_samples <- read_latest(here("results/sim"), "res_cholera_resim_latest_all_samples")
+cholera_resim_id <- read_latest(here("results/sim"), "res_cholera_resim_latest_all_id")
+cholera_resim_R <- read_latest(here("results/sim"), "res_cholera_resim_latest_all_R")
+
+rt_cholera <- rt_cholera |>
+  select(date, R) |>
+  mutate(scen=1)
+```
+
+#### Generate Scores
+
+```{r echo=FALSE}
+cholera_scores_cases <- generate_scores_cases(cholera_resim_samples, cholera_resim_id, cholera_resim_data) |>
+  mutate(scen=1,
+         rt_opts="latest",
+         rt_traj="resim",
+         ur="y")
+
+cholera_scores_rt <- generate_scores_rt(cholera_resim_R, cholera_resim_id, rt_cholera) |>
+  mutate(scen=1,
+         rt_opts="latest",
+         rt_traj="resim",
+         ur="y")
+```
+
+#### Create Plots
+
+```{r}
+cholera_caseplots <- plot_baseline_cases(cholera_resim_samples,
+                               cholera_resim_id,
+                               cholera_resim_data,
+                               cholera_scores_cases,
+                               forecast_freq = 4
+)
+
+cholera_caseplots$timeseries
+cholera_caseplots$barchart_mean_gen_time
+cholera_caseplots$barchart_mean_inc_period
 ```

@@ -2,8 +2,12 @@
 generate_scores_cases <- function(res_samples, res_id, sim_data_scen) {
   
 # Add info to res_samples
+join_keys <- c("result_list", "gt")
+if ("inc" %in% names(res_samples) && "inc" %in% names(res_id)) {
+  join_keys <- c(join_keys, "inc")
+}
 res_samples <- res_samples |>
-  left_join(res_id, by=c("result_list", "gt"))
+  left_join(res_id, by = join_keys)
 
 # Get 2-week forecast only
 res_samples <- res_samples |>
@@ -42,14 +46,20 @@ return(scores)
 ## Need to generate scores as we go, in order to save memory ##
 generate_scores_rt <- function(res_R, res_id, rt_traj_scen) {
   
-  # Need to add result_list to res_id
-  res_id <- res_id |> 
-    group_by(gt) |>
-    mutate(result_list=1:n())
+  # Add result_list to res_id if not already present
+  if (!"result_list" %in% names(res_id)) {
+    res_id <- res_id |>
+      group_by(gt) |>
+      mutate(result_list = 1:n())
+  }
   
   # Add info to res_R
+  join_keys <- c("result_list", "gt")
+  if ("inc" %in% names(res_R) && "inc" %in% names(res_id)) {
+    join_keys <- c(join_keys, "inc")
+  }
   res_R <- res_R |>
-    left_join(res_id, by=c("result_list", "gt"))
+    left_join(res_id, by = join_keys)
   
   # Get 2-week forecast only
   res_R <- res_R |>
