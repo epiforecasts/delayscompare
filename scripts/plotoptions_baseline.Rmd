@@ -68,7 +68,7 @@ for (scen in scenarios) {
   scores_cases_list[[scen]] <- generate_scores_cases(res_samples, res_id,
     sim_data_list[[scen]]) |> mutate(scen = scen)
   scores_rt_list[[scen]] <- generate_scores_rt(res_R, res_id,
-    rt_traj_list[[scen]]) |> mutate(scen = scen)
+    rt_traj_scen |> filter(scen == !!scen)) |> mutate(scen = scen)
 
 }
 
