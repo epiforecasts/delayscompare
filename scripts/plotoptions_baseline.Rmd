@@ -101,10 +101,18 @@ for (scen in scenarios) {
 
   rtplot <- plot_baseline_rt(res_R_scen, res_id_scen, rt_dis_scen,
                              scores_scen_rt, 4)
-  assign(paste0("rtbaselineplot_", scen), rtplot)
 
   ggsave(here("figures", paste0("rtbaselineplot_", disease, "_", scen, ".png")),
          rtplot$final_plot, width = 13.5, height = 8.5)
+
+  # Keep only the small sub-plots needed for combining_heatmaps
+  assign(paste0("rtbaselineplot_", scen), list(
+    barchart_mean_gen_time = rtplot$barchart_mean_gen_time,
+    barchart_mean_inc_period = rtplot$barchart_mean_inc_period
+  ))
+
+  rm(rtplot, res_R_scen, res_id_scen, rt_dis_scen, scores_scen_rt)
+  gc()
 }
 ```
 
@@ -120,11 +128,19 @@ for (scen in scenarios) {
 
   caseplot <- plot_baseline_cases(res_samples_scen, res_id_scen, sim_data_s,
                                   scores_scen_cases, 4)
-  assign(paste0("casebaselineplot_", scen), caseplot)
 
   ggsave(here("figures", paste0("casebaselineplot_", disease, "_", scen, ".png")),
          caseplot$final_plot, width = 13.5, height = 8.5)
 
+  # Keep only the small sub-plots needed for combining_heatmaps
+  assign(paste0("casebaselineplot_", scen), list(
+    barchart_mean_gen_time = caseplot$barchart_mean_gen_time,
+    barchart_mean_inc_period = caseplot$barchart_mean_inc_period,
+    timeseries = caseplot$timeseries
+  ))
+
+  rm(caseplot, res_samples_scen, res_id_scen, sim_data_s, scores_scen_cases)
+  gc()
 }
 ```
 
