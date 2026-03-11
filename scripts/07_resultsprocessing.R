@@ -19,6 +19,7 @@ for(disease in c("ebola", "covid", "cholera")){
     disease_samples <- list()
     disease_warnings <- list()
     disease_diagnostics <- list()
+    disease_timing <- list()
 
     idx <- 1
     for(gt in 1:6){
@@ -45,6 +46,13 @@ for(disease in c("ebola", "covid", "cholera")){
             warnings_data$inc <- inc_val
             disease_warnings[[idx]] <- warnings_data
           }
+          # Timing data
+          tryCatch({
+            timing_data <- read_latest(here("results"), paste0("res_", disease, "_", scen, "_", rt_opts, "_timing", gt, inc_val))
+            timing_data$gt <- gt
+            timing_data$inc <- inc_val
+            disease_timing[[idx]] <- timing_data
+          }, error = function(e) NULL)
           idx <- idx + 1
         }, error = function(e) {
           message(paste("Missing:", disease, scen, "gt=", gt, "inc=", inc_val))
@@ -66,6 +74,10 @@ for(disease in c("ebola", "covid", "cholera")){
       save_latest(disease_samples, here("results/sim"), paste0("res_", disease, "_", scen, "_", rt_opts, "_all_samples"))
       save_latest(disease_warnings, here("results/sim"), paste0("res_", disease, "_", scen, "_", rt_opts, "_all_warnings"))
       save_latest(disease_diagnostics, here("results/sim"), paste0("res_", disease, "_", scen, "_", rt_opts, "_all_diagnostics"))
+      if(length(disease_timing) > 0) {
+        disease_timing <- bind_rows(disease_timing)
+        save_latest(disease_timing, here("results/timing"), paste0("res_", disease, "_", scen, "_", rt_opts, "_all_timing"))
+      }
       message(paste("Saved:", disease, scen, "with", nrow(disease_id), "rows"))
     }
   }
@@ -77,6 +89,7 @@ for(disease in c("ebola", "covid", "cholera")){
   disease_samples <- list()
   disease_warnings <- list()
   disease_diagnostics <- list()
+  disease_timing <- list()
 
   idx <- 1
   for(gt in 1:6){
@@ -103,6 +116,13 @@ for(disease in c("ebola", "covid", "cholera")){
           warnings_data$inc <- inc_val
           disease_warnings[[idx]] <- warnings_data
         }
+        # Timing data
+        tryCatch({
+          timing_data <- read_latest(here("results"), paste0("res_", disease, "_casestudy_", rt_opts, "_timing", gt, inc_val))
+          timing_data$gt <- gt
+          timing_data$inc <- inc_val
+          disease_timing[[idx]] <- timing_data
+        }, error = function(e) NULL)
         idx <- idx + 1
       }, error = function(e) {
         message(paste("Missing:", disease, "casestudy gt=", gt, "inc=", inc_val))
@@ -124,6 +144,10 @@ for(disease in c("ebola", "covid", "cholera")){
     save_latest(disease_samples, here("results/casestudy"), paste0("res_", disease, "_casestudy_", rt_opts, "_all_samples"))
     save_latest(disease_warnings, here("results/casestudy"), paste0("res_", disease, "_casestudy_", rt_opts, "_all_warnings"))
     save_latest(disease_diagnostics, here("results/casestudy"), paste0("res_", disease, "_casestudy_", rt_opts, "_all_diagnostics"))
+    if(length(disease_timing) > 0) {
+      disease_timing <- bind_rows(disease_timing)
+      save_latest(disease_timing, here("results/timing"), paste0("res_", disease, "_casestudy_", rt_opts, "_all_timing"))
+    }
     message(paste("Saved:", disease, "casestudy with", nrow(disease_id), "rows"))
   }
 
@@ -134,6 +158,7 @@ for(disease in c("ebola", "covid", "cholera")){
   disease_samples <- list()
   disease_warnings <- list()
   disease_diagnostics <- list()
+  disease_timing <- list()
 
   idx <- 1
   for(gt in 1:6){
@@ -160,6 +185,13 @@ for(disease in c("ebola", "covid", "cholera")){
           warnings_data$inc <- inc_val
           disease_warnings[[idx]] <- warnings_data
         }
+        # Timing data
+        tryCatch({
+          timing_data <- read_latest(here("results"), paste0("res_", disease, "_resim_", rt_opts, "_timing", gt, inc_val))
+          timing_data$gt <- gt
+          timing_data$inc <- inc_val
+          disease_timing[[idx]] <- timing_data
+        }, error = function(e) NULL)
         idx <- idx + 1
       }, error = function(e) {
         message(paste("Missing:", disease, "resim gt=", gt, "inc=", inc_val))
@@ -181,6 +213,10 @@ for(disease in c("ebola", "covid", "cholera")){
     save_latest(disease_samples, here("results/sim"), paste0("res_", disease, "_resim_", rt_opts, "_all_samples"))
     save_latest(disease_warnings, here("results/sim"), paste0("res_", disease, "_resim_", rt_opts, "_all_warnings"))
     save_latest(disease_diagnostics, here("results/sim"), paste0("res_", disease, "_resim_", rt_opts, "_all_diagnostics"))
+    if(length(disease_timing) > 0) {
+      disease_timing <- bind_rows(disease_timing)
+      save_latest(disease_timing, here("results/timing"), paste0("res_", disease, "_resim_", rt_opts, "_all_timing"))
+    }
     message(paste("Saved:", disease, "resim with", nrow(disease_id), "rows"))
   }
 
@@ -210,6 +246,12 @@ for(disease in c("ebola", "covid", "cholera")){
         save_latest(disease_samples, here("results/weightprior"), paste0(out_prefix, "samples"))
         save_latest(warnings_data, here("results/weightprior"), paste0(out_prefix, "warnings"))
         save_latest(disease_diagnostics, here("results/weightprior"), paste0(out_prefix, "diagnostics"))
+        # Timing data
+        tryCatch({
+          timing_data <- read_latest(here("results"), paste0(file_prefix, "timing"))
+          timing_data$vary <- vary
+          save_latest(timing_data, here("results/timing"), paste0(out_prefix, "timing"))
+        }, error = function(e) NULL)
         message(paste("Saved:", disease, "weightprior", weight_prior, "vary", vary, "with", nrow(disease_id), "rows"))
       }, error = function(e) {
         message(paste("Skipping:", disease, "weightprior", weight_prior, "vary", vary, "-", conditionMessage(e)))
