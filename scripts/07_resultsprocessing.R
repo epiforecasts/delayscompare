@@ -46,13 +46,21 @@ for(disease in c("ebola", "covid", "cholera")){
             warnings_data$inc <- inc_val
             disease_warnings[[idx]] <- warnings_data
           }
-          # Timing data
+          # Timing
           tryCatch({
             timing_data <- read_latest(here("results"), paste0("res_", disease, "_", scen, "_", rt_opts, "_timing", gt, inc_val))
-            timing_data$gt <- gt
-            timing_data$inc <- inc_val
-            disease_timing[[idx]] <- timing_data
-          }, error = function(e) NULL)
+            if(!is.null(timing_data) && is.data.frame(timing_data)) {
+              timing_data$gt <- gt
+              timing_data$inc <- inc_val
+              disease_timing[[idx]] <- timing_data
+            }
+          }, error = function(e) {
+            if (grepl("No files found", conditionMessage(e))) {
+              message(paste("  No timing for", disease, scen, "gt=", gt, "inc=", inc_val))
+            } else {
+              stop(e)
+            }
+          })
           idx <- idx + 1
         }, error = function(e) {
           message(paste("Missing:", disease, scen, "gt=", gt, "inc=", inc_val))
@@ -116,13 +124,21 @@ for(disease in c("ebola", "covid", "cholera")){
           warnings_data$inc <- inc_val
           disease_warnings[[idx]] <- warnings_data
         }
-        # Timing data
+        # Timing
         tryCatch({
           timing_data <- read_latest(here("results"), paste0("res_", disease, "_casestudy_", rt_opts, "_timing", gt, inc_val))
-          timing_data$gt <- gt
-          timing_data$inc <- inc_val
-          disease_timing[[idx]] <- timing_data
-        }, error = function(e) NULL)
+          if(!is.null(timing_data) && is.data.frame(timing_data)) {
+            timing_data$gt <- gt
+            timing_data$inc <- inc_val
+            disease_timing[[idx]] <- timing_data
+          }
+        }, error = function(e) {
+          if (grepl("No files found", conditionMessage(e))) {
+            message(paste("  No timing for", disease, "casestudy gt=", gt, "inc=", inc_val))
+          } else {
+            stop(e)
+          }
+        })
         idx <- idx + 1
       }, error = function(e) {
         message(paste("Missing:", disease, "casestudy gt=", gt, "inc=", inc_val))
@@ -185,13 +201,21 @@ for(disease in c("ebola", "covid", "cholera")){
           warnings_data$inc <- inc_val
           disease_warnings[[idx]] <- warnings_data
         }
-        # Timing data
+        # Timing
         tryCatch({
           timing_data <- read_latest(here("results"), paste0("res_", disease, "_resim_", rt_opts, "_timing", gt, inc_val))
-          timing_data$gt <- gt
-          timing_data$inc <- inc_val
-          disease_timing[[idx]] <- timing_data
-        }, error = function(e) NULL)
+          if(!is.null(timing_data) && is.data.frame(timing_data)) {
+            timing_data$gt <- gt
+            timing_data$inc <- inc_val
+            disease_timing[[idx]] <- timing_data
+          }
+        }, error = function(e) {
+          if (grepl("No files found", conditionMessage(e))) {
+            message(paste("  No timing for", disease, "resim gt=", gt, "inc=", inc_val))
+          } else {
+            stop(e)
+          }
+        })
         idx <- idx + 1
       }, error = function(e) {
         message(paste("Missing:", disease, "resim gt=", gt, "inc=", inc_val))
@@ -246,12 +270,22 @@ for(disease in c("ebola", "covid", "cholera")){
         save_latest(disease_samples, here("results/weightprior"), paste0(out_prefix, "samples"))
         save_latest(warnings_data, here("results/weightprior"), paste0(out_prefix, "warnings"))
         save_latest(disease_diagnostics, here("results/weightprior"), paste0(out_prefix, "diagnostics"))
-        # Timing data
+
+        # Timing
         tryCatch({
-          timing_data <- read_latest(here("results"), paste0(file_prefix, "timing"))
-          timing_data$vary <- vary
-          save_latest(timing_data, here("results/timing"), paste0(out_prefix, "timing"))
-        }, error = function(e) NULL)
+          disease_timing <- read_latest(here("results"), paste0(file_prefix, "timing"))
+          if(!is.null(disease_timing) && is.data.frame(disease_timing)) {
+            disease_timing$vary <- vary
+            save_latest(disease_timing, here("results/timing"), paste0(out_prefix, "timing"))
+          }
+        }, error = function(e) {
+          if (grepl("No files found", conditionMessage(e))) {
+            message(paste("  No timing for", disease, "weightprior", weight_prior, "vary", vary))
+          } else {
+            stop(e)
+          }
+        })
+
         message(paste("Saved:", disease, "weightprior", weight_prior, "vary", vary, "with", nrow(disease_id), "rows"))
       }, error = function(e) {
         message(paste("Skipping:", disease, "weightprior", weight_prior, "vary", vary, "-", conditionMessage(e)))
