@@ -11,25 +11,25 @@ enddate <- startenddates[[disease]][["enddate"]]
 
 rt_traj <- list()
 
-# Scenarios - const Rt - low 
-  rt_traj[[1]] <- data.frame(date=seq.Date(from=startdate, to=enddate, by=1),
+# Scenarios - const Rt - low
+  rt_traj[["const_low"]] <- data.frame(date=seq.Date(from=startdate, to=enddate, by=1),
                              R=0.8,
-                             scen = "const_low") |> mutate(scen="const_low")
+                             scen = "const_low")
 
 # Scenarios - const Rt - high
-  rt_traj[[2]] <- data.frame(date=seq.Date(from=startdate, to=enddate, by=1),
+  rt_traj[["const_high"]] <- data.frame(date=seq.Date(from=startdate, to=enddate, by=1),
                              R=1.2,
-                             scen = "const_high")  |> mutate(scen="const_high")
+                             scen = "const_high")
 
-# Scenarios 9-12 - increasing Rt 
-  rt_traj[[3]] <- data.frame(date=seq.Date(from=startdate, to=enddate, by=1),
+# Scenarios 9-12 - increasing Rt
+  rt_traj[["inc"]] <- data.frame(date=seq.Date(from=startdate, to=enddate, by=1),
                              R=seq(from=0.8, to=1.2, length.out=enddate-(startdate-1)),
-                             scen = "inc")  |> mutate(scen="inc")
+                             scen = "inc")
 
 # Scenarios 13-16 - decreasing Rt
-  rt_traj[[4]] <- data.frame(date=seq.Date(from=startdate, to=enddate, by=1),
+  rt_traj[["dec"]] <- data.frame(date=seq.Date(from=startdate, to=enddate, by=1),
                              R=rev(seq(from=0.8, to=1.2, length.out=enddate-(startdate-1))),
-                             scen = "dec")  |> mutate(scen="dec")
+                             scen = "dec")
 
 ## Save ##
 
