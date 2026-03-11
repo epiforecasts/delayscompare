@@ -42,9 +42,9 @@ for (disease in diseases) {
 
   ## Score
   scores_cases <- generate_scores_cases(resim_samples, resim_id, resim_data) |>
-    mutate(scen = 1, rt_opts = "latest", rt_traj = disease, ur = "y")
+    mutate(scen = 1, rt_opts = "latest", rt_traj = "Cases", ur = "y")
   scores_rt <- generate_scores_rt(resim_R, resim_id, rt_truth) |>
-    mutate(scen = 1, rt_opts = "latest", rt_traj = disease, ur = "y")
+    mutate(scen = 1, rt_opts = "latest", rt_traj = "Rt", ur = "y")
 
   ## Rt plots
   rtplot <- plot_baseline_rt(resim_R, resim_id, rt_truth,
@@ -115,20 +115,6 @@ body_with_rows <- cowplot::plot_grid(
   ncol = 2, rel_widths = c(0.08, 1)
 )
 
-# Sub-headers: Rt / Cases
-sub_headers <- cowplot::plot_grid(
-  ggplot() + annotate("text", x = 0.5, y = 0.5, label = "Rt", size = 5) + theme_void(),
-  ggplot() + annotate("text", x = 0.5, y = 0.5, label = "Cases", size = 5) + theme_void(),
-  ggplot() + annotate("text", x = 0.5, y = 0.5, label = "Rt", size = 5) + theme_void(),
-  ggplot() + annotate("text", x = 0.5, y = 0.5, label = "Cases", size = 5) + theme_void(),
-  ncol = 4
-)
-
-sub_headers_padded <- cowplot::plot_grid(
-  ggplot() + theme_void(), sub_headers,
-  ncol = 2, rel_widths = c(0.08, 1)
-)
-
 # Top-level headers: Generation time / Incubation period
 top_headers <- cowplot::plot_grid(
   ggplot() + annotate("text", x = 0.5, y = 0.5, label = "Generation time",
@@ -162,9 +148,8 @@ legend <- cowplot::get_legend(
 # Combine: headers + body + legend
 main_plot <- cowplot::plot_grid(
   top_headers_padded,
-  sub_headers_padded,
   body_with_rows,
-  ncol = 1, rel_heights = c(0.04, 0.03, 1)
+  ncol = 1, rel_heights = c(0.04, 1)
 )
 
 combined_barcharts <- cowplot::plot_grid(
