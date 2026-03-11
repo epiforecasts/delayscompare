@@ -380,8 +380,9 @@ plot_baseline_rt <- function(res_rt_samples,
     ncol = 2,  # Combine plots and legends in two columns
     rel_widths = c(8, 1)  # Adjust width ratio (e.g., 4 times wider for plots)
   )
-  
-  return(list(final_plot=final_plot, 
+
+  return(list(final_plot=final_plot,
+              timeseries=timeseries_performance,
               overall_rank_plot=overall_rank_plot,
               barchart_mean_gen_time=barchart_mean_gen_time,
               barchart_mean_inc_period=barchart_mean_inc_period))}
@@ -776,8 +777,9 @@ plot_baseline_cases <- function(res_samples,
     ncol = 2,  # Combine plots and legends in two columns
     rel_widths = c(8, 1)  # Adjust width ratio (e.g., 4 times wider for plots)
   )
-  
-  return(list(final_plot=final_plot, 
+
+  return(list(final_plot=final_plot,
+              timeseries=timeseries_performance,
               overall_rank_plot=overall_rank_plot,
               barchart_mean_gen_time=barchart_mean_gen_time,
               barchart_mean_inc_period=barchart_mean_inc_period))}

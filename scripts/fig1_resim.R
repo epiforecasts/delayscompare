@@ -57,15 +57,21 @@ for (disease in diseases) {
   ## Extract sub-plots for combined figure
   label <- disease_labels[disease]
   title_theme <- theme(plot.title = element_text(hjust = 0.5, size = 20))
+  measure_colours <- scale_fill_manual(
+    values = c("dispersion" = "#E6AB02",
+               "overprediction" = "#1B9E77",
+               "underprediction" = "#1F456E"),
+    name = "measure"
+  )
 
   assign(paste0("rt_barchartgentime_", disease),
-    rtplot$barchart_mean_gen_time + ggtitle(label) + title_theme)
+    rtplot$barchart_mean_gen_time + ggtitle(label) + title_theme + measure_colours)
   assign(paste0("rt_barchartincperiod_", disease),
-    rtplot$barchart_mean_inc_period + ggtitle(label) + title_theme)
+    rtplot$barchart_mean_inc_period + ggtitle(label) + title_theme + measure_colours)
   assign(paste0("case_barchartgentime_", disease),
-    caseplot$barchart_mean_gen_time + ggtitle(label) + title_theme)
+    caseplot$barchart_mean_gen_time + ggtitle(label) + title_theme + measure_colours)
   assign(paste0("case_barchartincperiod_", disease),
-    caseplot$barchart_mean_inc_period + ggtitle(label) + title_theme)
+    caseplot$barchart_mean_inc_period + ggtitle(label) + title_theme + measure_colours)
   assign(paste0("casetimeseries_", disease),
     caseplot$timeseries + ggtitle(label))
 
@@ -139,7 +145,12 @@ legend_data <- data.frame(
 legend <- cowplot::get_legend(
   ggplot(legend_data, aes(x = x, y = y, fill = measure)) +
     geom_bar(stat = "identity") +
-    scale_fill_discrete() +
+    scale_fill_manual(
+      values = c("dispersion" = "#E6AB02",
+                 "overprediction" = "#1B9E77",
+                 "underprediction" = "#1F456E"),
+      name = "measure"
+    ) +
     theme(legend.position = "right",
           legend.text = element_text(size = 12),
           legend.title = element_text(size = 14))
@@ -160,13 +171,4 @@ combined_barcharts <- cowplot::plot_grid(
 ggsave(here("figures", "fig1_resim_combined_barcharts.png"),
        combined_barcharts, width = 16, height = 10)
 
-## Combined timeseries
-timeseries <- cowplot::plot_grid(
-  casetimeseries_covid, casetimeseries_ebola, casetimeseries_cholera,
-  ncol = 1
-)
-
-ggsave(here("figures", "fig1_resim_combined_timeseries.png"),
-       timeseries, width = 13.5, height = 10)
-
-message("\n=== Resim figure generation complete ===\n")
+message("\n=== Figure 1 resim generation complete ===\n")
