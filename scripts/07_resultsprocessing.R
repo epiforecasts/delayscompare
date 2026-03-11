@@ -55,7 +55,11 @@ for(disease in c("ebola", "covid", "cholera")){
               disease_timing[[idx]] <- timing_data
             }
           }, error = function(e) {
-            message(paste("  No timing for", disease, scen, "gt=", gt, "inc=", inc_val))
+            if (grepl("No files found", conditionMessage(e))) {
+              message(paste("  No timing for", disease, scen, "gt=", gt, "inc=", inc_val))
+            } else {
+              stop(e)
+            }
           })
           idx <- idx + 1
         }, error = function(e) {
@@ -129,7 +133,11 @@ for(disease in c("ebola", "covid", "cholera")){
             disease_timing[[idx]] <- timing_data
           }
         }, error = function(e) {
-          message(paste("  No timing for", disease, "casestudy gt=", gt, "inc=", inc_val))
+          if (grepl("No files found", conditionMessage(e))) {
+            message(paste("  No timing for", disease, "casestudy gt=", gt, "inc=", inc_val))
+          } else {
+            stop(e)
+          }
         })
         idx <- idx + 1
       }, error = function(e) {
@@ -202,7 +210,11 @@ for(disease in c("ebola", "covid", "cholera")){
             disease_timing[[idx]] <- timing_data
           }
         }, error = function(e) {
-          message(paste("  No timing for", disease, "resim gt=", gt, "inc=", inc_val))
+          if (grepl("No files found", conditionMessage(e))) {
+            message(paste("  No timing for", disease, "resim gt=", gt, "inc=", inc_val))
+          } else {
+            stop(e)
+          }
         })
         idx <- idx + 1
       }, error = function(e) {
@@ -221,7 +233,7 @@ for(disease in c("ebola", "covid", "cholera")){
     }
     if(length(disease_timing) > 0) {
       disease_timing <- bind_rows(disease_timing)
-      save_latest(disease_timing, here("results/sim"), paste0("res_", disease, "_resim_", rt_opts, "_all_timing"))
+      save_latest(disease_timing, here("results/timing"), paste0("res_", disease, "_resim_", rt_opts, "_all_timing"))
     }
 
     save_latest(disease_id, here("results/sim"), paste0("res_", disease, "_resim_", rt_opts, "_all_id"))
@@ -267,7 +279,11 @@ for(disease in c("ebola", "covid", "cholera")){
             save_latest(disease_timing, here("results/timing"), paste0(out_prefix, "timing"))
           }
         }, error = function(e) {
-          message(paste("  No timing for", disease, "weightprior", weight_prior, "vary", vary))
+          if (grepl("No files found", conditionMessage(e))) {
+            message(paste("  No timing for", disease, "weightprior", weight_prior, "vary", vary))
+          } else {
+            stop(e)
+          }
         })
 
         message(paste("Saved:", disease, "weightprior", weight_prior, "vary", vary, "with", nrow(disease_id), "rows"))
