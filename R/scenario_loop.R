@@ -150,23 +150,24 @@ start_runtime <- Sys.time()
         )
 
         # Handle case where samples are NULL (model fit failed)
-        if (is.null(def$samples)) {
+        def_samples <- get_samples(def)
+        if (is.null(def_samples) || nrow(def_samples) == 0) {
           warning(paste("Model fit failed for timepoint", k, "- samples are NULL"))
           res_samples <- data.frame(date = as.Date(character()), sample = integer(),
                                     value = numeric(), type = character())
           res_R <- data.frame(date = as.Date(character()), sample = integer(),
                               value = numeric(), type = character())
         } else {
-          res_samples <- def$samples |>
+          res_samples <- def_samples |>
             filter(variable == "reported_cases", type != "estimate") |>
             select(date, sample, value, type)
 
-          res_R <- def$samples |>
+          res_R <- def_samples |>
             filter(variable == "R", type != "estimate") |>
             select(date, sample, value, type)
         }
 
-        def$samples <- NULL
+        rm(def_samples)
 
         res_id <- data.frame(timepoint=original_tp,
                              gen_time=names(scen_values)[var],
@@ -392,23 +393,24 @@ start_runtime <- Sys.time()
           elapsed_seconds=elapsed_seconds)
 
         # Handle case where samples are NULL (model fit failed)
-        if (is.null(def$samples)) {
+        def_samples <- get_samples(def)
+        if (is.null(def_samples) || nrow(def_samples) == 0) {
           warning(paste("Model fit failed for timepoint", k, "- samples are NULL"))
           res_samples <- data.frame(date = as.Date(character()), sample = integer(),
                                     value = numeric(), type = character())
           res_R <- data.frame(date = as.Date(character()), sample = integer(),
                               value = numeric(), type = character())
         } else {
-          res_samples <- def$samples |>
+          res_samples <- def_samples |>
             filter(variable == "reported_cases", type != "estimate") |>
             select(date, sample, value, type)
 
-          res_R <- def$samples |>
+          res_R <- def_samples |>
             filter(variable == "R", type != "estimate") |>
             select(date, sample, value, type)
         }
 
-        def$samples <- NULL
+        rm(def_samples)
 
         res_id <- data.frame(timepoint=k)
 
