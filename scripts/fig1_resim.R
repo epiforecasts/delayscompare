@@ -8,6 +8,7 @@ source(here("scripts", "02b_definedelays.R"))
 source(here("R", "funcs_data.R"))
 source(here("R", "generate_scores_func.R"))
 source(here("R", "lshtm_theme.R"))
+source(here("R", "plot_casestudy.R"))
 source(here("R", "plots_baseline.R"))
 
 diseases <- c("covid", "ebola", "cholera")
@@ -57,12 +58,7 @@ for (disease in diseases) {
   ## Extract sub-plots for combined figure
   label <- disease_labels[disease]
   title_theme <- theme(plot.title = element_text(hjust = 0.5, size = 20))
-  measure_colours <- scale_fill_manual(
-    values = c("dispersion" = "#E6AB02",
-               "overprediction" = "#1B9E77",
-               "underprediction" = "#1F456E"),
-    name = "measure"
-  )
+  measure_colours <- scale_fill_manual(values = lshtm_pal, name = "Components of CRPS")
 
   assign(paste0("rt_barchartgentime_", disease),
     rtplot$barchart_mean_gen_time + ggtitle(label) + title_theme + measure_colours)
@@ -83,14 +79,17 @@ for (disease in diseases) {
 #### Combined barchart (all diseases) ###
 #########################################
 
-# Remove individual titles from sub-plots (row labels added separately)
+# Remove individual titles and add panel labels A-L
 no_title <- theme(plot.title = element_blank())
+panel_labels <- LETTERS[1:12]
+panel_idx <- 1
 
 for (disease in diseases) {
   for (prefix in c("rt_barchartgentime_", "case_barchartgentime_",
                     "rt_barchartincperiod_", "case_barchartincperiod_")) {
-    obj <- get(paste0(prefix, disease)) + no_title
+    obj <- get(paste0(prefix, disease)) + no_title + labs(tag = panel_labels[panel_idx])
     assign(paste0(prefix, disease), obj)
+    panel_idx <- panel_idx + 1
   }
 }
 
@@ -108,17 +107,17 @@ plot_grid_body <- cowplot::plot_grid(
 # Row labels (disease names) on the left
 row_labels <- cowplot::plot_grid(
   ggplot() + annotate("text", x = 0.5, y = 0.5, label = "COVID-19",
-                       size = 6, fontface = "bold") + theme_void(),
+                       size = 6) + theme_void(),
   ggplot() + annotate("text", x = 0.5, y = 0.5, label = "Ebola",
-                       size = 6, fontface = "bold") + theme_void(),
+                       size = 6) + theme_void(),
   ggplot() + annotate("text", x = 0.5, y = 0.5, label = "Cholera",
-                       size = 6, fontface = "bold") + theme_void(),
+                       size = 6) + theme_void(),
   ncol = 1
 )
 
 body_with_rows <- cowplot::plot_grid(
   row_labels, plot_grid_body,
-  ncol = 2, rel_widths = c(0.08, 1)
+  ncol = 2, rel_widths = c(0.12, 1)
 )
 
 # Top-level headers: Generation time / Incubation period
@@ -132,7 +131,7 @@ top_headers <- cowplot::plot_grid(
 
 top_headers_padded <- cowplot::plot_grid(
   ggplot() + theme_void(), top_headers,
-  ncol = 2, rel_widths = c(0.08, 1)
+  ncol = 2, rel_widths = c(0.12, 1)
 )
 
 # Extract shared legend
@@ -145,12 +144,7 @@ legend_data <- data.frame(
 legend <- cowplot::get_legend(
   ggplot(legend_data, aes(x = x, y = y, fill = measure)) +
     geom_bar(stat = "identity") +
-    scale_fill_manual(
-      values = c("dispersion" = "#E6AB02",
-                 "overprediction" = "#1B9E77",
-                 "underprediction" = "#1F456E"),
-      name = "measure"
-    ) +
+    scale_fill_manual(values = lshtm_pal, name = "Components of CRPS") +
     theme(legend.position = "right",
           legend.text = element_text(size = 12),
           legend.title = element_text(size = 14))
@@ -165,10 +159,10 @@ main_plot <- cowplot::plot_grid(
 
 combined_barcharts <- cowplot::plot_grid(
   main_plot, legend,
-  ncol = 2, rel_widths = c(1, 0.1)
+  ncol = 2, rel_widths = c(1, 0.2)
 )
 
 ggsave(here("figures", "fig1_resim_combined_barcharts.png"),
-       combined_barcharts, width = 16, height = 10)
+       combined_barcharts, width = 14, height = 10)
 
 message("\n=== Figure 1 resim generation complete ===\n")

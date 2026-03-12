@@ -19,7 +19,7 @@ library(patchwork)
 ```
 
 ```{r load_and_score}
-disease <- "cholera"
+disease <- "ebola"
 
 # Get start date for filtering
 startdate <- startenddates[[disease]]$startdate
