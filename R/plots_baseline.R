@@ -66,11 +66,17 @@ plot_baseline_rt <- function(res_rt_samples,
   worstbest <- worstbest |>
     mutate(performance=ifelse(rank==1, "Best-performing", "Worst-performing"))
   
+  # Capture date range before freeing the large data
+  date_range <- range(res_rt_samples$date)
+
   res_rt_performance <- res_rt_samples |>
     select(date, sample, value, type, timepoint, gen_time, inc_period, model) |>
     left_join(worstbest, by=c("timepoint", "gen_time", "inc_period")) |>
     filter(!is.na(performance))
-  
+
+  # Free the large sample data (~2GB) - no longer needed
+  rm(res_rt_samples); gc()
+
   # Adding median and quantiles
   res_rt_performance <- res_rt_performance |>
     group_by(timepoint, date, gen_time, inc_period, type, performance) |>
@@ -82,11 +88,11 @@ plot_baseline_rt <- function(res_rt_samples,
       q0.75 = quantile(value, 0.75, na.rm = TRUE),
       q0.975 = quantile(value, 0.975, na.rm = TRUE),
     )
-  
+
   # Add all dates for plotting
-  
+
   all_dates <- expand_grid(
-    date = seq(min(res_rt_samples$date), max(res_rt_samples$date), by = "1 day"),
+    date = seq(date_range[1], date_range[2], by = "1 day"),
     performance = unique(res_rt_performance$performance)
   )
   
@@ -374,8 +380,9 @@ plot_baseline_rt <- function(res_rt_samples,
     ncol = 2,  # Combine plots and legends in two columns
     rel_widths = c(8, 1)  # Adjust width ratio (e.g., 4 times wider for plots)
   )
-  
-  return(list(final_plot=final_plot, 
+
+  return(list(final_plot=final_plot,
+              timeseries=timeseries_performance,
               overall_rank_plot=overall_rank_plot,
               barchart_mean_gen_time=barchart_mean_gen_time,
               barchart_mean_inc_period=barchart_mean_inc_period))}
@@ -451,11 +458,18 @@ plot_baseline_cases <- function(res_samples,
   worstbest <- worstbest |>
     mutate(performance=ifelse(rank==1, "Best-performing", "Worst-performing"))
   
+  # Capture date range including observed data before first forecast
+  sim_data_filtered <- sim_data |> filter(variable == "reported_cases")
+  date_range <- c(min(sim_data_filtered$date), max(res_samples$date))
+
   res_performance <- res_samples |>
     select(date, sample, prediction, type, timepoint, gen_time, inc_period, model) |>
     left_join(worstbest, by=c("timepoint", "gen_time", "inc_period")) |>
     filter(!is.na(performance))
-  
+
+  # Free the large sample data (~2GB) - no longer needed
+  rm(res_samples); gc()
+
   # Adding median and quantiles
   res_performance <- res_performance |>
     group_by(timepoint, date, gen_time, inc_period, type, performance) |>
@@ -467,11 +481,11 @@ plot_baseline_cases <- function(res_samples,
       q0.75 = quantile(prediction, 0.75, na.rm = TRUE),
       q0.975 = quantile(prediction, 0.975, na.rm = TRUE),
     )
-  
+
   # Add all dates for plotting
-  
+
   all_dates <- expand_grid(
-    date = seq(min(res_samples$date), max(res_samples$date), by = "1 day"),
+    date = seq(date_range[1], date_range[2], by = "1 day"),
     performance = unique(res_performance$performance)
   )
   
@@ -764,8 +778,9 @@ plot_baseline_cases <- function(res_samples,
     ncol = 2,  # Combine plots and legends in two columns
     rel_widths = c(8, 1)  # Adjust width ratio (e.g., 4 times wider for plots)
   )
-  
-  return(list(final_plot=final_plot, 
+
+  return(list(final_plot=final_plot,
+              timeseries=timeseries_performance,
               overall_rank_plot=overall_rank_plot,
               barchart_mean_gen_time=barchart_mean_gen_time,
               barchart_mean_inc_period=barchart_mean_inc_period))}

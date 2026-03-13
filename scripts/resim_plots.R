@@ -51,5 +51,15 @@ for (disease in diseases) {
   ggsave(here("results", paste0("fig_resim_", disease, "_rt.png")),
          rtplots$final_plot, width = 13.5, height = 8.5)
 
+  ## Save barchart sub-plots for combined figure (fig1_resim.R)
+  resim_subplots <- list(
+    rt_barchart_mean_gen_time = rtplots$barchart_mean_gen_time,
+    rt_barchart_mean_inc_period = rtplots$barchart_mean_inc_period,
+    case_barchart_mean_gen_time = caseplots$barchart_mean_gen_time,
+    case_barchart_mean_inc_period = caseplots$barchart_mean_inc_period,
+    case_timeseries = caseplots$timeseries
+  )
+  save_latest(resim_subplots, here("results/sim"), paste0("resim_subplots_", disease))
+
   message(paste("Saved figures for", disease))
 }

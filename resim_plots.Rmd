@@ -69,6 +69,26 @@ covid_caseplots <- plot_baseline_cases(covid_resim_samples,
 covid_caseplots$final_plot
 covid_caseplots$barchart_mean_gen_time
 covid_caseplots$barchart_mean_inc_period
+
+covid_rtplots <- plot_baseline_rt(covid_resim_R,
+                    covid_resim_id,
+                    rt_covid,
+                    covid_scores_rt,
+                    forecast_freq = 4
+                    )
+
+covid_rtplots$final_plot
+covid_rtplots$barchart_mean_gen_time
+covid_rtplots$barchart_mean_inc_period
+
+## Save sub-plots for combined figure (fig1_resim.R)
+save_latest(list(
+  rt_barchart_mean_gen_time = covid_rtplots$barchart_mean_gen_time,
+  rt_barchart_mean_inc_period = covid_rtplots$barchart_mean_inc_period,
+  case_barchart_mean_gen_time = covid_caseplots$barchart_mean_gen_time,
+  case_barchart_mean_inc_period = covid_caseplots$barchart_mean_inc_period,
+  case_timeseries = covid_caseplots$timeseries
+), here("results/sim"), "resim_subplots_covid")
 ```
 
 ### EBOLA-LIKE
@@ -121,6 +141,26 @@ ebola_caseplots <- plot_baseline_cases(ebola_resim_samples,
 ebola_caseplots$final_plot
 ebola_caseplots$barchart_mean_gen_time
 ebola_caseplots$barchart_mean_inc_period
+
+ebola_rtplots <- plot_baseline_rt(ebola_resim_R,
+                               ebola_resim_id,
+                               rt_ebola,
+                               ebola_scores_rt,
+                               forecast_freq = 4
+)
+
+ebola_rtplots$final_plot
+ebola_rtplots$barchart_mean_gen_time
+ebola_rtplots$barchart_mean_inc_period
+
+## Save sub-plots for combined figure (fig1_resim.R)
+save_latest(list(
+  rt_barchart_mean_gen_time = ebola_rtplots$barchart_mean_gen_time,
+  rt_barchart_mean_inc_period = ebola_rtplots$barchart_mean_inc_period,
+  case_barchart_mean_gen_time = ebola_caseplots$barchart_mean_gen_time,
+  case_barchart_mean_inc_period = ebola_caseplots$barchart_mean_inc_period,
+  case_timeseries = ebola_caseplots$timeseries
+), here("results/sim"), "resim_subplots_ebola")
 ```
 
 ### CHOLERA-LIKE

@@ -270,72 +270,59 @@ plot_boxplots <- function(scores, predictor, measure){
 
 
 generate_plots <- function(disease, predictor, startdate){
-  
+
+  # Scenario mapping
+  scenarios <- c("const_low", "const_high", "inc", "dec")
+  sim_data_suffix <- c(const_low = "const_low", const_high = "const_hi",
+                       inc = "inc", dec = "dec")
+
   ## Loading all data - collect Rt trajectories and simulated data in a list ##
-  
-  rt_traj <- read_latest(here("data"), paste0("rt_traj_list_", disease))
-  sim_data <- read_latest(here("data"), paste0("sim_data_list_", disease))
-  
+
+  rt_traj_list <- read_latest(here("data"), paste0("rt_traj_list_", disease))
+
+  # Load sim data per scenario
+  sim_data_list <- list()
+
+  for (scen in scenarios) {
+    sim_data_list[[scen]] <- read_latest(here("data"),
+                                         paste0(disease, "_sim_data_", sim_data_suffix[scen])) |>
+      mutate(scen = scen)
+  }
+
   # Scenario labels
-  scen_labs <- data.frame(scen=c(1:16),
-                          rt_traj=c(rep("const_low", 4), rep("const_high", 4), rep("inc", 4), rep("dec", 4)),
-                          rt_opts=rep(c("latest", "latest", "project", "project"), 4),
-                          ur=rep(c("No under-reporting", "Under-reporting", "No under-reporting", "Under-reporting"), 4))
-  
-  scores_cases <- list()
-  scores_rt <- list()
-  
-# Loading data
+  scen_labs <- data.frame(scen = scenarios,
+                          rt_traj = scenarios,
+                          rt_opts = "latest",
+                          ur = "No under-reporting")
 
-rt_traj_scen <- lapply(c(1:16), function(i){
-  rt_traj[[i]] |> 
-    as.data.frame() |> 
-    mutate(scen=i)
-})
+  # Load results and generate scores (one scenario at a time to manage memory)
+  scores_cases_list <- list()
+  scores_rt_list <- list()
 
-sim_data_scen <- lapply(c(1:16), function(i){
-  sim_data[[i]] |> 
-    as.data.frame()|> 
-    mutate(scen=i)
-})
+  for (scen in scenarios) {
+    res_samples <- read_latest(here("results/sim"),
+      paste0("res_", disease, "_", scen, "_latest_all_samples"))
+    res_R <- read_latest(here("results/sim"),
+      paste0("res_", disease, "_", scen, "_latest_all_R"))
+    res_id <- read_latest(here("results/sim"),
+      paste0("res_", disease, "_", scen, "_latest_all_id"))
 
-
-test_results <- lapply(c(1:16), function(i){
-    
-    ## Loading results & generating scores as we go in order to save memory ##
-    res_samples <- read_latest(here(paste0("results/", disease, "/", disease)), paste0("res_", disease, "scen", i, "_all_samples"))
-    res_R <- read_latest(here(paste0("results/", disease, "/", disease)), paste0("res_", disease, "scen", i, "_all_R"))
-    res_id <- read_latest(here(paste0("results/", disease, "/",  disease)), paste0("res_", disease, "scen", i, "_all_id")) 
-    
     res_samples <- res_samples |> filter(date <= as.Date(startdate) + 6*4*7)
     res_R <- res_R |> filter(date <= as.Date(startdate) + 6*4*7)
-    
-    scores_cases <- generate_scores_cases(res_samples, res_id, sim_data_scen[[i]]) |> mutate(scen=i)
-    scores_rt <- generate_scores_rt(res_R, res_id, rt_traj_scen[[i]]) |> mutate(scen=i)
-    
-    return(list(scores_cases,
-                scores_rt))
-    
-  })
 
-  rt_traj_scen <- bind_rows(rt_traj_scen)
-  sim_data_scen <- bind_rows(sim_data_scen)
-  
-  scores_cases <- lapply(test_results, function(x) x[[1]]) |> bind_rows()
-  scores_rt <- lapply(test_results, function(x) x[[2]]) |> bind_rows()
-  
-  # Add scenario labels
-  rt_traj_scen <- rt_traj_scen |> 
-    left_join(scen_labs, by="scen")
-  
-  sim_data_scen <- sim_data_scen |>
-    left_join(scen_labs, by="scen")
-  
-  scores_cases <- scores_cases |>
-    left_join(scen_labs, by="scen")
-  
-  scores_rt <- scores_rt |>
-    left_join(scen_labs, by="scen")
+    scores_cases_list[[scen]] <- generate_scores_cases(res_samples, res_id,
+      sim_data_list[[scen]]) |> mutate(scen = scen)
+    scores_rt_list[[scen]] <- generate_scores_rt(res_R, res_id,
+      rt_traj_list[[scen]]) |> mutate(scen = scen)
+
+    rm(res_samples, res_R, res_id)
+    gc()
+  }
+
+  scores_cases <- bind_rows(scores_cases_list) |> left_join(scen_labs, by = "scen")
+  scores_rt <- bind_rows(scores_rt_list) |> left_join(scen_labs, by = "scen")
+  rm(scores_cases_list, scores_rt_list)
+  gc()
   
   box_overpredict_cases <- plot_boxplots(scores_cases, predictor, "overprediction")
   box_overpredict_rt <- plot_boxplots(scores_rt, predictor, "overprediction")

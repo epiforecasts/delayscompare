@@ -14,6 +14,7 @@ source(here("R", "funcs_data.R"))
 source(here("R", "generate_scores_func.R"))
 source(here("R", "lshtm_theme.R"))
 source(here("R", "plots_baseline.R"))
+source(here("scripts", "datacollect.R"))
 library(patchwork)
 ```
 
@@ -30,19 +31,13 @@ sim_data_suffix <- c(const_low = "const_low", const_high = "const_hi",
 scen_labels <- c(const_low = "const_low", const_high = "const_high",
                  inc = "inc", dec = "dec")
 
-# Load Rt trajectory for this disease
-rt_full <- readRDS(here("data", paste0("rt_", disease, ".rds")))
-if ("median" %in% names(rt_full)) {
-  rt_full <- rt_full |> select(date, median) |> rename(R = median)
-} else {
-  rt_full <- rt_full |> select(date, R)
-}
+# Load Rt trajectory for this disease for the low, high, inc, dec scenarios
+rt_traj_list <- read_latest(here("data"), paste0("rt_traj_list_", disease))
 
 # Get start date for filtering
 startdate <- startenddates[[disease]]$startdate
 
 # Load sim data and Rt trajectories per scenario
-rt_traj_list <- list()
 sim_data_list <- list()
 
 for (scen in scenarios) {
@@ -50,7 +45,6 @@ for (scen in scenarios) {
     paste0(disease, "_sim_data_", sim_data_suffix[scen])) |>
     mutate(scen = scen)
 
-  rt_traj_list[[scen]] <- rt_full |> mutate(scen = scen)
 }
 
 rt_traj_scen <- bind_rows(rt_traj_list)
@@ -74,7 +68,7 @@ for (scen in scenarios) {
   scores_cases_list[[scen]] <- generate_scores_cases(res_samples, res_id,
     sim_data_list[[scen]]) |> mutate(scen = scen)
   scores_rt_list[[scen]] <- generate_scores_rt(res_R, res_id,
-    rt_traj_list[[scen]]) |> mutate(scen = scen)
+    rt_traj_scen |> filter(scen == !!scen)) |> mutate(scen = scen)
 
 }
 
@@ -107,10 +101,18 @@ for (scen in scenarios) {
 
   rtplot <- plot_baseline_rt(res_R_scen, res_id_scen, rt_dis_scen,
                              scores_scen_rt, 4)
-  assign(paste0("rtbaselineplot_", scen), rtplot)
 
   ggsave(here("figures", paste0("rtbaselineplot_", disease, "_", scen, ".png")),
          rtplot$final_plot, width = 13.5, height = 8.5)
+
+  # Keep only the small sub-plots needed for combining_heatmaps
+  assign(paste0("rtbaselineplot_", scen), list(
+    barchart_mean_gen_time = rtplot$barchart_mean_gen_time,
+    barchart_mean_inc_period = rtplot$barchart_mean_inc_period
+  ))
+
+  rm(rtplot, res_R_scen, res_id_scen, rt_dis_scen, scores_scen_rt)
+  gc()
 }
 ```
 
@@ -126,11 +128,19 @@ for (scen in scenarios) {
 
   caseplot <- plot_baseline_cases(res_samples_scen, res_id_scen, sim_data_s,
                                   scores_scen_cases, 4)
-  assign(paste0("casebaselineplot_", scen), caseplot)
 
   ggsave(here("figures", paste0("casebaselineplot_", disease, "_", scen, ".png")),
          caseplot$final_plot, width = 13.5, height = 8.5)
 
+  # Keep only the small sub-plots needed for combining_heatmaps
+  assign(paste0("casebaselineplot_", scen), list(
+    barchart_mean_gen_time = caseplot$barchart_mean_gen_time,
+    barchart_mean_inc_period = caseplot$barchart_mean_inc_period,
+    timeseries = caseplot$timeseries
+  ))
+
+  rm(caseplot, res_samples_scen, res_id_scen, sim_data_s, scores_scen_cases)
+  gc()
 }
 ```
 
