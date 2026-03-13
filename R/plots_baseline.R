@@ -458,8 +458,9 @@ plot_baseline_cases <- function(res_samples,
   worstbest <- worstbest |>
     mutate(performance=ifelse(rank==1, "Best-performing", "Worst-performing"))
   
-  # Capture date range before freeing the large data
-  date_range <- range(res_samples$date)
+  # Capture date range including observed data before first forecast
+  sim_data_filtered <- sim_data |> filter(variable == "reported_cases")
+  date_range <- c(min(sim_data_filtered$date), max(res_samples$date))
 
   res_performance <- res_samples |>
     select(date, sample, prediction, type, timepoint, gen_time, inc_period, model) |>

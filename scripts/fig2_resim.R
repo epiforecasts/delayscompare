@@ -17,7 +17,10 @@ for (disease in diseases) {
   message(paste("=== Processing", disease, "==="))
 
   ## Data
-  resim_data <- read_latest(here("data"), paste0(disease, "_sim_data"))
+  # resim_data <- read_latest(here("data"), paste0(disease, "_sim_data"))
+  ## TEMP: use old sim data to check against existing results
+  old_dates <- c(covid = "2024-05-01", ebola = "2024-05-01", cholera = "2025-10-23")
+  resim_data <- readRDS(here("data", paste0(disease, "_sim_data", old_dates[disease], ".rds")))
 
   ## Rt truth
   rt_truth <- readRDS(here("data", paste0("rt_", disease, ".rds")))
@@ -35,7 +38,8 @@ for (disease in diseases) {
     paste0("res_", disease, "_resim_latest_all_id"))
 
   startdate <- startenddates[[disease]]$startdate
-  resim_samples <- resim_samples |> filter(date <= as.Date(startdate) + 6*4*7)
+  resim_samples <- resim_samples # |> filter(date <= as.Date(startdate) + 6*4*7)
+  resim_data <- resim_data # |> filter(date <= as.Date(startdate) + 6*4*7)
 
   ## Score
   scores_cases <- generate_scores_cases(resim_samples, resim_id, resim_data) |>
