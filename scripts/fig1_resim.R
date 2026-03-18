@@ -13,110 +13,116 @@ source(here("R", "plots_baseline.R"))
 
 diseases <- c("covid", "ebola", "cholera")
 disease_labels <- c(covid = "COVID-19", ebola = "Ebola", cholera = "Cholera")
+rt_opts_list <- c("latest", "project")
 
-for (disease in diseases) {
-  message(paste("=== Processing", disease, "==="))
+for (rt_opts in rt_opts_list) {
+  for (disease in diseases) {
+    message(paste("=== Processing", disease, rt_opts, "==="))
 
-  ## Data
-  resim_data <- read_latest(here("data"), paste0(disease, "_sim_data"))
+    ## Data
+    resim_data <- read_latest(here("data"), paste0(disease, "_sim_data"))
 
-  ## Rt truth
-  rt_truth <- readRDS(here("data", paste0("rt_", disease, ".rds")))
-  if ("median" %in% names(rt_truth)) {
-    rt_truth <- rt_truth |> select(date, median) |> rename(R = median)
-  } else {
-    rt_truth <- rt_truth |> select(date, R)
+    ## Rt truth
+    rt_truth <- readRDS(here("data", paste0("rt_", disease, ".rds")))
+    if ("median" %in% names(rt_truth)) {
+      rt_truth <- rt_truth |> select(date, median) |> rename(R = median)
+    } else {
+      rt_truth <- rt_truth |> select(date, R)
+    }
+    rt_truth <- rt_truth |> mutate(scen = 1)
+
+    ## Forecasts
+    resim_samples <- read_latest(here("results/sim"),
+      paste0("res_", disease, "_resim_", rt_opts, "_all_samples"))
+    resim_id <- read_latest(here("results/sim"),
+      paste0("res_", disease, "_resim_", rt_opts, "_all_id"))
+    resim_R <- read_latest(here("results/sim"),
+      paste0("res_", disease, "_resim_", rt_opts, "_all_R"))
+
+    startdate <- startenddates[[disease]]$startdate
+    resim_samples <- resim_samples |> filter(date <= as.Date(startdate) + 6*4*7)
+    resim_R <- resim_R |> filter(date <= as.Date(startdate) + 6*4*7)
+
+    ## Score
+    scores_cases <- generate_scores_cases(resim_samples, resim_id, resim_data) |>
+      mutate(scen = 1, rt_opts = rt_opts, rt_traj = "Cases", ur = "y")
+    scores_rt <- generate_scores_rt(resim_R, resim_id, rt_truth) |>
+      mutate(scen = 1, rt_opts = rt_opts, rt_traj = "Rt", ur = "y")
+
+    ## Rt plots
+    rtplot <- plot_baseline_rt(resim_R, resim_id, rt_truth,
+                                scores_rt, forecast_freq = 4)
+
+    ## Case plots
+    caseplot <- plot_baseline_cases(resim_samples, resim_id, resim_data,
+                                     scores_cases, forecast_freq = 4)
+
+    ## Extract sub-plots
+    label <- disease_labels[disease]
+    title_theme <- theme(plot.title = element_text(hjust = 0.5, size = 20))
+    measure_colours <- scale_fill_manual(values = lshtm_pal, name = "Components of CRPS")
+
+    assign(paste0("rt_barchartgentime_", rt_opts, "_", disease),
+      rtplot$barchart_mean_gen_time + ggtitle(label) + title_theme + measure_colours)
+    assign(paste0("rt_barchartincperiod_", rt_opts, "_", disease),
+      rtplot$barchart_mean_inc_period + ggtitle(label) + title_theme + measure_colours)
+    assign(paste0("case_barchartgentime_", rt_opts, "_", disease),
+      caseplot$barchart_mean_gen_time + ggtitle(label) + title_theme + measure_colours)
+    assign(paste0("case_barchartincperiod_", rt_opts, "_", disease),
+      caseplot$barchart_mean_inc_period + ggtitle(label) + title_theme + measure_colours)
+
+    rm(rtplot, caseplot, resim_samples, resim_R, resim_id, resim_data,
+       rt_truth, scores_cases, scores_rt); gc()
   }
-  rt_truth <- rt_truth |> mutate(scen = 1)
-
-  ## Forecasts
-  resim_samples <- read_latest(here("results/sim"),
-    paste0("res_", disease, "_resim_latest_all_samples"))
-  resim_id <- read_latest(here("results/sim"),
-    paste0("res_", disease, "_resim_latest_all_id"))
-  resim_R <- read_latest(here("results/sim"),
-    paste0("res_", disease, "_resim_latest_all_R"))
-
-  startdate <- startenddates[[disease]]$startdate
-  resim_samples <- resim_samples |> filter(date <= as.Date(startdate) + 6*4*7)
-  resim_R <- resim_R |> filter(date <= as.Date(startdate) + 6*4*7)
-
-  ## Score
-  scores_cases <- generate_scores_cases(resim_samples, resim_id, resim_data) |>
-    mutate(scen = 1, rt_opts = "latest", rt_traj = "Cases", ur = "y")
-  scores_rt <- generate_scores_rt(resim_R, resim_id, rt_truth) |>
-    mutate(scen = 1, rt_opts = "latest", rt_traj = "Rt", ur = "y")
-
-  ## Rt plots
-  rtplot <- plot_baseline_rt(resim_R, resim_id, rt_truth,
-                              scores_rt, forecast_freq = 4)
-
-  ## Case plots
-  caseplot <- plot_baseline_cases(resim_samples, resim_id, resim_data,
-                                   scores_cases, forecast_freq = 4)
-
-  ## Extract sub-plots for combined figure
-  label <- disease_labels[disease]
-  title_theme <- theme(plot.title = element_text(hjust = 0.5, size = 20))
-  measure_colours <- scale_fill_manual(values = lshtm_pal, name = "Components of CRPS")
-
-  assign(paste0("rt_barchartgentime_", disease),
-    rtplot$barchart_mean_gen_time + ggtitle(label) + title_theme + measure_colours)
-  assign(paste0("rt_barchartincperiod_", disease),
-    rtplot$barchart_mean_inc_period + ggtitle(label) + title_theme + measure_colours)
-  assign(paste0("case_barchartgentime_", disease),
-    caseplot$barchart_mean_gen_time + ggtitle(label) + title_theme + measure_colours)
-  assign(paste0("case_barchartincperiod_", disease),
-    caseplot$barchart_mean_inc_period + ggtitle(label) + title_theme + measure_colours)
-  assign(paste0("casetimeseries_", disease),
-    caseplot$timeseries + ggtitle(label))
-
-  rm(rtplot, caseplot, resim_samples, resim_R, resim_id, resim_data,
-     rt_truth, scores_cases, scores_rt); gc()
 }
 
 #########################################
 #### Combined barchart (all diseases) ###
 #########################################
 
-# Remove individual titles and add panel labels A-L
 no_title <- theme(plot.title = element_blank())
-panel_labels <- LETTERS[1:12]
-panel_idx <- 1
 
-for (disease in diseases) {
-  for (prefix in c("rt_barchartgentime_", "case_barchartgentime_",
-                    "rt_barchartincperiod_", "case_barchartincperiod_")) {
-    obj <- get(paste0(prefix, disease)) + no_title + labs(tag = panel_labels[panel_idx])
-    assign(paste0(prefix, disease), obj)
-    panel_idx <- panel_idx + 1
+# Build a grid for each rt_opts
+build_barchart_grid <- function(rt_opts_val, panel_start = 1) {
+  panel_labels <- LETTERS[panel_start:(panel_start + 11)]
+  panel_idx <- 1
+
+  plots <- list()
+  for (disease in diseases) {
+    for (prefix in c("rt_barchartgentime_", "case_barchartgentime_",
+                      "rt_barchartincperiod_", "case_barchartincperiod_")) {
+      name <- paste0(prefix, rt_opts_val, "_", disease)
+      plots[[panel_idx]] <- get(name) + no_title + labs(tag = panel_labels[panel_idx])
+      panel_idx <- panel_idx + 1
+    }
   }
+
+  cowplot::plot_grid(plotlist = plots, ncol = 4)
 }
 
-# Build the plot grid (3 rows x 4 cols)
-plot_grid_body <- cowplot::plot_grid(
-  rt_barchartgentime_covid, case_barchartgentime_covid,
-  rt_barchartincperiod_covid, case_barchartincperiod_covid,
-  rt_barchartgentime_ebola, case_barchartgentime_ebola,
-  rt_barchartincperiod_ebola, case_barchartincperiod_ebola,
-  rt_barchartgentime_cholera, case_barchartgentime_cholera,
-  rt_barchartincperiod_cholera, case_barchartincperiod_cholera,
-  ncol = 4
+grid_latest <- build_barchart_grid("latest", panel_start = 1)
+grid_project <- build_barchart_grid("project", panel_start = 13)
+
+# Row labels (disease names) on the left — same for both grids
+make_row_labels <- function() {
+  cowplot::plot_grid(
+    ggplot() + annotate("text", x = 0.5, y = 0.5, label = "COVID-19",
+                         size = 6) + theme_void(),
+    ggplot() + annotate("text", x = 0.5, y = 0.5, label = "Ebola",
+                         size = 6) + theme_void(),
+    ggplot() + annotate("text", x = 0.5, y = 0.5, label = "Cholera",
+                         size = 6) + theme_void(),
+    ncol = 1
+  )
+}
+
+body_latest <- cowplot::plot_grid(
+  make_row_labels(), grid_latest,
+  ncol = 2, rel_widths = c(0.12, 1)
 )
 
-# Row labels (disease names) on the left
-row_labels <- cowplot::plot_grid(
-  ggplot() + annotate("text", x = 0.5, y = 0.5, label = "COVID-19",
-                       size = 6) + theme_void(),
-  ggplot() + annotate("text", x = 0.5, y = 0.5, label = "Ebola",
-                       size = 6) + theme_void(),
-  ggplot() + annotate("text", x = 0.5, y = 0.5, label = "Cholera",
-                       size = 6) + theme_void(),
-  ncol = 1
-)
-
-body_with_rows <- cowplot::plot_grid(
-  row_labels, plot_grid_body,
+body_project <- cowplot::plot_grid(
+  make_row_labels(), grid_project,
   ncol = 2, rel_widths = c(0.12, 1)
 )
 
@@ -134,6 +140,12 @@ top_headers_padded <- cowplot::plot_grid(
   ncol = 2, rel_widths = c(0.12, 1)
 )
 
+# Section labels
+label_latest <- ggplot() + annotate("text", x = 0.5, y = 0.5,
+  label = "Latest Rt estimate", size = 7, fontface = "bold") + theme_void()
+label_project <- ggplot() + annotate("text", x = 0.5, y = 0.5,
+  label = "Projected Rt", size = 7, fontface = "bold") + theme_void()
+
 # Extract shared legend
 legend_data <- data.frame(
   x = rep("a", 3), y = c(1, 1, 1),
@@ -150,19 +162,22 @@ legend <- cowplot::get_legend(
           legend.title = element_text(size = 14))
 )
 
-# Combine: headers + body + legend
+# Combine: headers + latest block + project block
 main_plot <- cowplot::plot_grid(
   top_headers_padded,
-  body_with_rows,
-  ncol = 1, rel_heights = c(0.04, 1)
+  label_latest,
+  body_latest,
+  label_project,
+  body_project,
+  ncol = 1, rel_heights = c(0.03, 0.03, 1, 0.03, 1)
 )
 
 combined_barcharts <- cowplot::plot_grid(
   main_plot, legend,
-  ncol = 2, rel_widths = c(1, 0.2)
+  ncol = 2, rel_widths = c(1, 0.15)
 )
 
 ggsave(here("figures", "fig1_resim_combined_barcharts.png"),
-       combined_barcharts, width = 14, height = 10)
+       combined_barcharts, width = 14, height = 18)
 
 message("\n=== Figure 1 resim generation complete ===\n")

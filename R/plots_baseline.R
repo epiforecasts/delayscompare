@@ -204,12 +204,12 @@ plot_baseline_rt <- function(res_rt_samples,
   
   # And the mean scores
   mean_scores_rt_gen_time <- scores_rt_long |>
-    group_by(gen_time, rt_traj, measure) |>
+    group_by(gen_time, rt_traj, rt_opts, measure) |>
     filter(inc_period=="correct") |>
     summarise(value=mean(value))
-  
+
   mean_scores_rt_inc_period <- scores_rt_long |>
-    group_by(inc_period, rt_traj, measure) |>
+    group_by(inc_period, rt_traj, rt_opts, measure) |>
     filter(gen_time=="correct") |>
     summarise(value=mean(value))
   
@@ -231,7 +231,7 @@ plot_baseline_rt <- function(res_rt_samples,
     theme(axis.text.x=element_text(angle=45, hjust=1),
           legend.position = "none")
   
-  barchart_mean_gen_time <- ggplot(mean_scores_rt_gen_time |> filter(measure!="crps")) + 
+  barchart_mean_gen_time <- ggplot(mean_scores_rt_gen_time |> filter(measure!="crps")) +
     geom_bar(aes(x=gen_time, y=value, fill=measure), stat="identity") +
     facet_wrap(~rt_traj, nrow=1) +
     xlab("Generation time") +
@@ -239,10 +239,9 @@ plot_baseline_rt <- function(res_rt_samples,
     lshtm_theme() +
     theme(axis.text.x=element_text(angle=45, hjust=1),
           legend.position = "none",
-          #axis.title.x=element_blank(),
           axis.title.y=element_blank()) +
     xlab(" ")
-  
+
   barchart_mean_inc_period <- ggplot(mean_scores_rt_inc_period |> filter(measure!="crps")) +
     geom_bar(aes(x=inc_period, y=value, fill=measure), stat="identity") +
     facet_wrap(~rt_traj, nrow=1) +
@@ -251,7 +250,6 @@ plot_baseline_rt <- function(res_rt_samples,
     lshtm_theme()  +
     theme(axis.text.x=element_text(angle=45, hjust=1),
           legend.position = "none",
-          #axis.title.x=element_blank(),
           axis.title.y=element_blank()) +
     xlab(" ")
   
@@ -482,49 +480,45 @@ plot_baseline_cases <- function(res_samples,
       q0.975 = quantile(prediction, 0.975, na.rm = TRUE),
     )
 
-  # Add all dates for plotting
-
-  all_dates <- expand_grid(
-    date = seq(date_range[1], date_range[2], by = "1 day"),
-    performance = unique(res_performance$performance)
-  )
-  
-  # Merge with existing data, filling gaps with NA
-  res_performance_full <- merge(all_dates, res_performance, by = c("date", "performance"), all.x = TRUE)
-  
   ## Add true values
-  
+
   # Want reported_cases only
   sim_data <- sim_data |>
     filter(variable=="reported_cases")
-  
-  res_performance_full <- res_performance_full |>
-    left_join(sim_data, by="date")
-  
+
+  # Build observed data with 12 weeks of training context per timepoint
+  forecast_starts <- res_performance |>
+    group_by(timepoint) |>
+    summarise(forecast_start = min(date), .groups = "drop")
+
+  obs_by_timepoint <- purrr::pmap_dfr(forecast_starts, function(timepoint, forecast_start) {
+    forecast_end <- max(res_performance$date[res_performance$timepoint == timepoint])
+    sim_data |>
+      filter(date >= forecast_start - 12*7, date <= forecast_end) |>
+      mutate(timepoint = timepoint,
+             obs_type = ifelse(date <= forecast_start, "training", "forecast"))
+  })
+
   # Plot 1: Timeseries Performance (remove legend from plot)
-  timeseries_performance <- ggplot(res_performance_full) + 
+  timeseries_performance <- ggplot(res_performance) +
+    geom_point(data = obs_by_timepoint |> filter(obs_type == "training"),
+               mapping=aes(x=date, y=value), colour="black", size=0.5, show.legend=FALSE) +
+    geom_point(data = obs_by_timepoint |> filter(obs_type == "forecast"),
+               mapping=aes(x=date, y=value), colour="grey60", size=0.5, show.legend=FALSE) +
     geom_line(mapping=aes(x=date, y=q0.5, colour=performance)) +
     geom_ribbon(mapping=aes(x=date, ymin=q0.25, ymax=q0.75, fill=performance), alpha=0.5) +
     #geom_ribbon(mapping=aes(x=date, ymin=q0.025, ymax=q0.975, fill=performance), alpha=0.2) +
-    geom_point(mapping=aes(x=date, y=value), colour="black", size=0.5, show.legend=FALSE) +
+    facet_wrap(~timepoint, scales = "free", nrow = 1) +
     lshtm_theme() +
     scale_colour_manual(
       name = "Performance",
       values = c(
-        #"Best-performing.estimate" = "lightblue",
-        #"Best-performing.estimate based on partial data" = "deepskyblue",
         "Best-performing" = "darkblue",
-        #"Worst-performing.estimate" = "lightcoral",
-        #"Worst-performing.estimate based on partial data" = "indianred",
         "Worst-performing" = "darkred"
       ),
       breaks = c(
-        "Best-performing.estimate",
-        "Best-performing.estimate based on partial data",
-        "Best-performing.forecast",
-        "Worst-performing.estimate",
-        "Worst-performing.estimate based on partial data",
-        "Worst-performing.forecast"
+        "Best-performing",
+        "Worst-performing"
       )
     ) +
     scale_fill_manual(
@@ -602,12 +596,12 @@ plot_baseline_cases <- function(res_samples,
   
   # And the mean scores
   mean_scores_cases_gen_time <- scores_cases_long |>
-    group_by(gen_time, rt_traj, measure) |>
+    group_by(gen_time, rt_traj, rt_opts, measure) |>
     filter(inc_period=="correct") |>
     summarise(value=mean(value))
-  
+
   mean_scores_cases_inc_period <- scores_cases_long |>
-    group_by(inc_period, rt_traj, measure) |>
+    group_by(inc_period, rt_traj, rt_opts, measure) |>
     filter(gen_time=="correct") |>
     summarise(value=mean(value))
   
@@ -629,7 +623,7 @@ plot_baseline_cases <- function(res_samples,
     theme(axis.text.x=element_text(angle=45, hjust=1),
           legend.position = "none")
   
-  barchart_mean_gen_time <- ggplot(mean_scores_cases_gen_time |> filter(measure!="crps")) + 
+  barchart_mean_gen_time <- ggplot(mean_scores_cases_gen_time |> filter(measure!="crps")) +
     geom_bar(aes(x=gen_time, y=value, fill=measure), stat="identity") +
     facet_wrap(~rt_traj, nrow=1) +
     xlab("Generation time") +
@@ -637,10 +631,9 @@ plot_baseline_cases <- function(res_samples,
     lshtm_theme() +
     theme(axis.text.x=element_text(angle=45, hjust=1),
           legend.position = "none",
-          #axis.title.x=element_blank(),
           axis.title.y=element_blank()) +
     xlab(" ")
-  
+
   barchart_mean_inc_period <- ggplot(mean_scores_cases_inc_period |> filter(measure!="crps")) +
     geom_bar(aes(x=inc_period, y=value, fill=measure), stat="identity") +
     facet_wrap(~rt_traj, nrow=1) +
@@ -649,7 +642,6 @@ plot_baseline_cases <- function(res_samples,
     lshtm_theme()  +
     theme(axis.text.x=element_text(angle=45, hjust=1),
           legend.position = "none",
-          #axis.title.x=element_blank(),
           axis.title.y=element_blank()) +
     xlab(" ")
   
@@ -658,7 +650,7 @@ plot_baseline_cases <- function(res_samples,
   
   # Extract legends from `timeseries_performance` and `rank_plot` with consistent text size
   legend_performance <- get_legend(
-    ggplot(res_performance_full) + 
+    ggplot(res_performance) + 
       geom_line(mapping=aes(x=date, y=q0.5, colour=performance)) +
       geom_ribbon(mapping=aes(x=date, ymin=q0.25, ymax=q0.75, fill=performance), alpha=0.5) +
       geom_ribbon(mapping=aes(x=date, ymin=q0.025, ymax=q0.975, fill=performance), alpha=0.2) +
