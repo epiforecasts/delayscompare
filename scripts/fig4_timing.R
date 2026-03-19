@@ -20,15 +20,21 @@ all_timing <- list()
 
 for (rt_opts in rt_opts_list) {
   for (disease in diseases) {
-    tryCatch({
-      timing <- read_latest(here("results/timing"),
-        paste0("res_", disease, "_resim_", rt_opts, "_all_timing"))
-      timing$disease <- disease
-      timing$rt_opts <- rt_opts
-      all_timing[[paste0(rt_opts, "_", disease)]] <- timing
-    }, error = function(e) {
-      message(paste("Missing timing:", disease, rt_opts))
-    })
+    for (gt in 1:6) {
+      for (inc_val in 1:6) {
+        tryCatch({
+          timing <- read_latest(here("results"),
+            paste0("res_", disease, "_resim_", rt_opts, "_timing", gt, inc_val))
+          timing$gt <- gt
+          timing$inc <- inc_val
+          timing$disease <- disease
+          timing$rt_opts <- rt_opts
+          all_timing[[paste0(rt_opts, "_", disease, "_", gt, inc_val)]] <- timing
+        }, error = function(e) {
+          message(paste("Missing timing:", disease, rt_opts, "gt=", gt, "inc=", inc_val))
+        })
+      }
+    }
   }
 }
 
@@ -38,8 +44,12 @@ timing_df <- bind_rows(all_timing)
 timing_summary <- timing_df |>
   group_by(disease, rt_opts, gt, inc) |>
   summarise(total_seconds = sum(elapsed_seconds), .groups = "drop") |>
-  mutate(total_minutes = total_seconds / 60,
-         gt_label = factor(gt_labels[as.character(gt)],
+  mutate(total_minutes = total_seconds / 60) |>
+  group_by(disease, rt_opts) |>
+  mutate(median_minutes = median(total_minutes, na.rm = TRUE),
+         relative_time = total_minutes / median_minutes) |>
+  ungroup() |>
+  mutate(gt_label = factor(gt_labels[as.character(gt)],
                            levels = c("no delay", "very low", "low",
                                       "correct", "high", "very high")),
          inc_label = factor(inc_labels[as.character(inc)],
@@ -52,11 +62,11 @@ timing_summary <- timing_df |>
 
 # Heatmap
 heatmap_plot <- ggplot(timing_summary,
-                       aes(x = gt_label, y = inc_label, fill = total_minutes)) +
+                       aes(x = gt_label, y = inc_label, fill = relative_time)) +
   geom_tile(colour = "white", linewidth = 0.5) +
-  geom_text(aes(label = round(total_minutes, 0)), size = 3) +
+  geom_text(aes(label = round(relative_time, 1)), size = 3) +
   facet_grid(disease ~ rt_opts) +
-  scale_fill_viridis_c(name = "Total runtime\n(minutes)", option = "plasma") +
+  scale_fill_viridis_c(name = "Relative runtime\n(× median)", option = "plasma", trans = "log10") +
   xlab("Generation time") +
   ylab("Incubation period") +
   lshtm_theme() +

@@ -37,8 +37,6 @@ for (rt_opts in rt_opts_list) {
       paste0("res_", disease, "_resim_", rt_opts, "_all_id"))
 
     startdate <- startenddates[[disease]]$startdate
-    resim_samples <- resim_samples |> filter(date <= as.Date(startdate) + 6*4*7)
-    resim_data <- resim_data |> filter(date <= as.Date(startdate) + 6*4*7)
 
     ## Score
     scores_cases <- generate_scores_cases(resim_samples, resim_id, resim_data) |>

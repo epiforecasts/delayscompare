@@ -1,5 +1,5 @@
 ####################################
-#### Figure 1 - Resimulated data ###
+#### Figure 1 TEST - mean across all values of other parameter ###
 ####################################
 
 library(here)
@@ -47,30 +47,55 @@ for (rt_opts in rt_opts_list) {
     scores_rt <- generate_scores_rt(resim_R, resim_id, rt_truth) |>
       mutate(scen = 1, rt_opts = rt_opts, rt_traj = "Rt", ur = "y")
 
-    ## Rt plots
-    rtplot <- plot_baseline_rt(resim_R, resim_id, rt_truth,
-                                scores_rt, forecast_freq = 4)
+    ## Build barcharts manually with mean across all values
+    scores_both <- bind_rows(scores_cases, scores_rt)
+    scores_long <- scores_both |>
+      pivot_longer(cols = c(crps, overprediction, underprediction, dispersion),
+                   names_to = "measure", values_to = "value")
 
-    ## Case plots
-    caseplot <- plot_baseline_cases(resim_samples, resim_id, resim_data,
-                                     scores_cases, forecast_freq = 4)
+    # Mean across ALL inc_period values (not just correct)
+    mean_gt <- scores_long |>
+      group_by(gen_time, rt_traj, rt_opts, measure) |>
+      summarise(value = mean(value), .groups = "drop")
 
-    ## Extract sub-plots
+    # Mean across ALL gen_time values (not just correct)
+    mean_inc <- scores_long |>
+      group_by(inc_period, rt_traj, rt_opts, measure) |>
+      summarise(value = mean(value), .groups = "drop")
+
     label <- disease_labels[disease]
     title_theme <- theme(plot.title = element_text(hjust = 0.5, size = 20))
     measure_colours <- scale_fill_manual(values = lshtm_pal, name = "Components of CRPS")
 
-    assign(paste0("rt_barchartgentime_", rt_opts, "_", disease),
-      rtplot$barchart_mean_gen_time + ggtitle(label) + title_theme + measure_colours)
-    assign(paste0("rt_barchartincperiod_", rt_opts, "_", disease),
-      rtplot$barchart_mean_inc_period + ggtitle(label) + title_theme + measure_colours)
-    assign(paste0("case_barchartgentime_", rt_opts, "_", disease),
-      caseplot$barchart_mean_gen_time + ggtitle(label) + title_theme + measure_colours)
-    assign(paste0("case_barchartincperiod_", rt_opts, "_", disease),
-      caseplot$barchart_mean_inc_period + ggtitle(label) + title_theme + measure_colours)
+    # Gen time barchart
+    p_gt <- ggplot(mean_gt |> filter(measure != "crps"),
+                   aes(x = gen_time, y = value, fill = measure)) +
+      geom_bar(stat = "identity") +
+      facet_wrap(~rt_traj, nrow = 1) +
+      xlab(" ") + ylab("CRPS") +
+      lshtm_theme() +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1),
+            legend.position = "none",
+            axis.title.y = element_blank()) +
+      ggtitle(label) + title_theme + measure_colours
 
-    rm(rtplot, caseplot, resim_samples, resim_R, resim_id, resim_data,
-       rt_truth, scores_cases, scores_rt); gc()
+    # Inc period barchart
+    p_inc <- ggplot(mean_inc |> filter(measure != "crps"),
+                    aes(x = inc_period, y = value, fill = measure)) +
+      geom_bar(stat = "identity") +
+      facet_wrap(~rt_traj, nrow = 1) +
+      xlab(" ") + ylab("CRPS") +
+      lshtm_theme() +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1),
+            legend.position = "none",
+            axis.title.y = element_blank()) +
+      ggtitle(label) + title_theme + measure_colours
+
+    assign(paste0("rt_barchartgentime_", rt_opts, "_", disease), p_gt)
+    assign(paste0("rt_barchartincperiod_", rt_opts, "_", disease), p_inc)
+
+    rm(resim_samples, resim_R, resim_id, resim_data, rt_truth,
+       scores_cases, scores_rt, scores_both, scores_long, mean_gt, mean_inc); gc()
   }
 }
 
@@ -80,28 +105,25 @@ for (rt_opts in rt_opts_list) {
 
 no_title <- theme(plot.title = element_blank())
 
-# Build a grid for each rt_opts
 build_barchart_grid <- function(rt_opts_val, panel_start = 1) {
-  panel_labels <- LETTERS[panel_start:(panel_start + 11)]
+  panel_labels <- LETTERS[panel_start:(panel_start + 5)]
   panel_idx <- 1
 
   plots <- list()
   for (disease in diseases) {
-    for (prefix in c("rt_barchartgentime_", "case_barchartgentime_",
-                      "rt_barchartincperiod_", "case_barchartincperiod_")) {
+    for (prefix in c("rt_barchartgentime_", "rt_barchartincperiod_")) {
       name <- paste0(prefix, rt_opts_val, "_", disease)
       plots[[panel_idx]] <- get(name) + no_title + labs(tag = panel_labels[panel_idx])
       panel_idx <- panel_idx + 1
     }
   }
 
-  cowplot::plot_grid(plotlist = plots, ncol = 4)
+  cowplot::plot_grid(plotlist = plots, ncol = 2)
 }
 
 grid_latest <- build_barchart_grid("latest", panel_start = 1)
-grid_project <- build_barchart_grid("project", panel_start = 13)
+grid_project <- build_barchart_grid("project", panel_start = 7)
 
-# Row labels (disease names) on the left — same for both grids
 make_row_labels <- function() {
   cowplot::plot_grid(
     ggplot() + annotate("text", x = 0.5, y = 0.5, label = "COVID-19",
@@ -124,7 +146,6 @@ body_project <- cowplot::plot_grid(
   ncol = 2, rel_widths = c(0.12, 1)
 )
 
-# Top-level headers: Generation time / Incubation period
 top_headers <- cowplot::plot_grid(
   ggplot() + annotate("text", x = 0.5, y = 0.5, label = "Generation time",
                        size = 6, fontface = "bold") + theme_void(),
@@ -138,13 +159,11 @@ top_headers_padded <- cowplot::plot_grid(
   ncol = 2, rel_widths = c(0.12, 1)
 )
 
-# Section labels
 label_latest <- ggplot() + annotate("text", x = 0.5, y = 0.5,
   label = "Latest Rt estimate", size = 7, fontface = "bold") + theme_void()
 label_project <- ggplot() + annotate("text", x = 0.5, y = 0.5,
   label = "Projected Rt", size = 7, fontface = "bold") + theme_void()
 
-# Extract shared legend
 legend_data <- data.frame(
   x = rep("a", 3), y = c(1, 1, 1),
   measure = factor(c("dispersion", "overprediction", "underprediction"),
@@ -160,7 +179,6 @@ legend <- cowplot::get_legend(
           legend.title = element_text(size = 14))
 )
 
-# Combine: headers + latest block + project block
 main_plot <- cowplot::plot_grid(
   top_headers_padded,
   label_latest,
@@ -175,7 +193,7 @@ combined_barcharts <- cowplot::plot_grid(
   ncol = 2, rel_widths = c(1, 0.15)
 )
 
-ggsave(here("figures", "fig1_resim_combined_barcharts.png"),
+ggsave(here("figures", "fig1_resim_test_mean.png"),
        combined_barcharts, width = 14, height = 18)
 
-message("\n=== Figure 1 resim generation complete ===\n")
+message("\n=== Figure 1 TEST (mean) complete ===\n")

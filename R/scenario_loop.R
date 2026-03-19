@@ -11,6 +11,9 @@ sim_scenarios <- function(case_data,
                           rep_mean,
                           rep_sd,
                           rep_max,
+                          inc_dist="LogNormal",
+                          rep_dist="LogNormal",
+                          obs_family="poisson",
                           freq_fc=4,
                           weeks_inc=12,
                           rt_opts_choice,
@@ -111,13 +114,15 @@ if(length(scen_timepoints) == 0){
 
         # Incubation period and reporting delay (both vary with inc parameter)
         if(inc!=1){
-        inc_period <- LogNormal(mean=inc_mean*scen_values[inc],
-                                sd=inc_sd,
-                                max=inc_max)
+        inc_dist_fn <- match.fun(inc_dist)
+        inc_period <- inc_dist_fn(mean=inc_mean*scen_values[inc],
+                                  sd=inc_sd,
+                                  max=inc_max)
         if(rep_max>0){
-        reporting_delay <- LogNormal(mean=rep_mean*scen_values[inc],
-                                     sd=rep_sd,
-                                     max=rep_max)} else {reporting_delay <- Fixed(0)}
+        rep_dist_fn <- match.fun(rep_dist)
+        reporting_delay <- rep_dist_fn(mean=rep_mean*scen_values[inc],
+                                       sd=rep_sd,
+                                       max=rep_max)} else {reporting_delay <- Fixed(0)}
         } else {
           inc_period <- Fixed(0)
           reporting_delay <- Fixed(0)
@@ -129,7 +134,7 @@ start_runtime <- Sys.time()
           def <- estimate_infections(case_segment,
                                      generation_time = generation_time_opts(gen_time),
                                      delays = delay_opts(inc_period + reporting_delay),
-                                     obs=obs_opts(family="negbin", scale=Fixed(obs_scale)),
+                                     obs=obs_opts(family=obs_family, scale=Fixed(obs_scale)),
                                      rt=rt_opts(future=rt_opts_choice),
                                      stan = stan_opts(samples = 3000,
                                                       return_fit = FALSE,
@@ -252,6 +257,9 @@ sim_weightprior <- function(case_data,
                           rep_sd_mean,
                           rep_sd_sd,
                           rep_max,
+                          inc_dist="LogNormal",
+                          rep_dist="LogNormal",
+                          obs_family="poisson",
                           freq_fc=4,
                           weeks_inc=12,
                           rt_opts_choice,
@@ -375,7 +383,7 @@ start_runtime <- Sys.time()
           def <- estimate_infections(case_segment,
                                      generation_time = generation_time_opts(gen_time, weight_prior=weight_prior),
                                      delays = delay_opts(inc_period + reporting_delay, weight_prior=weight_prior),
-                                     obs=obs_opts(family="negbin", scale=Fixed(obs_scale)),
+                                     obs=obs_opts(family=obs_family, scale=Fixed(obs_scale)),
                                      rt=rt_opts(future=rt_opts_choice),
                                      stan = stan_opts(samples = 3000,
                                                       return_fit = FALSE,

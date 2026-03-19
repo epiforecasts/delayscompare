@@ -80,21 +80,30 @@ delays <- list(
   ebola = list(
     gen = c(mean = 16.2, mean_sd = 1.62, sd = 9.4, sd_sd = 0.94, max = 65),
     inc = c(mean = 9.7, mean_sd = 0.97, sd = 5.5, sd_sd = 0.55, max = 39),
+    inc_dist = "Gamma",
     rep = c(mean = 0, sd = 0, max = 0),
+    rep_dist = "none",
+    obs_family = "poisson",
     underreport = 0.83,
     init_infs=50
   ),
   covid = list(
     gen = c(mean = 3.6, mean_sd = 0.7, sd = 3.1, sd_sd = 0.8, max = 15),
     inc = c(mean = 5.2, mean_sd = 1.1, sd = 1.52, sd_sd = 1.1, max = 21),
+    inc_dist = "LogNormal",
     rep = c(mean = 4.4, mean_sd = 0.44, sd = 5.6, sd_sd = 0.56, max = 18),
+    rep_dist = "LogNormal",
+    obs_family = "poisson",
     underreport = 0.4,
     init_infs=2500
   ),
   cholera = list(
     gen = c(mean = 8.51, mean_sd = 0.85, sd = 0.54, sd_sd = 0.054, max = 35),
     inc = c(mean = 1.77, mean_sd = 0.18, sd = 1.36, sd_sd = 0.14, max = 8),
+    inc_dist = "LogNormal",
     rep = c(mean = 4.4, mean_sd = 0.66, sd = 4.4, sd_sd = 0.66, max = 22),
+    rep_dist = "Gamma",
+    obs_family = "poisson",
     underreport = 0.28,
     init_infs=75
   ))

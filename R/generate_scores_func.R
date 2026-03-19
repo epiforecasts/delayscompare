@@ -9,7 +9,7 @@ if ("inc" %in% names(res_samples) && "inc" %in% names(res_id)) {
 res_samples <- res_samples |>
   left_join(res_id, by = join_keys)
 
-# Get 2-week forecast only
+# Get end of forecast horizon only
 res_samples <- res_samples |>
   group_by(timepoint) |>
   filter(date == max(date))                                                                           
@@ -37,7 +37,7 @@ res_samples <- transform_forecasts(res_samples, fun = log_shift, offset = 1, lab
 
 scores <- res_samples |>
   filter(type=="forecast", scale=="log") |>
-  score() 
+  score()
 
 return(scores)
 
@@ -61,7 +61,7 @@ generate_scores_rt <- function(res_R, res_id, rt_traj_scen) {
   res_R <- res_R |>
     left_join(res_id, by = join_keys)
   
-  # Get 2-week forecast only
+  # Get end of forecast horizon only
   res_R <- res_R |>
     group_by(timepoint) |>
     filter(date == max(date))
@@ -86,8 +86,8 @@ generate_scores_rt <- function(res_R, res_id, rt_traj_scen) {
   
   scores <- res_R |>
     filter(type=="forecast", scale=="natural") |>
-    score() 
-  
+    score()
+
   return(scores)
   
 }
