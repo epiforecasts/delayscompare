@@ -19,6 +19,9 @@ print(rt_opts)
 disease <- var[4] # "cholera", "covid" or "ebola"
 print(disease)
 
+tp <- if (length(var) >= 5) as.numeric(var[5]) else NULL
+print(paste("timepoint_range:", ifelse(is.null(tp), "all", tp)))
+
 ## Loading data ##
 
 # Verify required data exists (check for files matching pattern with date suffix)
@@ -55,12 +58,14 @@ res_disease <- sim_scenarios(case_data=sim_data_cases,
                              freq_fc = 4,
                              weeks_inc = 12,
                              rt_opts_choice = rt_opts,
-                             obs_scale = d$underreport)
+                             obs_scale = d$underreport,
+                             timepoint_range = tp)
 
-save_latest(res_disease[[1]], here("results"), paste0("res_", disease, "_resim_", rt_opts, "_samples", gt, inc))
-save_latest(res_disease[[2]], here("results"), paste0("res_", disease, "_resim_", rt_opts, "_id", gt, inc))
-save_latest(res_disease[[3]], here("results"), paste0("res_", disease, "_resim_", rt_opts, "_R", gt, inc))
-save_latest(res_disease[[4]], here("results"), paste0("res_", disease, "_resim_", rt_opts, "_summary", gt, inc))
-save_latest(res_disease[[5]], here("results"), paste0("res_", disease, "_resim_", rt_opts, "_warnings", gt, inc))
-save_latest(res_disease[[6]], here("results"), paste0("res_", disease, "_resim_", rt_opts, "_timing", gt, inc))
+tp_suffix <- if (!is.null(tp)) paste0("_tp", tp) else ""
+save_latest(res_disease[[1]], here("results"), paste0("res_", disease, "_resim_", rt_opts, "_samples", gt, inc, tp_suffix))
+save_latest(res_disease[[2]], here("results"), paste0("res_", disease, "_resim_", rt_opts, "_id", gt, inc, tp_suffix))
+save_latest(res_disease[[3]], here("results"), paste0("res_", disease, "_resim_", rt_opts, "_R", gt, inc, tp_suffix))
+save_latest(res_disease[[4]], here("results"), paste0("res_", disease, "_resim_", rt_opts, "_summary", gt, inc, tp_suffix))
+save_latest(res_disease[[5]], here("results"), paste0("res_", disease, "_resim_", rt_opts, "_warnings", gt, inc, tp_suffix))
+save_latest(res_disease[[6]], here("results"), paste0("res_", disease, "_resim_", rt_opts, "_timing", gt, inc, tp_suffix))
 

@@ -83,8 +83,8 @@ delays <- list(
     inc_dist = "Gamma",
     rep = c(mean = 0, sd = 0, max = 0),
     rep_dist = "none",
-    obs_family = "poisson",
-    underreport = 0.83,
+    obs_family = "negbin",
+    underreport = 1,
     init_infs=50
   ),
   covid = list(
@@ -93,8 +93,8 @@ delays <- list(
     inc_dist = "LogNormal",
     rep = c(mean = 4.4, mean_sd = 0.44, sd = 5.6, sd_sd = 0.56, max = 18),
     rep_dist = "LogNormal",
-    obs_family = "poisson",
-    underreport = 0.4,
+    obs_family = "negbin",
+    underreport = 1,
     init_infs=2500
   ),
   cholera = list(
@@ -103,8 +103,8 @@ delays <- list(
     inc_dist = "LogNormal",
     rep = c(mean = 4.4, mean_sd = 0.66, sd = 4.4, sd_sd = 0.66, max = 22),
     rep_dist = "Gamma",
-    obs_family = "poisson",
-    underreport = 0.28,
+    obs_family = "negbin",
+    underreport = 1,
     init_infs=75
   ))
 

@@ -140,32 +140,35 @@ for(disease in c("ebola", "covid", "cholera")){
     idx <- 1
     for(gt in 1:6){
       for(inc_val in 1:6){
-        tryCatch({
-          disease_id[[idx]] <- read_latest(here("results"), paste0("res_", disease, "_resim_", rt_opts, "_id", gt, inc_val))
-          disease_R[[idx]] <- read_latest(here("results"), paste0("res_", disease, "_resim_", rt_opts, "_R", gt, inc_val))
-          disease_samples[[idx]] <- read_latest(here("results"), paste0("res_", disease, "_resim_", rt_opts, "_samples", gt, inc_val))
-          warnings_data <- read_latest(here("results"), paste0("res_", disease, "_resim_", rt_opts, "_warnings", gt, inc_val))
-          summary_data <- read_latest_list(here("results"), paste0("res_", disease, "_resim_", rt_opts, "_summary", gt, inc_val))
-          disease_diagnostics[[idx]] <- extract_diagnostics(summary_data)
-          disease_diagnostics[[idx]]$gt <- gt
-          disease_diagnostics[[idx]]$inc <- inc_val
-          # Add gt and inc columns
-          disease_id[[idx]]$gt <- gt
-          disease_id[[idx]]$inc <- inc_val
-          disease_R[[idx]]$gt <- gt
-          disease_R[[idx]]$inc <- inc_val
-          disease_samples[[idx]]$gt <- gt
-          disease_samples[[idx]]$inc <- inc_val
-          # Handle NULL warnings
-          if(!is.null(warnings_data) && is.data.frame(warnings_data)) {
-            warnings_data$gt <- gt
-            warnings_data$inc <- inc_val
-            disease_warnings[[idx]] <- warnings_data
-          }
-          idx <- idx + 1
-        }, error = function(e) {
-          message(paste("Missing:", disease, "resim", rt_opts, "gt=", gt, "inc=", inc_val))
-        })
+        for(tp in 1:8){
+          tryCatch({
+            tp_suffix <- paste0("_tp", tp)
+            disease_id[[idx]] <- read_latest(here("results"), paste0("res_", disease, "_resim_", rt_opts, "_id", gt, inc_val, tp_suffix))
+            disease_R[[idx]] <- read_latest(here("results"), paste0("res_", disease, "_resim_", rt_opts, "_R", gt, inc_val, tp_suffix))
+            disease_samples[[idx]] <- read_latest(here("results"), paste0("res_", disease, "_resim_", rt_opts, "_samples", gt, inc_val, tp_suffix))
+            warnings_data <- read_latest(here("results"), paste0("res_", disease, "_resim_", rt_opts, "_warnings", gt, inc_val, tp_suffix))
+            # Add gt and inc columns
+            disease_id[[idx]]$gt <- gt
+            disease_id[[idx]]$inc <- inc_val
+            disease_R[[idx]]$gt <- gt
+            disease_R[[idx]]$inc <- inc_val
+            disease_samples[[idx]]$gt <- gt
+            disease_samples[[idx]]$inc <- inc_val
+            # Handle NULL warnings
+            if(!is.null(warnings_data) && is.data.frame(warnings_data)) {
+              warnings_data$gt <- gt
+              warnings_data$inc <- inc_val
+              disease_warnings[[idx]] <- warnings_data
+            }
+            idx <- idx + 1
+          }, error = function(e) {
+            if (grepl("No files found", conditionMessage(e))) {
+              message(paste("Missing:", disease, "resim", rt_opts, "gt=", gt, "inc=", inc_val, "tp=", tp))
+            } else {
+              stop(e)
+            }
+          })
+        }
       }
     }
 

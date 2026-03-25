@@ -20,7 +20,7 @@ sim_scenarios <- function(case_data,
                           obs_scale,
                           report_freq="day",
                           timepoint_range=NULL,
-                          adapt_delta=0.99){
+                          adapt_delta=0.95){
   
   ## Scenarios
   
@@ -140,7 +140,7 @@ start_runtime <- Sys.time()
                                                       return_fit = FALSE,
                                                       control=list(adapt_delta=adapt_delta,
                                                                    max_treedepth=20)),
-                                     forecast = forecast_opts(horizon=14),
+                                     forecast = forecast_opts(horizon=28),
                                      verbose = FALSE)
           
         # Recording runtime
@@ -155,23 +155,24 @@ start_runtime <- Sys.time()
         )
 
         # Handle case where samples are NULL (model fit failed)
-        if (is.null(def$samples)) {
+        def_samples <- get_samples(def)
+        if (is.null(def_samples)) {
           warning(paste("Model fit failed for timepoint", k, "- samples are NULL"))
           res_samples <- data.frame(date = as.Date(character()), sample = integer(),
                                     value = numeric(), type = character())
           res_R <- data.frame(date = as.Date(character()), sample = integer(),
                               value = numeric(), type = character())
         } else {
-          res_samples <- def$samples |>
+          res_samples <- def_samples |>
             filter(variable == "reported_cases", type != "estimate") |>
             select(date, sample, value, type)
 
-          res_R <- def$samples |>
+          res_R <- def_samples |>
             filter(variable == "R", type != "estimate") |>
             select(date, sample, value, type)
         }
 
-        def$samples <- NULL
+        rm(def_samples)
 
         res_id <- data.frame(timepoint=original_tp,
                              gen_time=names(scen_values)[var],
@@ -267,7 +268,7 @@ sim_weightprior <- function(case_data,
                           obs_scale,
                           timepoint_start=NULL,
                           timepoint_end=NULL,
-                          adapt_delta=0.99){
+                          adapt_delta=0.95){
 
   stopifnot(vary %in% c("gt", "inc", "both"))
 
@@ -389,7 +390,7 @@ start_runtime <- Sys.time()
                                                       return_fit = FALSE,
                                                       control=list(adapt_delta=adapt_delta,
                                                                    max_treedepth=20)),
-                                     forecast = forecast_opts(horizon=14),
+                                     forecast = forecast_opts(horizon=28),
                                      verbose = FALSE)
           
         # Recording runtime
@@ -400,23 +401,24 @@ start_runtime <- Sys.time()
           elapsed_seconds=elapsed_seconds)
 
         # Handle case where samples are NULL (model fit failed)
-        if (is.null(def$samples)) {
+        def_samples <- get_samples(def)
+        if (is.null(def_samples)) {
           warning(paste("Model fit failed for timepoint", k, "- samples are NULL"))
           res_samples <- data.frame(date = as.Date(character()), sample = integer(),
                                     value = numeric(), type = character())
           res_R <- data.frame(date = as.Date(character()), sample = integer(),
                               value = numeric(), type = character())
         } else {
-          res_samples <- def$samples |>
+          res_samples <- def_samples |>
             filter(variable == "reported_cases", type != "estimate") |>
             select(date, sample, value, type)
 
-          res_R <- def$samples |>
+          res_R <- def_samples |>
             filter(variable == "R", type != "estimate") |>
             select(date, sample, value, type)
         }
 
-        def$samples <- NULL
+        rm(def_samples)
 
         res_id <- data.frame(timepoint=k)
 

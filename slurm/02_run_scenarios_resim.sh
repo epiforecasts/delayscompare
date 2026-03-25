@@ -3,7 +3,7 @@
 #SBATCH --output=slurm/logs/resim_%A_%a.out
 #SBATCH --error=slurm/logs/resim_%A_%a.err
 #SBATCH --time=24:00:00
-#SBATCH --mem=16gb
+#SBATCH --mem=3gb
 #SBATCH --ntasks=4
 #SBATCH --nodes=1
 set -euo pipefail
@@ -23,7 +23,7 @@ else
 fi
 echo "Working directory: $(pwd)"
 
-module load R
+export PATH=~/miniconda3/envs/R.4.3.2/bin:$PATH
 
 TASK_ID=$SLURM_ARRAY_TASK_ID
 
@@ -35,7 +35,8 @@ fi
 GT=$(( ((TASK_ID - 1) / 6) + 1 ))
 INC=$(( ((TASK_ID - 1) % 6) + 1 ))
 
-RT_OPTS="latest"
+RT_OPTS=${2:-latest}
+TP=${3:-}
 SCRIPT="scripts/06a_scenariorun_resim.R"
 
 echo "=========================================="
@@ -44,9 +45,10 @@ echo "Disease: $DISEASE"
 echo "GT level: $GT"
 echo "INC level: $INC"
 echo "RT opts: $RT_OPTS"
+echo "Timepoint: ${TP:-all}"
 echo "Script: $SCRIPT"
 echo "=========================================="
 
-Rscript $SCRIPT $GT $INC $RT_OPTS $DISEASE
+Rscript $SCRIPT $GT $INC $RT_OPTS $DISEASE $TP
 
 echo "Done: $DISEASE resim gt=$GT inc=$INC"
