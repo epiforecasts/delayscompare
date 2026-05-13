@@ -260,7 +260,8 @@ sim_weightprior <- function(case_data,
                           obs_scale,
                           timepoint_start=NULL,
                           timepoint_end=NULL,
-                          adapt_delta=0.99){
+                          adapt_delta=0.99,
+                          samples=3000){
 
   stopifnot(vary %in% c("gt", "inc", "both"))
 
@@ -331,18 +332,20 @@ res <- pmap(scenarios, \(k) {
         
         print(nrow(case_segment))
         
-        # Generation interval
+        # Generation interval. When vary requests learning GT we use a parametric
+        # prior even for very-narrow underlying distributions; the Fixed shortcut
+        # is reserved for cases where GT is not being estimated.
         gen_shape <- gen_mean_mean^2 / gen_sd_mean^2
         gen_rate <- gen_mean_mean / gen_sd_mean^2
 
-        if(gen_shape > 100) {
-          gen_time <- Fixed(gen_mean_mean)
-        } else if (vary %in% c("gt", "both")) {
+        if (vary %in% c("gt", "both")) {
           gen_shape_sd <- gen_shape * sqrt((2*gen_mean_sd/gen_mean_mean)^2 + (2*gen_sd_sd/gen_sd_mean)^2)
           gen_rate_sd <- gen_rate * sqrt((gen_mean_sd/gen_mean_mean)^2 + (2*gen_sd_sd/gen_sd_mean)^2)
           gen_time <- Gamma(shape=Normal(gen_shape, gen_shape_sd),
                             rate=Normal(gen_rate, gen_rate_sd),
                             max=gen_max)
+        } else if (gen_shape > 100) {
+          gen_time <- Fixed(gen_mean_mean)
         } else {
           gen_time <- Gamma(mean=gen_mean_mean, sd=gen_sd_mean, max=gen_max)
         }
@@ -378,13 +381,13 @@ start_runtime <- Sys.time()
                                      delays = delay_opts(inc_period + reporting_delay, weight_prior=weight_prior),
                                      obs=obs_opts(family="negbin", scale=Fixed(obs_scale)),
                                      rt=rt_opts(future=rt_opts_choice),
-                                     stan = stan_opts(samples = 3000,
+                                     stan = stan_opts(samples = samples,
                                                       return_fit = FALSE,
                                                       control=list(adapt_delta=adapt_delta,
                                                                    max_treedepth=20)),
                                      forecast = forecast_opts(horizon=14),
                                      verbose = FALSE)
-          
+
         # Recording runtime
         end_runtime <- Sys.time()
         elapsed_seconds <- as.numeric(difftime(end_runtime, start_runtime, units = "secs"))

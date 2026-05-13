@@ -99,6 +99,34 @@ delays <- list(
     init_infs=75
   ))
 
+## Wide-prior variant for the regime-2 case-study comparison ("learn vs impose").
+## Prior SDs on mean and SD widened to 25% relative; max truncations set to the
+## 99.95% quantile of the literature distribution (rounded up). Means and SDs at
+## the distribution centre are unchanged from the literature `delays` list above.
+delays_widepriors <- list(
+  ebola = list(
+    gen = c(mean = 16.2, mean_sd = 4.05, sd = 9.4,  sd_sd = 2.35, max = 66),
+    inc = c(mean = 9.7,  mean_sd = 2.43, sd = 5.5,  sd_sd = 1.38, max = 40),
+    rep = c(mean = 0,    mean_sd = 0,    sd = 0,    sd_sd = 0,    max = 0),
+    underreport = 0.83,
+    init_infs = 50
+  ),
+  covid = list(
+    gen = c(mean = 3.6,  mean_sd = 0.90, sd = 3.1,  sd_sd = 0.78, max = 25),
+    inc = c(mean = 5.2,  mean_sd = 1.30, sd = 1.52, sd_sd = 0.38, max = 15),
+    rep = c(mean = 4.4,  mean_sd = 1.10, sd = 5.6,  sd_sd = 1.40, max = 70),
+    underreport = 0.4,
+    init_infs = 2500
+  ),
+  cholera = list(
+    gen = c(mean = 8.51, mean_sd = 2.13, sd = 0.54, sd_sd = 0.135, max = 15),
+    inc = c(mean = 1.77, mean_sd = 0.44, sd = 1.36, sd_sd = 0.34,  max = 15),
+    rep = c(mean = 4.4,  mean_sd = 1.10, sd = 4.4,  sd_sd = 1.10,  max = 35),
+    underreport = 0.28,
+    init_infs = 75
+  )
+)
+
 ## Saving dates for datacollect
 startenddates <- list(
   ebola = list(
