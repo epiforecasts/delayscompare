@@ -53,15 +53,15 @@ combined_delay_covid <- covid_inc_period + covid_reporting_delay
 #### cholera-like ####
 
 ## Generation time
-
-# sd derived from reported range (7.13-9.29): sd ≈ (9.29-7.13)/4 = 0.54
-cholera_gen_time <- Gamma(mean=8.51,
-                          sd=0.54,
-                          max=35) # Mari et al. 2012 https://pubmed.ncbi.nlm.nih.gov/21752809/ (max from literature)
-
-# cholera_gen_time <- Gamma(mean=5,
-#                           sd=8,
-#                          max=30) # https://www.thelancet.com/journals/langlo/article/PIIS2214-109X(18)30230-4
+## Note: an earlier version of this file used Mari et al. 2012 with mean=8.51
+## and sd=0.54. The "sd" there was derived as (9.29-7.13)/4 from the reported
+## range, which is the 95% CI on the mean estimate rather than the spread of
+## the generation-interval distribution. Using it as a distribution sd gives
+## gamma shape ~248, which makes data-driven estimation numerically intractable.
+## We instead use Azman et al. (2018) for a biologically realistic spread.
+cholera_gen_time <- Gamma(mean=5,
+                          sd=4,
+                          max=35) # Azman et al. 2018 https://doi.org/10.1016/S2214-109X(18)30230-4
 
 ## Incubation period 
 
@@ -92,7 +92,7 @@ delays <- list(
     init_infs=2500
   ),
   cholera = list(
-    gen = c(mean = 8.51, mean_sd = 0.85, sd = 0.54, sd_sd = 0.054, max = 35),
+    gen = c(mean = 5, mean_sd = 0.5, sd = 4, sd_sd = 0.4, max = 35),  # Azman et al. 2018
     inc = c(mean = 1.77, mean_sd = 0.18, sd = 1.36, sd_sd = 0.14, max = 8),
     rep = c(mean = 4.4, mean_sd = 0.66, sd = 4.4, sd_sd = 0.66, max = 22),
     underreport = 0.28,
