@@ -12,15 +12,15 @@
 
 library(here)
 
-ebola_gen_time <- Gamma(mean=16.2,
-                        sd=9.4,
-                        max=65) # from Park et al. 2019 (max from literature)
+ebola_gen_time <- Gamma(mean=10.9,
+                        sd=8,
+                        max=50) # generation time from Lau et al. 2017 (PNAS); SD assumed
 
 ## Incubation period
 
-ebola_inc_period <- Gamma(mean=9.7,
+ebola_inc_period <- Gamma(mean=8.5,
                           sd=5.5,
-                          max=39) # from WHO Ebola Response Team 2014, Table S2 (multiday exposure fitted; max from literature)
+                          max=36) # pooled incubation period from Nash et al. 2024 review; SD assumed
 
 ## Reporting delay
 
@@ -53,15 +53,14 @@ combined_delay_covid <- covid_inc_period + covid_reporting_delay
 #### cholera-like ####
 
 ## Generation time
-## Note: an earlier version of this file used Mari et al. 2012 with mean=8.51
-## and sd=0.54. The "sd" there was derived as (9.29-7.13)/4 from the reported
-## range, which is the 95% CI on the mean estimate rather than the spread of
-## the generation-interval distribution. Using it as a distribution sd gives
-## gamma shape ~248, which makes data-driven estimation numerically intractable.
-## We instead use Azman et al. (2018) for a biologically realistic spread.
-cholera_gen_time <- Gamma(mean=5,
-                          sd=4,
-                          max=35) # Azman et al. 2018 https://doi.org/10.1016/S2214-109X(18)30230-4
+## No study has estimated the cholera generation interval directly. Azman et al.
+## (2016, Emerg Infect Dis, doi:10.3201/eid2206.151592) assumed Gamma(shape=0.5,
+## rate=0.1) (mean 5, SD ~7.1), grounded in household-contact data from Weil et
+## al. (2009). We use it as the imposed value, treating it as an assumption
+## rather than an estimate.
+cholera_gen_time <- Gamma(shape=0.5,
+                          rate=0.1,
+                          max=35) # Azman et al. 2016; ultimately Weil et al. 2009
 
 ## Incubation period 
 
@@ -78,8 +77,8 @@ combined_delay_cholera <- cholera_inc_period + cholera_reporting_delay
 ## Saving delays for sim_scenario input 
 delays <- list(
   ebola = list(
-    gen = c(mean = 16.2, mean_sd = 1.62, sd = 9.4, sd_sd = 0.94, max = 65),
-    inc = c(mean = 9.7, mean_sd = 0.97, sd = 5.5, sd_sd = 0.55, max = 39),
+    gen = c(mean = 10.9, mean_sd = 1.09, sd = 8, sd_sd = 0.8, max = 50),  # Lau et al. 2017
+    inc = c(mean = 8.5, mean_sd = 0.85, sd = 5.5, sd_sd = 0.55, max = 36),  # Nash et al. 2024 (pooled)
     rep = c(mean = 0, sd = 0, max = 0),
     underreport = 0.83,
     init_infs=50
@@ -92,7 +91,7 @@ delays <- list(
     init_infs=2500
   ),
   cholera = list(
-    gen = c(mean = 5, mean_sd = 0.5, sd = 4, sd_sd = 0.4, max = 35),  # Azman et al. 2018
+    gen = c(mean = 5, mean_sd = 0.5, sd = 7.07, sd_sd = 0.71, max = 35),  # Azman 2016: Gamma(shape=0.5, rate=0.1)
     inc = c(mean = 1.77, mean_sd = 0.18, sd = 1.36, sd_sd = 0.14, max = 8),
     rep = c(mean = 4.4, mean_sd = 0.66, sd = 4.4, sd_sd = 0.66, max = 22),
     underreport = 0.28,
@@ -105,8 +104,8 @@ delays <- list(
 ## the distribution centre are unchanged from the literature `delays` list above.
 delays_widepriors <- list(
   ebola = list(
-    gen = c(mean = 16.2, mean_sd = 1.62, sd = 9.4,  sd_sd = 0.94, max = 66),
-    inc = c(mean = 9.7,  mean_sd = 0.97, sd = 5.5,  sd_sd = 0.55, max = 40),
+    gen = c(mean = 10.9, mean_sd = 1.09, sd = 8,    sd_sd = 0.8,  max = 50),  # Lau et al. 2017
+    inc = c(mean = 8.5,  mean_sd = 0.85, sd = 5.5,  sd_sd = 0.55, max = 36),  # Nash et al. 2024
     rep = c(mean = 0,    mean_sd = 0,    sd = 0,    sd_sd = 0,    max = 0),
     underreport = 0.83,
     init_infs = 50
@@ -119,7 +118,7 @@ delays_widepriors <- list(
     init_infs = 2500
   ),
   cholera = list(
-    gen = c(mean = 8.51, mean_sd = 0.851, sd = 0.54, sd_sd = 0.054, max = 15),
+    gen = c(mean = 5,    mean_sd = 0.5,   sd = 7.07, sd_sd = 0.71,  max = 35),  # Azman 2016: Gamma(shape=0.5, rate=0.1)
     inc = c(mean = 1.77, mean_sd = 0.177, sd = 1.36, sd_sd = 0.136, max = 15),
     rep = c(mean = 4.4,  mean_sd = 0.44,  sd = 4.4,  sd_sd = 0.44,  max = 35),
     underreport = 0.28,
