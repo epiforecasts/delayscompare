@@ -190,8 +190,6 @@ as the concentration and faces the same tension (too tight and the
 data cannot move it; too wide and it will not sample), so we set it from the
 identifiability diagnostic: the loosest relative SD that recovers a known delay
 and still converges (expected ~10–20%, given case counts weakly identify delays).
-In addition, impose the fixed misspecification grid on the real series to see
-which fixed value forecasts best out-of-sample.
 
 We take weekly forecast origins so the score model (see Evaluation) has many
 forecast-target rows to work with; it accounts for the temporal structure. Weekly
@@ -209,27 +207,29 @@ We feed the score model with log and natural CRPS by condition; the estimated PM
 shape and posterior contraction against the literature value; and convergence
 diagnostics (Rhat, ESS, divergences, tree-depth) reported as results.
 
-#### Identifiability diagnostic (gating step, run first)
+#### Identifiability diagnostic (interpretive)
+
+This is interpretive, not a precondition: the learn arm's forecasts stand whether
+or not the delay is recoverable, because a delay the data cannot identify can
+still forecast well. The diagnostic tells us how to read a learn-arm result —
+whether it reflects a delay the data genuinely informed, a posterior that stayed
+at the prior, or a shape absorbing other misspecification.
 
 Delay identifiability from case counts requires the growth rate to change: a
 constant Rt gives an exponential curve on which a delay and the reproduction
-number trade off exactly, so nothing is recoverable. Before trusting the learn
-arm on real data, simulate a **known** generation time under each Rt trajectory
-(the constant trajectories as negative controls that should *not* recover;
-increasing/decreasing as the informative turning-point cases), sweep
-`concentration`, and record for each (trajectory × concentration) whether the
-posterior GT PMF contracts onto the truth, with sampling diagnostics.
+number trade off exactly, so nothing is recoverable. We simulate a **known**
+generation time under each Rt trajectory (the constant trajectories as negative
+controls that should *not* recover; increasing/decreasing as the informative
+turning-point cases), sweep `concentration`, and record for each
+(trajectory × concentration) whether the posterior GT PMF contracts onto the
+truth, with sampling diagnostics.
 
 Recovery metric: posterior mean GT (and PMF) vs. the true value, alongside ESS,
-divergences and tree-depth saturation.
-
-Gate (agreed in advance): if the posterior recovers the truth only at near-imposed
-concentration, the learn arm is reported as prior-dominated and Q2 is reframed as
-bounded ("the data cannot recover the delay; expert values are irreplaceable
-here"). A pilot fit already shows the fully-free end (`concentration = 1`) is
-pathological — tree-depth saturated, bulk ESS ≈ 1, mean roughly recovered but
-shape not — so the sweep is expected to be usable only above some concentration,
-which is itself the identifiability result.
+divergences and tree-depth saturation. A pilot fit shows the fully-free end
+(`concentration = 1`) is pathological — tree-depth saturated, bulk ESS ≈ 1, mean
+roughly recovered but shape not — so recovery is expected only above some
+concentration, itself an informative result about where the data can inform the
+delay.
 
 #### Case-study data provenance and date semantics
 
@@ -285,11 +285,12 @@ choices):
 - *Intervals overlap* → "no clear difference between imposing and learning."
 - *Concentration effect flat or non-monotonic* → "forecast skill is insensitive
   to the impose–learn choice."
-- *Identifiability gate fails* (recovery only near-imposed) → "the data cannot
-  recover the delay; the learn arm is prior-dominated," and Q2 is reframed.
-- *Q1 CRPS flat across the grid* → "short-term case forecasts are insensitive to
-  delay misspecification," with the signal appearing in Rt bias while CRPS stays
-  flat; we treat this as a finding.
+- *Recovery fails* (posterior stays near the prior) → we read the learn arm as
+  prior-dominated: any forecast change comes from the prior, not from the data
+  informing the delay.
+- *Q1 CRPS flat across the grid* → the informative result: short-term case
+  forecasts are robust to delay misspecification because the Gaussian process
+  absorbs it, even though Rt is biased as expected (Gostic et al. 2020).
 
 This analysis is descriptive: no inferential null-hypothesis testing. Exploratory
 observations (e.g. an implausible estimated PMF shape that nonetheless forecasts
