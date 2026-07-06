@@ -9,10 +9,10 @@ The question separates into two linked studies:
   the generation interval or the incubation period degrade short-term case
   forecasts, relative to the effect on Rt? A knob-turning experiment, and the
   well-specified control.
-- **Q2 — Impose vs. learn (case studies, truth unknown).** Along a continuum from
-  imposing the literature value to learning the delay freely from the data, where
-  does forecast skill peak — i.e. how much expert anchoring is optimal? (Omitting
-  the delay is the degenerate end of the same axis.)
+- **Q2 — Impose vs. learn (case studies, truth unknown).** Along the continuum
+  from imposing the literature value to letting the data set the delay freely,
+  where is forecast skill best? That measures how much the literature value should
+  constrain the fit. (Omitting the delay is the degenerate end of the same axis.)
 
 The underlying interest is the trade-off between expert-imposed ("human") and
 data-driven ("machine") specification of the model's mechanistic delay
@@ -88,20 +88,20 @@ parameters.
 3. **Retrospective evaluation on final, complete datasets**, cut at each forecast
    origin; real-time right-truncation is deliberately out of scope.
 4. **Score on both natural and log scales** (see Evaluation).
-5. **The impose↔learn axis is realised as a nonparametric Dirichlet delay with a
-   swept `concentration` parameter** (requires the EpiNow2 dev build providing
-   `Dirichlet()`; pin the commit). High concentration anchors the PMF to the
-   literature shape (impose); low concentration lets the data determine it freely
-   (learn). One object spans the continuum and exposes the estimated *shape*, not
-   just the mean. A parametric data-driven estimate (gamma/lognormal,
-   `weight_prior=FALSE`) is retained as a robustness comparison — does any finding
-   depend on the free-form flexibility? The prior-anchored parametric variant
-   (`weight_prior=TRUE`) is dropped: theory (Gostic et al. 2020) says added
-   uncertainty widens intervals without shifting the central estimate.
-6. **Weak identifiability is expected and grows as concentration falls.** Where the
-   fit degenerates is itself the identifiability result: posterior shape,
-   contraction and convergence diagnostics are reported, not used as silent
-   filters.
+5. **We build the impose↔learn axis as a nonparametric Dirichlet delay with a
+   swept `concentration` parameter** (needs the EpiNow2 dev build that provides
+   `Dirichlet()`; pin the commit). High concentration holds the PMF close to the
+   literature shape (impose); low concentration lets the data set it freely
+   (learn). The same object covers the whole continuum and lets us read off the
+   estimated *shape*, not only the mean. We keep a parametric data-driven estimate
+   (gamma/lognormal, `weight_prior=FALSE`) as a robustness check: does any finding
+   depend on the free-form flexibility? We drop the prior-weighted parametric
+   variant (`weight_prior=TRUE`), because Gostic et al. (2020) show that added
+   uncertainty widens the intervals without shifting the central estimate.
+6. **Weak identifiability is expected, and grows as concentration falls.** Where
+   the fit degenerates is itself the identifiability result, so we report
+   posterior shape, contraction and convergence diagnostics rather than quietly
+   filtering those fits out.
 
 ## Methods
 
@@ -198,16 +198,16 @@ For each of the generation interval and the incubation period, forecast along a
 three-rung ladder: **omit** (a single-day distribution for the generation
 interval; a zero-day delay for the incubation period), **impose** (literature
 value, fixed) and **learn** (nonparametric Dirichlet PMF with `concentration`
-swept over a small set of values, from strongly anchored to free-form). The
+swept over a small set of values, from tightly held to fully free). The
 concentration sweep traces the impose→learn continuum within one model; a
 parametric data-driven estimate (`weight_prior=FALSE`) is run alongside as a
-robustness comparison. In addition, impose the full fixed misspecification grid
+robustness check. In addition, impose the full fixed misspecification grid
 (as above) on the real series to see which fixed value forecasts best
 out-of-sample.
 
 Depth: the full ladder for the generation interval (the central object);
 impose/omit/learn for the incubation period across all three diseases (for
-cholera the posterior is expected to be uninformative — that is the result, not a
+cholera the posterior is expected to be uninformative, which is the result, not a
 reason to skip it); and the joint generation-interval-plus-incubation-period
 learn as an identifiability stress-test.
 
