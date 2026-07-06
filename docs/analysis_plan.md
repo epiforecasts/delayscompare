@@ -330,6 +330,3 @@ Notes:
   Apr 2017 – Jul 2018. These are suspected (not confirmed) cases at weekly
   resolution, which is the material caveat for cholera, so we do not read its
   generation interval as a biological quantity (see the provenance note above).
-- A confirmed daily line-list exists for a different outbreak (Zambia, Lusaka
-  2017: <https://cholera-taxonomy.middle-distance.com/observation_collections/20742>)
-  but at ~10 weeks it is too short for the rolling-window forecasting design.
