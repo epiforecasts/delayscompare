@@ -128,7 +128,7 @@ as the incubation period alone.
 | **SARS-CoV-2** | | | |
 | Generation interval | 3.6 (s.d. 3.1) days | gamma | Sherratt et al. 2021 |
 | Incubation period | 5.2 (s.d. 1.52) days | lognormal | Sherratt et al. 2021 |
-| Case ascertainment | 0.40 | | Colman et al. 2023 |
+| Case ascertainment | 0.40 | | Colman et al. 2023 reports ~0.30; value to confirm |
 | R trajectory / horizon | Jun 2020 – Dec 2021 | | [epiforecasts.io/covid](https://epiforecasts.io/covid/) |
 | **Ebola** | | | |
 | Generation interval | 16.2 (s.d. 9.4) days | gamma | Park et al. 2019 |
@@ -138,7 +138,7 @@ as the incubation period alone.
 | **Cholera** | | | |
 | Generation interval | 5 (s.d. 4) days | gamma | [Azman et al. 2018](https://www.thelancet.com/journals/langlo/article/PIIS2214-109X(18)30230-4/fulltext) |
 | Incubation period | 1.77 (s.d. 1.36) days | lognormal | Azman et al. 2013 |
-| Case ascertainment | 0.28 | | [Yemen figshare dataset](https://figshare.com/articles/dataset/Weekly_cholera_cases_and_rainfall_by_governorate_and_district_in_Yemen_between_2016_and_2020/24231019) |
+| Case ascertainment | 0.28 | | basis undocumented (nearest data ~25–26% test positivity); to confirm |
 | R trajectory / horizon | Apr 2017 – Jul 2018 | | |
 
 #### Rt trajectory scenarios
