@@ -208,26 +208,20 @@ diagnostics (Rhat, ESS, divergences, tree-depth) reported as results.
 #### Identifiability diagnostic (interpretive)
 
 This is interpretive, not a precondition: the learn arm's forecasts stand whether
-or not the delay is recoverable, because a delay the data cannot identify can
-still forecast well. The diagnostic tells us how to read a learn-arm result —
-whether it reflects a delay the data genuinely informed, a posterior that stayed
-at the prior, or a shape absorbing other misspecification.
+or not the delay is recoverable, since a delay the data cannot identify can still
+forecast well. It tells us how to read a learn result: did the data inform the
+delay, did the posterior stay at the prior, or did the estimated shape absorb
+other misspecification?
 
-Delay identifiability from case counts requires the growth rate to change: a
-constant Rt gives an exponential curve on which a delay and the reproduction
-number trade off exactly, so nothing is recoverable. We simulate a **known**
-generation time under each Rt trajectory (the constant trajectories as negative
-controls that should *not* recover; increasing/decreasing as the informative
-turning-point cases), sweep `concentration`, and record for each
-(trajectory × concentration) whether the posterior GT PMF contracts onto the
-truth, with sampling diagnostics.
-
-Recovery metric: posterior mean GT (and PMF) vs. the true value, alongside ESS,
-divergences and tree-depth saturation. A pilot fit shows the fully-free end
-(`concentration = 1`) is pathological — tree-depth saturated, bulk ESS ≈ 1, mean
-roughly recovered but shape not — so recovery is expected only above some
-concentration, itself an informative result about where the data can inform the
-delay.
+Identifiability requires the growth rate to change; a constant Rt gives an
+exponential curve on which the delay and the reproduction number trade off
+exactly. We simulate a known generation time under each Rt trajectory (constants
+as negative controls that should not recover; increasing and decreasing as the
+informative cases), sweep the prior concentration, and ask whether the posterior
+recovers the truth, with sampling diagnostics (ESS, divergences, tree-depth). A
+pilot already shows the fully-free end is pathological (tree-depth saturated, ESS
+near 1, mean roughly recovered but not shape), so recovery is expected only under
+stronger priors.
 
 #### Case-study data provenance and date semantics
 
