@@ -102,6 +102,10 @@ parameters.
    the fit degenerates is itself the identifiability result, so we report
    posterior shape, contraction and convergence diagnostics rather than quietly
    filtering those fits out.
+7. **MCMC: EpiNow2 defaults**, raising `adapt_delta` on divergences and
+   `max_treedepth` on tree-depth saturation (both seen in the learn arm). In the
+   *impose* conditions, fits with max Rhat > 1.05 are discarded; in the *learn*
+   conditions non-convergence is reported, not filtered.
 
 ## Methods
 
@@ -197,24 +201,50 @@ high (×2).
 For each of the generation interval and the incubation period, forecast along a
 three-rung ladder: **omit** (a single-day distribution for the generation
 interval; a zero-day delay for the incubation period), **impose** (literature
-value, fixed) and **learn** (nonparametric Dirichlet PMF with `concentration`
-swept over a small set of values, from tightly held to fully free). The
-concentration sweep traces the impose→learn continuum within one model; a
-parametric data-driven estimate (`weight_prior=FALSE`) is run alongside as a
-robustness check. In addition, impose the full fixed misspecification grid
-(as above) on the real series to see which fixed value forecasts best
-out-of-sample.
+value, fixed) and **learn** (nonparametric Dirichlet PMF centred on the
+literature shape, with `concentration` swept over `{1, 5, 20, 50, 200}` — from
+fully free to strongly held). The sweep traces the impose→learn continuum within
+one model; a parametric data-driven estimate (`weight_prior=FALSE`) is run
+alongside as a robustness check. In addition, impose the fixed misspecification
+grid on the real series to see which fixed value forecasts best out-of-sample.
+
+Forecast origins are weekly (not four-weekly): the score model (see Evaluation)
+wants many forecast-target rows and handles the temporal structure, and weekly
+origins let learn-arm behaviour be stratified by whether the fitting window
+contains a turning point (delays are identifiable only when the growth rate
+changes; see the identifiability diagnostic).
 
 Depth: the full ladder for the generation interval (the central object);
-impose/omit/learn for the incubation period across all three diseases (for
-cholera the posterior is expected to be uninformative, which is the result, not a
-reason to skip it); and the joint generation-interval-plus-incubation-period
-learn as an identifiability stress-test.
+impose/omit/learn for the incubation period on Ebola and COVID; and the joint
+generation-interval-plus-incubation-period learn as an identifiability
+stress-test. Cholera IP is dropped — at ~1.4 days on weekly data it is
+unidentifiable and adds nothing.
 
-Outputs: log and natural CRPS as a function of concentration (where does skill
-peak?); the estimated PMF shape against the literature distribution (is a
-better-forecasting delay biologically plausible?); posterior contraction and
-convergence diagnostics.
+Outputs feed the score model: log and natural CRPS by condition; the estimated
+PMF shape and posterior contraction against the literature value; and convergence
+diagnostics (Rhat, ESS, divergences, tree-depth) reported as results.
+
+#### Identifiability diagnostic (gating step, run first)
+
+Delay identifiability from case counts requires the growth rate to change: a
+constant Rt gives an exponential curve on which a delay and the reproduction
+number trade off exactly, so nothing is recoverable. Before trusting the learn
+arm on real data, simulate a **known** generation time under each Rt trajectory
+(the constant trajectories as negative controls that should *not* recover;
+increasing/decreasing as the informative turning-point cases), sweep
+`concentration`, and record for each (trajectory × concentration) whether the
+posterior GT PMF contracts onto the truth, with sampling diagnostics.
+
+Recovery metric: posterior mean GT (and PMF) vs. the true value, alongside ESS,
+divergences and tree-depth saturation.
+
+Gate (pre-registered): if the posterior recovers the truth only at near-imposed
+concentration, the learn arm is reported as prior-dominated and Q2 is reframed as
+bounded ("the data cannot recover the delay; expert values are irreplaceable
+here"). A pilot fit already shows the fully-free end (`concentration = 1`) is
+pathological — tree-depth saturated, bulk ESS ≈ 1, mean roughly recovered but
+shape not — so the sweep is expected to be usable only above some concentration,
+which is itself the identifiability result.
 
 #### Case-study data provenance and date semantics
 
@@ -237,11 +267,39 @@ incubation period" is exact:
 
 ### Evaluation
 
-- Compare CRPS (on both natural and log scales) ranking for Rt estimates vs.
-  one-week and two-week forecasts (may need more time horizons):
-  - By timepoint.
-  - Overall for each Rt trajectory scenario.
-- Also consider over/under-prediction and dispersion separately.
+Score forecasts on both the natural and log scales (log via `log(x + 1)` on
+observations and predictions, following the eval-by-method convention), at the
+one- and two-week horizons, using CRPS from `scoringutils`. Rt is scored on the
+synthetic data only (Q1); the case studies have no ground-truth Rt, so only case
+forecasts are scored there. Decompose CRPS into over-prediction, under-prediction
+and dispersion.
+
+**Primary comparison — a score model, not raw means.** Following Sherratt et al.
+(eval-by-method), fit a generalised additive (mixed) model to the CRPS with
+`mgcv::bam(family = gaussian(link = "log"))`: the **condition** (in Q1, the
+misspecification level as a smooth) is the effect of interest, with disease,
+forecast horizon, a time smooth by disease and (Q1) Rt trajectory as
+covariates/random effects. Report the condition **marginal effects with
+confidence intervals** — no significance testing. Overlapping intervals are a
+first-class result ("no clear difference"), which is what makes the write-up
+robust to inconclusive outcomes.
+
+**Pre-registered outcome mapping** (so any result is writable without new
+choices):
+
+- *Learn's interval below impose in ≥2 diseases* → "learning improves forecasts."
+- *Intervals overlap* → "no clear difference between imposing and learning."
+- *Concentration effect flat or non-monotonic* → "forecast skill is insensitive
+  to the impose–learn choice."
+- *Identifiability gate fails* (recovery only near-imposed) → "the data cannot
+  recover the delay; the learn arm is prior-dominated," and Q2 is reframed.
+- *Q1 CRPS flat across the grid* → "short-term case forecasts are insensitive to
+  delay misspecification," with Rt bias (not CRPS) carrying the signal — a
+  finding, not a surprise.
+
+This analysis is descriptive: no inferential null-hypothesis testing. Exploratory
+observations (e.g. an implausible estimated PMF shape that nonetheless forecasts
+well) are labelled exploratory.
 
 Notes:
 
