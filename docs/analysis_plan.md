@@ -14,9 +14,8 @@ The question separates into two linked studies:
   where is forecast skill best? That measures how much the literature value should
   constrain the fit. (Omitting the delay is the degenerate end of the same axis.)
 
-The underlying interest is the trade-off between expert-imposed ("human") and
-data-driven ("machine") specification of the model's mechanistic delay
-parameters.
+The work relates to an interest in the value of expertise when forecasting
+infectious disease dynamics.
 
 ## Background
 
