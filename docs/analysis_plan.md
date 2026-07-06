@@ -147,8 +147,7 @@ We simulate four Rt trajectories: constant below 1 (0.8); constant above 1
 (1.2); increasing (0.8 → 1.2); and decreasing (1.2 → 0.8).
 
 Case ascertainment is held at the literature value (Table above) and the Rt
-projection method is held at a single setting; varying either is left to the
-extensions.
+projection method is held at a single setting.
 
 Case studies:
 
