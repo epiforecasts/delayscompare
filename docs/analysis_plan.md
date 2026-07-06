@@ -89,11 +89,11 @@ parameters.
    origin; real-time right-truncation is deliberately out of scope.
 4. **Score on both natural and log scales** (see Evaluation).
 5. **We build the impose↔learn axis as a nonparametric Dirichlet delay with a
-   swept `concentration` parameter** (needs the EpiNow2 dev build that provides
-   `Dirichlet()`; pin the commit). High concentration holds the PMF close to the
+   swept `concentration` parameter** (needs a recent EpiNow2 that provides
+   `Dirichlet()`). High concentration holds the PMF close to the
    literature shape (impose); low concentration lets the data set it freely
-   (learn). The same object covers the whole continuum and lets us read off the
-   estimated *shape*, not only the mean. We keep a parametric data-driven estimate
+   (learn). With one object we cover the whole continuum and read off the
+   estimated *shape* as well as the mean. We keep a parametric data-driven estimate
    (gamma/lognormal, `weight_prior=FALSE`) as a robustness check: does any finding
    depend on the free-form flexibility? We drop the prior-weighted parametric
    variant (`weight_prior=TRUE`), because Gostic et al. (2020) show that added
@@ -105,7 +105,7 @@ parameters.
 7. **MCMC: EpiNow2 defaults**, raising `adapt_delta` on divergences and
    `max_treedepth` on tree-depth saturation (both seen in the learn arm). In the
    *impose* conditions, fits with max Rhat > 1.05 are discarded; in the *learn*
-   conditions non-convergence is reported, not filtered.
+   conditions we report non-convergence instead of discarding it.
 
 ## Methods
 
@@ -120,43 +120,31 @@ parameters.
 - [Estimating the time-varying reproduction number (Wellcome Open Research)](https://wellcomeopenresearch.org/articles/5-112) — used a 12-week rolling window.
 
 Values below are the literature central values used in
-`scripts/02b_definedelays.R` (the `delays` list). Reporting-delay rows are for
-reference only; we model the observation delay as the incubation period alone.
+`scripts/02b_definedelays.R` (the `delays` list). We model the observation delay
+as the incubation period alone.
 
 | Parameter | Value | Distribution | Source |
 |---|---|---|---|
 | **SARS-CoV-2** | | | |
 | Generation interval | 3.6 (s.d. 3.1) days | gamma | Sherratt et al. 2021 |
 | Incubation period | 5.2 (s.d. 1.52) days | lognormal | Sherratt et al. 2021 |
-| Reporting delay (reference only) | 4.4 (s.d. 5.6) days | lognormal | Sherratt et al. 2021 |
 | Case ascertainment | 0.40 | | Colman et al. 2023 |
 | R trajectory / horizon | Jun 2020 – Dec 2021 | | [epiforecasts.io/covid](https://epiforecasts.io/covid/) |
 | **Ebola** | | | |
 | Generation interval | 16.2 (s.d. 9.4) days | gamma | Park et al. 2019 |
 | Incubation period | 9.7 (s.d. 5.5) days | gamma | WHO Ebola Response Team 2014 |
-| Reporting delay (reference only) | — | | Date of symptom onset used; no reporting delay |
 | Case ascertainment | 0.83 | | Scarpino et al. 2015 |
 | R trajectory / horizon | Aug 2014 – Feb 2015 | | Funk 2019, Zenodo doi:10.5281/zenodo.254770 |
 | **Cholera** | | | |
 | Generation interval | 5 (s.d. 4) days | gamma | [Azman et al. 2018](https://www.thelancet.com/journals/langlo/article/PIIS2214-109X(18)30230-4/fulltext) |
 | Incubation period | 1.77 (s.d. 1.36) days | lognormal | Azman et al. 2013 |
-| Reporting delay (reference only) | 4.4 days (mean) | gamma (exponential) | [Nishiura et al. 2017](https://tbiomed.biomedcentral.com/articles/10.1186/s12976-017-0061-x) |
 | Case ascertainment | 0.28 | | [Yemen figshare dataset](https://figshare.com/articles/dataset/Weekly_cholera_cases_and_rainfall_by_governorate_and_district_in_Yemen_between_2016_and_2020/24231019) |
 | R trajectory / horizon | Apr 2017 – Jul 2018 | | |
 
 #### Rt trajectory scenarios
 
-Artificial scenarios (might need reducing):
-
-1. Constant Rt (0.8, 1.2)
-2. Increasing Rt (0.5 → 1.5)
-3. Decreasing Rt (1.5 → 0.5)
-4. Sinusoidal around 1 (0.5–1.5)
-5. Piecewise Rt (had looked at this before to base the change on e.g. lockdown;
-   school closures).
-
-Currently implemented (four trajectories): constant 0.8; constant 1.2;
-increasing 0.8 → 1.2; decreasing 1.2 → 0.8.
+We simulate four Rt trajectories: constant below 1 (0.8); constant above 1
+(1.2); increasing (0.8 → 1.2); and decreasing (1.2 → 0.8).
 
 Then for each of those:
 
@@ -195,8 +183,9 @@ three-rung ladder: **omit** (a single-day distribution for the generation
 interval; a zero-day delay for the incubation period), **impose** (literature
 value, fixed) and **learn** (nonparametric Dirichlet PMF centred on the
 literature shape, with `concentration` swept over `{1, 5, 20, 50, 200}` — from
-fully free to strongly held). The sweep traces the impose→learn continuum within
-one model; a parametric data-driven estimate (`weight_prior=FALSE`) is run
+fully free to strongly held). By sweeping the concentration we cover the
+impose→learn continuum in one model; a parametric data-driven estimate
+(`weight_prior=FALSE`) is run
 alongside as a robustness check, with `Normal` priors on the delay's natural
 parameters centred on the literature value. The prior width is the parametric
 analogue of the concentration knob and faces the same tension (too tight and the
@@ -206,20 +195,20 @@ and still converges (expected ~10–20%, given case counts weakly identify delay
 In addition, impose the fixed misspecification grid on the real series to see
 which fixed value forecasts best out-of-sample.
 
-Forecast origins are weekly (not four-weekly): the score model (see Evaluation)
-wants many forecast-target rows and handles the temporal structure, and weekly
-origins let learn-arm behaviour be stratified by whether the fitting window
+We take weekly forecast origins so the score model (see Evaluation) has many
+forecast-target rows to work with; it accounts for the temporal structure. Weekly
+origins also let us stratify learn-arm behaviour by whether the fitting window
 contains a turning point (delays are identifiable only when the growth rate
 changes; see the identifiability diagnostic).
 
 Depth: the full ladder for the generation interval (the central object);
 impose/omit/learn for the incubation period on Ebola and COVID; and the joint
 generation-interval-plus-incubation-period learn as an identifiability
-stress-test. Cholera IP is dropped — at ~1.4 days on weekly data it is
-unidentifiable and adds nothing.
+stress-test. We drop cholera IP: at ~1.4 days on weekly data it is unidentifiable
+and adds nothing.
 
-Outputs feed the score model: log and natural CRPS by condition; the estimated
-PMF shape and posterior contraction against the literature value; and convergence
+We feed the score model with log and natural CRPS by condition; the estimated PMF
+shape and posterior contraction against the literature value; and convergence
 diagnostics (Rhat, ESS, divergences, tree-depth) reported as results.
 
 #### Identifiability diagnostic (gating step, run first)
@@ -272,7 +261,7 @@ synthetic data only (Q1); the case studies have no ground-truth Rt, so only case
 forecasts are scored there. Decompose CRPS into over-prediction, under-prediction
 and dispersion.
 
-**Primary comparison — a score model, not raw means.** Following Sherratt et al.
+**Primary comparison — a score model.** Following Sherratt et al.
 (eval-by-method), fit a generalised additive (mixed) model to the CRPS with
 `mgcv::bam(family = gaussian(link = "log"))`: the **condition** (in Q1, the
 misspecification level as a smooth) is the effect of interest, with disease,
@@ -292,8 +281,8 @@ choices):
 - *Identifiability gate fails* (recovery only near-imposed) → "the data cannot
   recover the delay; the learn arm is prior-dominated," and Q2 is reframed.
 - *Q1 CRPS flat across the grid* → "short-term case forecasts are insensitive to
-  delay misspecification," with Rt bias (not CRPS) carrying the signal — a
-  finding, not a surprise.
+  delay misspecification," with the signal appearing in Rt bias while CRPS stays
+  flat; we treat this as a finding.
 
 This analysis is descriptive: no inferential null-hypothesis testing. Exploratory
 observations (e.g. an implausible estimated PMF shape that nonetheless forecasts
@@ -310,7 +299,7 @@ Notes:
   very bad estimate for the incubation period better than assuming no delay?
   Likewise for the generation interval.
 
-### Potential extensions (not planned, noted for future reference)
+### Potential extensions (future work)
 
 - Repeat analysis with additional parameters that are varied:
   - Under-reporting ("scale").
