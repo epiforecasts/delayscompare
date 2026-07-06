@@ -134,7 +134,7 @@ We model the observation delay as the incubation period alone.
 | Case ascertainment | 0.40 | | @Colman2023: 20–40% of UK infections ascertained, upper end for the Delta wave |
 | R trajectory / horizon | Jun 2020 – Dec 2021 | | |
 | **Ebola** | | | |
-| Generation interval | 10.9 (s.d. ~8) days | gamma | @Nash2024 |
+| Generation interval | 10.9 (s.d. ~8) days | gamma | @Lau2017 |
 | Incubation period | 8.5 (s.d. ~5.5) days | gamma | @Nash2024 |
 | Case ascertainment | 0.83 | | @Scarpino2015 |
 | R trajectory / horizon | Aug 2014 – Feb 2015 | | |
@@ -153,12 +153,12 @@ environmental route driving population-level cholera has no well-characterised
 generation interval. We therefore treat cholera as the weakest of the three
 imposed values and do not read any single number as its true generation interval.
 
-For Ebola, @Nash2024 reports a single generation-time estimate (mean 10.9 days,
-Zaire; 95% uncertainty 9.3–13.0 on the mean) and a pooled incubation-period mean
-(8.5 days), but no distribution spreads. We use those means and assume moderate
-gamma SDs (~8 and ~5.5 days). The spread is not well pinned down, and since we
-measure sensitivity to the generation interval, that imprecision is itself part
-of what we test.
+For Ebola, the generation-time estimate (mean 10.9 days, Zaire) comes from a
+single study, @Lau2017; the incubation-period value (mean 8.5 days) is a pooled
+mean across nine studies in the @Nash2024 review. Neither comes with a
+distribution spread, so we assume moderate gamma SDs (~8 and ~5.5 days). The
+spread is not well pinned down, and since we measure sensitivity to the
+generation interval, that imprecision is itself part of what we test.
 
 #### Rt trajectory scenarios
 
