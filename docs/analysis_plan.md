@@ -1,3 +1,8 @@
+---
+bibliography: delayscompare.bib
+link-citations: true
+---
+
 # Analysis plan
 
 *Research question:* What impact does misspecifying the generation interval and
@@ -124,19 +129,19 @@ We model the observation delay as the incubation period alone.
 | Parameter | Value | Distribution | Source |
 |---|---|---|---|
 | **SARS-CoV-2** | | | |
-| Generation interval | 3.6 (s.d. 3.1) days | gamma | Sherratt et al. 2021 |
-| Incubation period | 5.2 (s.d. 1.52) days | lognormal | Sherratt et al. 2021 |
-| Case ascertainment | 0.40 | | Colman et al. 2023: 20–40% of UK infections ascertained, upper end for the Delta wave |
+| Generation interval | 3.6 (s.d. 3.1) days | gamma | @Sherratt2021 |
+| Incubation period | 5.2 (s.d. 1.52) days | lognormal | @Sherratt2021 |
+| Case ascertainment | 0.40 | | @Colman2023: 20–40% of UK infections ascertained, upper end for the Delta wave |
 | R trajectory / horizon | Jun 2020 – Dec 2021 | | [epiforecasts.io/covid](https://epiforecasts.io/covid/) |
 | **Ebola** | | | |
-| Generation interval | 16.2 (s.d. 9.4) days | gamma | Park et al. 2019 |
-| Incubation period | 9.7 (s.d. 5.5) days | gamma | WHO Ebola Response Team 2014 |
-| Case ascertainment | 0.83 | | Scarpino et al. 2015 |
-| R trajectory / horizon | Aug 2014 – Feb 2015 | | Funk 2019, Zenodo doi:10.5281/zenodo.254770 |
+| Generation interval | 16.2 (s.d. 9.4) days | gamma | @Park2019 |
+| Incubation period | 9.7 (s.d. 5.5) days | gamma | @WHO_Ebola2014 |
+| Case ascertainment | 0.83 | | @Scarpino2015 |
+| R trajectory / horizon | Aug 2014 – Feb 2015 | | @Funk2019 |
 | **Cholera** | | | |
-| Generation interval | 5 (s.d. 4) days | gamma | [Azman et al. 2018](https://www.thelancet.com/journals/langlo/article/PIIS2214-109X(18)30230-4/fulltext) |
-| Incubation period | 1.77 (s.d. 1.36) days | lognormal | Azman et al. 2013 |
-| Case ascertainment | 0.28 | | ≈ 1/3.2 infection-to-case ratio, naive population (Finger et al. 2023, Haiti); held fixed though it rose over the outbreak |
+| Generation interval | 5 (s.d. 4) days | gamma | @Azman2018 |
+| Incubation period | 1.77 (s.d. 1.36) days | lognormal | @Azman2013 |
+| Case ascertainment | 0.28 | | ≈ 1/3.2 infection-to-case ratio, naive population [@Finger2023]; held fixed though it rose over the outbreak |
 | R trajectory / horizon | Apr 2017 – Jul 2018 | | |
 
 #### Rt trajectory scenarios
@@ -282,7 +287,7 @@ choices):
   informing the delay.
 - *Q1 CRPS flat across the grid* → the informative result: short-term case
   forecasts are robust to delay misspecification because the Gaussian process
-  absorbs it, even though Rt is biased as expected (Gostic et al. 2020).
+  absorbs it, even though Rt is biased as expected [@Gostic2020].
 
 This analysis is descriptive: no inferential null-hypothesis testing. Exploratory
 observations (e.g. an implausible estimated PMF shape that nonetheless forecasts
@@ -335,3 +340,8 @@ Notes:
   Apr 2017 – Jul 2018. These are suspected (not confirmed) cases at weekly
   resolution, which is the material caveat for cholera, so we do not read its
   generation interval as a biological quantity (see the provenance note above).
+
+## References
+
+::: {#refs}
+:::
