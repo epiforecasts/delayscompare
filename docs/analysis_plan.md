@@ -92,25 +92,28 @@ infectious disease dynamics.
 3. **Retrospective evaluation on final, complete datasets**, cut at each forecast
    origin; real-time right-truncation is deliberately out of scope.
 4. **Score on both natural and log scales** (see Evaluation).
-5. **We build the impose↔learn axis as a nonparametric Dirichlet delay with a
-   swept `concentration` parameter** (needs a recent EpiNow2 that provides
-   `Dirichlet()`). High concentration holds the PMF close to the
-   literature shape (impose); low concentration lets the data set it freely
-   (learn). With one object we cover the whole continuum and read off the
-   estimated *shape* as well as the mean. We keep a parametric data-driven estimate
-   (gamma/lognormal, `weight_prior=FALSE`) as a robustness check: does any finding
-   depend on the free-form flexibility? We drop the prior-weighted variant
-   (`weight_prior=TRUE`): weighting the prior by the data keeps the estimate close
-   to the imposed value, so it is redundant with the impose condition and out of
-   scope for a learn arm.
+5. **We move from imposing to learning the delay by estimating its whole
+   distribution from the data, with a single parameter setting how tightly the
+   literature shape constrains the estimate.** A high value keeps the estimated
+   distribution close to the literature shape (impose); a low value lets the data
+   determine it freely (learn); one model then spans the whole continuum, and we
+   read off the estimated *shape* as well as the mean. In practice this is a
+   nonparametric delay with a Dirichlet prior whose `concentration` we sweep
+   (needs a recent EpiNow2 with `Dirichlet()`). We also fit a data-driven estimate
+   within a parametric family (gamma or lognormal, `weight_prior=FALSE`) as a
+   robustness check: does any finding depend on the free-form flexibility? We drop
+   the prior-weighted variant (`weight_prior=TRUE`), since weighting the prior by
+   the amount of data keeps the estimate near the imposed value and duplicates the
+   impose condition.
 6. **Weak identifiability is expected, and grows as concentration falls.** Where
    the fit degenerates is itself the identifiability result, so we report
    posterior shape, contraction and convergence diagnostics rather than quietly
    filtering those fits out.
-7. **MCMC: EpiNow2 defaults**, raising `adapt_delta` on divergences and
-   `max_treedepth` on tree-depth saturation (both seen in the learn arm). In the
-   *impose* conditions, fits with max Rhat > 1.05 are discarded; in the *learn*
-   conditions we report non-convergence instead of discarding it.
+7. **Sampling: EpiNow2 (Stan) defaults**, tightening the sampler (`adapt_delta`,
+   `max_treedepth`) when it reports divergences or saturates the tree depth (both
+   seen in the learn arm). In the *impose* conditions we discard fits that did not
+   converge (max R-hat > 1.05); in the *learn* conditions we report
+   non-convergence instead of discarding it.
 
 ## Methods
 
@@ -118,7 +121,7 @@ infectious disease dynamics.
 
 #### Simulated data
 
-- Generate using `simulate_infections()`.
+- Simulate case series with a renewal model (`simulate_infections()`).
 - SARS-CoV-2-like, Ebola-like, cholera-like (artificial Rt trajectory scenarios
   plus case studies).
 - Forecasts every four weeks.
@@ -196,19 +199,19 @@ high (×2).
   vs. more realistic assumption.
 
 For each of the generation interval and the incubation period, forecast under
-three conditions: **omit** (a single-day distribution for the generation
-interval; a zero-day delay for the incubation period), **impose** (literature
-value, fixed) and **learn** (nonparametric Dirichlet PMF centred on the
-literature shape, with `concentration` swept over `{1, 5, 20, 50, 200}` — from
-fully free to strongly held). By sweeping the concentration we cover the
-impose→learn continuum in one model; a parametric data-driven estimate
-(`weight_prior=FALSE`) is run
-alongside as a robustness check, with `Normal` priors on the delay's natural
-parameters centred on the literature value. The prior width plays the same role
-as the concentration and faces the same tension (too tight and the
-data cannot move it; too wide and it will not sample), so we set it from the
-identifiability diagnostic: the loosest relative SD that recovers a known delay
-and still converges (expected ~10–20%, given case counts weakly identify delays).
+three conditions: **omit** (a one-day generation interval, or a zero-day
+incubation period, giving the model no delay to work with), **impose** (the
+literature value, held fixed), and **learn** (estimate the delay from the data).
+We realise the learn condition as a nonparametric delay with a Dirichlet prior,
+sweeping its `concentration` from strongly constraining to fully free
+(`{1, 5, 20, 50, 200}`), so one model traces the impose→learn continuum.
+Alongside it we fit a parametric estimate (`weight_prior=FALSE`) as a robustness
+check, with priors on the delay parameters centred on the literature value. The
+width of those priors plays the same role as the concentration and faces the same
+tension (too tight and the data cannot move the estimate; too wide and the model
+will not sample), so we set it from the identifiability diagnostic: the loosest
+relative prior SD that still recovers a known delay and converges (expected
+~10–20%, since case counts weakly identify delays).
 
 We take weekly forecast origins so the score model (see Evaluation) has many
 forecast-target rows to work with; it accounts for the temporal structure. Weekly
@@ -219,12 +222,13 @@ changes; see the identifiability diagnostic).
 Depth: all conditions for the generation interval (the central object); and
 impose/omit/learn for the incubation period on Ebola and COVID, each delay
 estimated on its own with the other held fixed. We do not learn both delays
-jointly — that is degenerate from case counts. We drop cholera IP: at ~1.4 days
+jointly, which is degenerate from case counts. We drop cholera IP: at ~1.4 days
 on weekly data it is unidentifiable and adds nothing.
 
-We feed the score model with log and natural CRPS by condition; the estimated PMF
-shape and posterior contraction against the literature value; and convergence
-diagnostics (Rhat, ESS, divergences, tree-depth) reported as results.
+We feed the score model with log and natural CRPS by condition; the estimated
+delay shape and posterior contraction against the literature value; and
+convergence diagnostics (R-hat, effective sample size, divergences, tree-depth)
+reported as results.
 
 #### Identifiability diagnostic (interpretive)
 
@@ -249,13 +253,12 @@ stronger priors.
 The date a series is stamped with determines whether "observation delay =
 incubation period" is exact:
 
-- **Ebola** — lab-confirmed cases by **date of symptom onset** (canonical
-  pipeline `scripts/02_dataprocessing.R`): observation delay = incubation period,
-  exactly. (The `datacollect_casestudy.R` variant dating by sample-tested is
-  stale and should be removed.)
-- **COVID-19** — UKHSA `COVID-19_cases_casesByDay`, dated by **specimen date**:
-  observation delay = incubation period + an unquantified onset→specimen gap,
-  absorbed into the approximation. Final snapshot; retrospective.
+- **Ebola** — lab-confirmed cases by **date of symptom onset**, so the delay from
+  infection to the recorded date is the incubation period exactly.
+- **COVID-19** — UKHSA daily cases by **specimen date** (the date the positive
+  sample was taken): the delay is the incubation period plus an unquantified,
+  few-day onset-to-specimen gap, which we absorb into the approximation. Final
+  snapshot; retrospective.
 - **Cholera** — eDEWS **weekly suspected** cases by epidemiological week of
   facility reporting. The incubation period (~1.4 days) is far below the weekly
   bin, so imposed observation-delay *misspecification* is undetectable at this
@@ -275,7 +278,7 @@ and dispersion.
 **Primary comparison — a score model.** Following Sherratt et al.
 (eval-by-method), we model the log-scale CRPS (computed from log-transformed
 forecasts and observations) with a Gaussian generalised additive mixed model
-(`mgcv::bam`, identity link) — modelling the log score rather than putting a log
+(`mgcv::bam`, identity link), modelling the log score rather than putting a log
 link on the natural-scale score. The effect of interest is the **condition** (in
 Q1, the misspecification level). A candidate specification:
 
@@ -306,8 +309,8 @@ choices):
   absorbs it, even though Rt is biased as expected [@Gostic2020].
 
 This analysis is descriptive: no inferential null-hypothesis testing. Exploratory
-observations (e.g. an implausible estimated PMF shape that nonetheless forecasts
-well) are labelled exploratory.
+observations (e.g. an implausible estimated delay shape that nonetheless
+forecasts well) are labelled exploratory.
 
 Notes:
 
@@ -330,8 +333,8 @@ Notes:
   - The standard deviation or shape of the delays (we vary only the mean).
   - Truncation, i.e. real-time forecasting from incomplete recent data.
 - Enrich the observation model (day-of-week term, overdispersion) and check
-  whether an estimated delay returns to a plausible shape — a test of whether a
-  free delay is absorbing model misspecification.
+  whether an estimated delay returns to a plausible shape, testing whether a free
+  delay is absorbing model misspecification.
 
 ## Data sources
 
