@@ -3,6 +3,20 @@
 *Research question:* What impact does misspecifying the generation interval and
 incubation period have on the quality of infectious disease forecasts?
 
+The question separates into two linked studies:
+
+- **Q1 — Sensitivity (synthetic data, truth known).** How much does misspecifying
+  the generation interval or the incubation period degrade short-term case
+  forecasts, relative to the effect on Rt? A knob-turning experiment, and the
+  well-specified control.
+- **Q2 — Impose vs. learn (case studies, truth unknown).** Are forecasts better
+  when a delay is imposed from the literature, omitted, or estimated from the
+  data?
+
+The underlying interest is the trade-off between expert-imposed ("human") and
+data-driven ("machine") specification of the model's mechanistic delay
+parameters.
+
 ## Background
 
 - [Addressing delayed case reporting in infectious disease forecast modelling (PLOS Computational Biology)](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1010115)
@@ -53,6 +67,27 @@ incubation period have on the quality of infectious disease forecasts?
 4. With COVID-19, cholera and Ebola data, evaluate the impact of: assuming no
    incubation period delay vs. including an incubation period delay; assuming a
    generation interval of 1 day vs. a more realistic assumption.
+5. With the same case-study data, evaluate whether *estimating* a delay from the
+   case series (prior centred on the literature value) improves on imposing or
+   omitting it.
+
+## Design decisions
+
+1. **The observation delay is modelled as the incubation period alone; no
+   separate reporting delay.** The generation interval and incubation period are
+   transferable biological quantities an expert can carry across settings; the
+   reporting delay is specific to a surveillance system, so importing a literature
+   value for it is a guess rather than expert transfer. Whatever observation delay
+   is assumed is held identical across the compared conditions, so it cannot
+   confound a within-disease ranking.
+2. **Vary the mean only** for both delays; the standard deviation is held fixed (a
+   noted limitation, since Rt depends on the full generation-interval shape).
+3. **Retrospective evaluation on final, complete datasets**, cut at each forecast
+   origin; real-time right-truncation is deliberately out of scope.
+4. **Score on both natural and log scales** (see Evaluation).
+5. **Estimation is Bayesian with a proper prior centred on the literature value.**
+   Weak identifiability is expected; posterior contraction and convergence
+   diagnostics are reported as results, not used as silent filters.
 
 ## Methods
 
@@ -95,6 +130,10 @@ incubation period have on the quality of infectious disease forecasts?
 
 *[Need to fill in gaps in the table above.]*
 
+The observation delay is modelled as the incubation period alone; the
+reporting-delay rows are retained for reference but are not used as a separate
+distribution (see Design decisions).
+
 #### Rt trajectory scenarios
 
 Artificial scenarios (might need reducing):
@@ -105,6 +144,9 @@ Artificial scenarios (might need reducing):
 4. Sinusoidal around 1 (0.5–1.5)
 5. Piecewise Rt (had looked at this before to base the change on e.g. lockdown;
    school closures).
+
+Currently implemented (four trajectories): constant 0.8; constant 1.2;
+increasing 0.8 → 1.2; decreasing 1.2 → 0.8.
 
 Then for each of those:
 
@@ -138,10 +180,37 @@ high (×2).
 - No incubation period vs. more realistic assumption; generation time of one day
   vs. more realistic assumption.
 
+For each of the generation interval and the incubation period, forecast under
+three conditions: **omit** (a single-day distribution for the generation
+interval; a zero-day delay for the incubation period), **impose** (fixed at the
+literature value) and **estimate** (prior centred on the literature value). In
+addition, impose the full fixed misspecification grid (as above) on the real
+series to see which fixed value forecasts best out-of-sample. Outputs: log and
+natural CRPS; for the *estimate* conditions, posterior location and contraction
+relative to the literature value, and convergence diagnostics.
+
+#### Case-study data provenance and date semantics
+
+The date a series is stamped with determines whether "observation delay =
+incubation period" is exact:
+
+- **Ebola** — lab-confirmed cases by **date of symptom onset** (canonical
+  pipeline `scripts/02_dataprocessing.R`): observation delay = incubation period,
+  exactly. (The `datacollect_casestudy.R` variant dating by sample-tested is
+  stale and should be removed.)
+- **COVID-19** — UKHSA `COVID-19_cases_casesByDay`, dated by **specimen date**:
+  observation delay = incubation period + an unquantified onset→specimen gap,
+  absorbed into the approximation. Final snapshot; retrospective.
+- **Cholera** — eDEWS **weekly suspected** cases by epidemiological week of
+  facility reporting. The incubation period (~1.4 days) is far below the weekly
+  bin, so observation-delay misspecification is undetectable; the material caveat
+  is suspected-case ascertainment and weekly resolution. Cholera is the
+  illustrative floor rather than a load-bearing case.
+
 ### Evaluation
 
-- Compare CRPS (on log scale) ranking for Rt estimates vs. one-week and two-week
-  forecasts (may need more time horizons):
+- Compare CRPS (on both natural and log scales) ranking for Rt estimates vs.
+  one-week and two-week forecasts (may need more time horizons):
   - By timepoint.
   - Overall for each Rt trajectory scenario.
 - Also consider over/under-prediction and dispersion separately.
