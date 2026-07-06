@@ -137,7 +137,7 @@ We model the observation delay as the incubation period alone.
 | **Cholera** | | | |
 | Generation interval | 5 (s.d. 4) days | gamma | [Azman et al. 2018](https://www.thelancet.com/journals/langlo/article/PIIS2214-109X(18)30230-4/fulltext) |
 | Incubation period | 1.77 (s.d. 1.36) days | lognormal | Azman et al. 2013 |
-| Case ascertainment | 0.28 | | basis undocumented; to confirm |
+| Case ascertainment | 0.28 | | ≈ 1/3.2, the cholera infection-to-case ratio in naive populations (held fixed, though it rose over the outbreak) |
 | R trajectory / horizon | Apr 2017 – Jul 2018 | | |
 
 #### Rt trajectory scenarios
