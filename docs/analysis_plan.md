@@ -132,12 +132,12 @@ We model the observation delay as the incubation period alone.
 | Generation interval | 3.6 (s.d. 3.1) days | gamma | @Sherratt2021 |
 | Incubation period | 5.2 (s.d. 1.52) days | lognormal | @Sherratt2021 |
 | Case ascertainment | 0.40 | | @Colman2023: 20–40% of UK infections ascertained, upper end for the Delta wave |
-| R trajectory / horizon | Jun 2020 – Dec 2021 | | [epiforecasts.io/covid](https://epiforecasts.io/covid/) |
+| R trajectory / horizon | Jun 2020 – Dec 2021 | | |
 | **Ebola** | | | |
 | Generation interval | 16.2 (s.d. 9.4) days | gamma | @Park2019 |
 | Incubation period | 9.7 (s.d. 5.5) days | gamma | @WHO_Ebola2014 |
 | Case ascertainment | 0.83 | | @Scarpino2015 |
-| R trajectory / horizon | Aug 2014 – Feb 2015 | | @Funk2019 |
+| R trajectory / horizon | Aug 2014 – Feb 2015 | | |
 | **Cholera** | | | |
 | Generation interval | 5 (s.d. 7.1) days | gamma (shape 0.5) | @Azman2016 |
 | Incubation period | 1.77 (s.d. 1.36) days | lognormal | @Azman2013 |
