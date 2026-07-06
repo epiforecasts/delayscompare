@@ -119,38 +119,30 @@ parameters.
 - Forecasts every four weeks.
 - [Estimating the time-varying reproduction number (Wellcome Open Research)](https://wellcomeopenresearch.org/articles/5-112) — used a 12-week rolling window.
 
+Values below are the literature central values used in
+`scripts/02b_definedelays.R` (the `delays` list). Reporting-delay rows are for
+reference only; we model the observation delay as the incubation period alone.
+
 | Parameter | Value | Distribution | Source |
 |---|---|---|---|
 | **SARS-CoV-2** | | | |
 | Generation interval | 3.6 (s.d. 3.1) days | gamma | Sherratt et al. 2021 |
 | Incubation period | 5.2 (s.d. 1.52) days | lognormal | Sherratt et al. 2021 |
-| Reporting delay | 4.4 (s.d. 5.6) days | lognormal | Sherratt et al. 2021 |
-| Under-reporting | 30% (s.d. 3.3%) | | Colman et al. 2023 |
-| R trajectory | | | [epiforecasts.io/covid](https://epiforecasts.io/covid/) |
-| Time horizon | Jun 2020 – Dec 2021 | | |
-| Forecast frequency | 4 weeks | | |
+| Reporting delay (reference only) | 4.4 (s.d. 5.6) days | lognormal | Sherratt et al. 2021 |
+| Case ascertainment | 0.40 | | Colman et al. 2023 |
+| R trajectory / horizon | Jun 2020 – Dec 2021 | | [epiforecasts.io/covid](https://epiforecasts.io/covid/) |
 | **Ebola** | | | |
 | Generation interval | 16.2 (s.d. 9.4) days | gamma | Park et al. 2019 |
-| Incubation period | 11.4 (s.d. 8.1) days | lognormal | Aylward et al. 2014 |
-| Reporting delay | 4.95 (s.d. 1.79) | lognormal | Estimated from data: Fang et al. 2016 |
-| Under-reporting | 83% (Scarpino et al. 2015); 27%–68% (Dalziel et al. 2018) | | |
-| R trajectory | | | Funk, S. (2019), Zenodo, doi:10.5281/zenodo.254770 |
-| Time horizon | Aug 2014 – Feb 2015 | | Funk et al. 2019 |
-| Forecast frequency | 4 weeks | | |
+| Incubation period | 9.7 (s.d. 5.5) days | gamma | WHO Ebola Response Team 2014 |
+| Reporting delay (reference only) | — | | Date of symptom onset used; no reporting delay |
+| Case ascertainment | 0.83 | | Scarpino et al. 2015 |
+| R trajectory / horizon | Aug 2014 – Feb 2015 | | Funk 2019, Zenodo doi:10.5281/zenodo.254770 |
 | **Cholera** | | | |
-| Generation interval | 8.51 (range 7.17–9.29) days; alternative: 5 (s.d. 8) days | gamma | Mari et al. 2012; alternative [Azman et al. 2018 (Lancet Global Health)](https://www.thelancet.com/journals/langlo/article/PIIS2214-109X(18)30230-4/fulltext) |
-| Incubation period | 1.4 (s.d. 1.98) days | lognormal | Azman et al. 2013 |
-| Reporting delay | 4.4 days (95% CI 3.2, 5.8) | lognormal | [Nishiura et al. 2017](https://tbiomed.biomedcentral.com/articles/10.1186/s12976-017-0061-x) |
-| Under-reporting | 25% positivity (RDTs) and 25.9% positivity (culture) | | [Yemen figshare dataset](https://figshare.com/articles/dataset/Weekly_cholera_cases_and_rainfall_by_governorate_and_district_in_Yemen_between_2016_and_2020/24231019) |
-| R trajectory | | | |
-| Time horizon | | | |
-| Forecast frequency | | | |
-
-*[Need to fill in gaps in the table above.]*
-
-The observation delay is modelled as the incubation period alone; the
-reporting-delay rows are retained for reference but are not used as a separate
-distribution (see Design decisions).
+| Generation interval | 5 (s.d. 4) days | gamma | [Azman et al. 2018](https://www.thelancet.com/journals/langlo/article/PIIS2214-109X(18)30230-4/fulltext) |
+| Incubation period | 1.77 (s.d. 1.36) days | lognormal | Azman et al. 2013 |
+| Reporting delay (reference only) | 4.4 days (mean) | gamma (exponential) | [Nishiura et al. 2017](https://tbiomed.biomedcentral.com/articles/10.1186/s12976-017-0061-x) |
+| Case ascertainment | 0.28 | | [Yemen figshare dataset](https://figshare.com/articles/dataset/Weekly_cholera_cases_and_rainfall_by_governorate_and_district_in_Yemen_between_2016_and_2020/24231019) |
+| R trajectory / horizon | Apr 2017 – Jul 2018 | | |
 
 #### Rt trajectory scenarios
 
@@ -205,8 +197,14 @@ value, fixed) and **learn** (nonparametric Dirichlet PMF centred on the
 literature shape, with `concentration` swept over `{1, 5, 20, 50, 200}` — from
 fully free to strongly held). The sweep traces the impose→learn continuum within
 one model; a parametric data-driven estimate (`weight_prior=FALSE`) is run
-alongside as a robustness check. In addition, impose the fixed misspecification
-grid on the real series to see which fixed value forecasts best out-of-sample.
+alongside as a robustness check, with `Normal` priors on the delay's natural
+parameters centred on the literature value. The prior width is the parametric
+analogue of the concentration knob and faces the same tension (too tight and the
+data cannot move it; too wide and it will not sample), so we set it from the
+identifiability diagnostic: the loosest relative SD that recovers a known delay
+and still converges (expected ~10–20%, given case counts weakly identify delays).
+In addition, impose the fixed misspecification grid on the real series to see
+which fixed value forecasts best out-of-sample.
 
 Forecast origins are weekly (not four-weekly): the score model (see Evaluation)
 wants many forecast-target rows and handles the temporal structure, and weekly
