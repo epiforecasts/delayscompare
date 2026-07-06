@@ -119,9 +119,7 @@ parameters.
 - Forecasts every four weeks.
 - [Estimating the time-varying reproduction number (Wellcome Open Research)](https://wellcomeopenresearch.org/articles/5-112) — used a 12-week rolling window.
 
-Values below are the literature central values used in
-`scripts/02b_definedelays.R` (the `delays` list). We model the observation delay
-as the incubation period alone.
+We model the observation delay as the incubation period alone.
 
 | Parameter | Value | Distribution | Source |
 |---|---|---|---|
