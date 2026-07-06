@@ -126,7 +126,7 @@ We model the observation delay as the incubation period alone.
 | **SARS-CoV-2** | | | |
 | Generation interval | 3.6 (s.d. 3.1) days | gamma | Sherratt et al. 2021 |
 | Incubation period | 5.2 (s.d. 1.52) days | lognormal | Sherratt et al. 2021 |
-| Case ascertainment | 0.40 | | Colman et al. 2023 reports ~0.30; value to confirm |
+| Case ascertainment | 0.40 | | Colman et al. 2023: 20–40% of UK infections ascertained, upper end for the Delta wave |
 | R trajectory / horizon | Jun 2020 – Dec 2021 | | [epiforecasts.io/covid](https://epiforecasts.io/covid/) |
 | **Ebola** | | | |
 | Generation interval | 16.2 (s.d. 9.4) days | gamma | Park et al. 2019 |
@@ -136,7 +136,7 @@ We model the observation delay as the incubation period alone.
 | **Cholera** | | | |
 | Generation interval | 5 (s.d. 4) days | gamma | [Azman et al. 2018](https://www.thelancet.com/journals/langlo/article/PIIS2214-109X(18)30230-4/fulltext) |
 | Incubation period | 1.77 (s.d. 1.36) days | lognormal | Azman et al. 2013 |
-| Case ascertainment | 0.28 | | ≈ 1/3.2, the cholera infection-to-case ratio in naive populations (held fixed, though it rose over the outbreak) |
+| Case ascertainment | 0.28 | | ≈ 1/3.2 infection-to-case ratio, naive population (Finger et al. 2023, Haiti); held fixed though it rose over the outbreak |
 | R trajectory / horizon | Apr 2017 – Jul 2018 | | |
 
 #### Rt trajectory scenarios
@@ -195,11 +195,11 @@ origins also let us stratify learn-arm behaviour by whether the fitting window
 contains a turning point (delays are identifiable only when the growth rate
 changes; see the identifiability diagnostic).
 
-Depth: all conditions for the generation interval (the central object);
-impose/omit/learn for the incubation period on Ebola and COVID; and the joint
-generation-interval-plus-incubation-period learn as an identifiability
-stress-test. We drop cholera IP: at ~1.4 days on weekly data it is unidentifiable
-and adds nothing.
+Depth: all conditions for the generation interval (the central object); and
+impose/omit/learn for the incubation period on Ebola and COVID, each delay
+estimated on its own with the other held fixed. We do not learn both delays
+jointly — that is degenerate from case counts. We drop cholera IP: at ~1.4 days
+on weekly data it is unidentifiable and adds nothing.
 
 We feed the score model with log and natural CRPS by condition; the estimated PMF
 shape and posterior contraction against the literature value; and convergence
