@@ -7,7 +7,7 @@ The question separates into two linked studies:
 
 - **Q1 — Sensitivity (synthetic data, truth known).** How much does misspecifying
   the generation interval or the incubation period degrade short-term case
-  forecasts, relative to the effect on Rt? A knob-turning experiment, and the
+  forecasts, relative to the effect on Rt? We vary each input directly here; this is the
   well-specified control.
 - **Q2 — Impose vs. learn (case studies, truth unknown).** Along the continuum
   from imposing the literature value to letting the data set the delay freely,
@@ -146,8 +146,9 @@ as the incubation period alone.
 We simulate four Rt trajectories: constant below 1 (0.8); constant above 1
 (1.2); increasing (0.8 → 1.2); and decreasing (1.2 → 0.8).
 
-Case ascertainment is held at the literature value (Table above) and the Rt
-projection method is held at a single setting.
+Case ascertainment is held at the literature value (Table above), and forecasts
+carry the nowcast reproduction number forward over the horizon. We use a negative
+binomial observation model with estimated reporting overdispersion.
 
 Case studies:
 
@@ -175,8 +176,8 @@ high (×2).
 - No incubation period vs. more realistic assumption; generation time of one day
   vs. more realistic assumption.
 
-For each of the generation interval and the incubation period, forecast along a
-three-rung ladder: **omit** (a single-day distribution for the generation
+For each of the generation interval and the incubation period, forecast under
+three conditions: **omit** (a single-day distribution for the generation
 interval; a zero-day delay for the incubation period), **impose** (literature
 value, fixed) and **learn** (nonparametric Dirichlet PMF centred on the
 literature shape, with `concentration` swept over `{1, 5, 20, 50, 200}` — from
@@ -184,8 +185,8 @@ fully free to strongly held). By sweeping the concentration we cover the
 impose→learn continuum in one model; a parametric data-driven estimate
 (`weight_prior=FALSE`) is run
 alongside as a robustness check, with `Normal` priors on the delay's natural
-parameters centred on the literature value. The prior width is the parametric
-analogue of the concentration knob and faces the same tension (too tight and the
+parameters centred on the literature value. The prior width plays the same role
+as the concentration and faces the same tension (too tight and the
 data cannot move it; too wide and it will not sample), so we set it from the
 identifiability diagnostic: the loosest relative SD that recovers a known delay
 and still converges (expected ~10–20%, given case counts weakly identify delays).
@@ -198,7 +199,7 @@ origins also let us stratify learn-arm behaviour by whether the fitting window
 contains a turning point (delays are identifiable only when the growth rate
 changes; see the identifiability diagnostic).
 
-Depth: the full ladder for the generation interval (the central object);
+Depth: all conditions for the generation interval (the central object);
 impose/omit/learn for the incubation period on Ebola and COVID; and the joint
 generation-interval-plus-incubation-period learn as an identifiability
 stress-test. We drop cholera IP: at ~1.4 days on weekly data it is unidentifiable
@@ -246,7 +247,7 @@ incubation period" is exact:
   facility reporting. The incubation period (~1.4 days) is far below the weekly
   bin, so imposed observation-delay *misspecification* is undetectable at this
   resolution; the material caveat is suspected-case ascertainment and weekly
-  resolution. The learn ladder is still run for cholera (the posterior simply
+  resolution. The learn condition is still run for cholera (the posterior simply
   reflects uninformative data).
 
 ### Evaluation
@@ -259,14 +260,23 @@ forecasts are scored there. Decompose CRPS into over-prediction, under-predictio
 and dispersion.
 
 **Primary comparison — a score model.** Following Sherratt et al.
-(eval-by-method), fit a generalised additive (mixed) model to the CRPS with
-`mgcv::bam(family = gaussian(link = "log"))`: the **condition** (in Q1, the
-misspecification level as a smooth) is the effect of interest, with disease,
-forecast horizon, a time smooth by disease and (Q1) Rt trajectory as
-covariates/random effects. Report the condition **marginal effects with
-confidence intervals** — no significance testing. Overlapping intervals are a
-first-class result ("no clear difference"), which is what makes the write-up
-robust to inconclusive outcomes.
+(eval-by-method), we model the log-scale CRPS (computed from log-transformed
+forecasts and observations) with a Gaussian generalised additive mixed model
+(`mgcv::bam`, identity link) — modelling the log score rather than putting a log
+link on the natural-scale score. The effect of interest is the **condition** (in
+Q1, the misspecification level). A candidate specification:
+
+```
+# Q2 (impose vs. learn)
+log_crps ~ condition * disease + s(time, by = disease) + horizon
+
+# Q1 (sensitivity)
+log_crps ~ s(level, by = disease) + trajectory + s(time, by = disease) + horizon
+```
+
+We report the condition **marginal effects with confidence intervals**; no
+significance testing. Overlapping intervals are a first-class result ("no clear
+difference"), which is what makes the write-up robust to inconclusive outcomes.
 
 **Outcome mapping, agreed in advance** (so any result is writable without new
 choices):
@@ -300,9 +310,9 @@ Notes:
 
 - Repeat the analysis varying factors we hold fixed here:
   - Case ascertainment / under-reporting (the observation scale).
-  - The Rt projection method (`rt_opts`: latest vs. project).
-  - Observation family and, if negative binomial, overdispersion of reporting
-    (`rep_phi`).
+  - The Rt projection method (carry the nowcast forward vs. extrapolate it).
+  - The observation family or overdispersion treatment (the main analysis uses
+    negative binomial with estimated overdispersion).
   - The standard deviation or shape of the delays (we vary only the mean).
   - Truncation, i.e. real-time forecasting from incomplete recent data.
 - Enrich the observation model (day-of-week term, overdispersion) and check
