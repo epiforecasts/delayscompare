@@ -138,7 +138,7 @@ as the incubation period alone.
 | **Cholera** | | | |
 | Generation interval | 5 (s.d. 4) days | gamma | [Azman et al. 2018](https://www.thelancet.com/journals/langlo/article/PIIS2214-109X(18)30230-4/fulltext) |
 | Incubation period | 1.77 (s.d. 1.36) days | lognormal | Azman et al. 2013 |
-| Case ascertainment | 0.28 | | basis undocumented (nearest data ~25–26% test positivity); to confirm |
+| Case ascertainment | 0.28 | | basis undocumented; to confirm |
 | R trajectory / horizon | Apr 2017 – Jul 2018 | | |
 
 #### Rt trajectory scenarios
@@ -325,5 +325,11 @@ Notes:
 
 **Cholera**
 
-- <https://cholera-taxonomy.middle-distance.com/observation_collections/20742>
-  → contains confirmed cases: culture + RDT. Observation frequency = daily.
+- Yemen eDEWS weekly suspected cases, aggregated to national
+  ([figshare](https://figshare.com/articles/dataset/Weekly_cholera_cases_and_rainfall_by_governorate_and_district_in_Yemen_between_2016_and_2020/24231019)),
+  Apr 2017 – Jul 2018. These are suspected (not confirmed) cases at weekly
+  resolution, which is the material caveat for cholera, so we do not read its
+  generation interval as a biological quantity (see the provenance note above).
+- A confirmed daily line-list exists for a different outbreak (Zambia, Lusaka
+  2017: <https://cholera-taxonomy.middle-distance.com/observation_collections/20742>)
+  but at ~10 weeks it is too short for the rolling-window forecasting design.
