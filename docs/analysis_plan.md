@@ -9,9 +9,10 @@ The question separates into two linked studies:
   the generation interval or the incubation period degrade short-term case
   forecasts, relative to the effect on Rt? A knob-turning experiment, and the
   well-specified control.
-- **Q2 — Impose vs. learn (case studies, truth unknown).** Are forecasts better
-  when a delay is imposed from the literature, omitted, or estimated from the
-  data?
+- **Q2 — Impose vs. learn (case studies, truth unknown).** Along a continuum from
+  imposing the literature value to learning the delay freely from the data, where
+  does forecast skill peak — i.e. how much expert anchoring is optimal? (Omitting
+  the delay is the degenerate end of the same axis.)
 
 The underlying interest is the trade-off between expert-imposed ("human") and
 data-driven ("machine") specification of the model's mechanistic delay
@@ -80,14 +81,27 @@ parameters.
    value for it is a guess rather than expert transfer. Whatever observation delay
    is assumed is held identical across the compared conditions, so it cannot
    confound a within-disease ranking.
-2. **Vary the mean only** for both delays; the standard deviation is held fixed (a
-   noted limitation, since Rt depends on the full generation-interval shape).
+2. **In the misspecification grid (Q1), vary the mean only**; the standard
+   deviation is held fixed (a noted limitation, since Rt depends on the full
+   generation-interval shape). The Q2 learn condition estimates the full shape
+   (see decision 5), which partly addresses this.
 3. **Retrospective evaluation on final, complete datasets**, cut at each forecast
    origin; real-time right-truncation is deliberately out of scope.
 4. **Score on both natural and log scales** (see Evaluation).
-5. **Estimation is Bayesian with a proper prior centred on the literature value.**
-   Weak identifiability is expected; posterior contraction and convergence
-   diagnostics are reported as results, not used as silent filters.
+5. **The impose↔learn axis is realised as a nonparametric Dirichlet delay with a
+   swept `concentration` parameter** (requires the EpiNow2 dev build providing
+   `Dirichlet()`; pin the commit). High concentration anchors the PMF to the
+   literature shape (impose); low concentration lets the data determine it freely
+   (learn). One object spans the continuum and exposes the estimated *shape*, not
+   just the mean. A parametric data-driven estimate (gamma/lognormal,
+   `weight_prior=FALSE`) is retained as a robustness comparison — does any finding
+   depend on the free-form flexibility? The prior-anchored parametric variant
+   (`weight_prior=TRUE`) is dropped: theory (Gostic et al. 2020) says added
+   uncertainty widens intervals without shifting the central estimate.
+6. **Weak identifiability is expected and grows as concentration falls.** Where the
+   fit degenerates is itself the identifiability result: posterior shape,
+   contraction and convergence diagnostics are reported, not used as silent
+   filters.
 
 ## Methods
 
@@ -180,14 +194,27 @@ high (×2).
 - No incubation period vs. more realistic assumption; generation time of one day
   vs. more realistic assumption.
 
-For each of the generation interval and the incubation period, forecast under
-three conditions: **omit** (a single-day distribution for the generation
-interval; a zero-day delay for the incubation period), **impose** (fixed at the
-literature value) and **estimate** (prior centred on the literature value). In
-addition, impose the full fixed misspecification grid (as above) on the real
-series to see which fixed value forecasts best out-of-sample. Outputs: log and
-natural CRPS; for the *estimate* conditions, posterior location and contraction
-relative to the literature value, and convergence diagnostics.
+For each of the generation interval and the incubation period, forecast along a
+three-rung ladder: **omit** (a single-day distribution for the generation
+interval; a zero-day delay for the incubation period), **impose** (literature
+value, fixed) and **learn** (nonparametric Dirichlet PMF with `concentration`
+swept over a small set of values, from strongly anchored to free-form). The
+concentration sweep traces the impose→learn continuum within one model; a
+parametric data-driven estimate (`weight_prior=FALSE`) is run alongside as a
+robustness comparison. In addition, impose the full fixed misspecification grid
+(as above) on the real series to see which fixed value forecasts best
+out-of-sample.
+
+Depth: the full ladder for the generation interval (the central object);
+impose/omit/learn for the incubation period across all three diseases (for
+cholera the posterior is expected to be uninformative — that is the result, not a
+reason to skip it); and the joint generation-interval-plus-incubation-period
+learn as an identifiability stress-test.
+
+Outputs: log and natural CRPS as a function of concentration (where does skill
+peak?); the estimated PMF shape against the literature distribution (is a
+better-forecasting delay biologically plausible?); posterior contraction and
+convergence diagnostics.
 
 #### Case-study data provenance and date semantics
 
@@ -203,9 +230,10 @@ incubation period" is exact:
   absorbed into the approximation. Final snapshot; retrospective.
 - **Cholera** — eDEWS **weekly suspected** cases by epidemiological week of
   facility reporting. The incubation period (~1.4 days) is far below the weekly
-  bin, so observation-delay misspecification is undetectable; the material caveat
-  is suspected-case ascertainment and weekly resolution. Cholera is the
-  illustrative floor rather than a load-bearing case.
+  bin, so imposed observation-delay *misspecification* is undetectable at this
+  resolution; the material caveat is suspected-case ascertainment and weekly
+  resolution. The learn ladder is still run for cholera (the posterior simply
+  reflects uninformative data).
 
 ### Evaluation
 
