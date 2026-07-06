@@ -95,9 +95,10 @@ parameters.
    (learn). With one object we cover the whole continuum and read off the
    estimated *shape* as well as the mean. We keep a parametric data-driven estimate
    (gamma/lognormal, `weight_prior=FALSE`) as a robustness check: does any finding
-   depend on the free-form flexibility? We drop the prior-weighted parametric
-   variant (`weight_prior=TRUE`), because Gostic et al. (2020) show that added
-   uncertainty widens the intervals without shifting the central estimate.
+   depend on the free-form flexibility? We drop the prior-weighted variant
+   (`weight_prior=TRUE`): weighting the prior by the data keeps the estimate close
+   to the imposed value, so it is redundant with the impose condition and out of
+   scope for a learn arm.
 6. **Weak identifiability is expected, and grows as concentration falls.** Where
    the fit degenerates is itself the identifiability result, so we report
    posterior shape, contraction and convergence diagnostics rather than quietly
