@@ -146,11 +146,9 @@ as the incubation period alone.
 We simulate four Rt trajectories: constant below 1 (0.8); constant above 1
 (1.2); increasing (0.8 → 1.2); and decreasing (1.2 → 0.8).
 
-Then for each of those:
-
-- No under-reporting, some under-reporting (based on literature for each
-  disease).
-- `rt_opts` default vs. project.
+Case ascertainment is held at the literature value (Table above) and the Rt
+projection method is held at a single setting; varying either is left to the
+extensions.
 
 Case studies:
 
@@ -225,7 +223,7 @@ posterior GT PMF contracts onto the truth, with sampling diagnostics.
 Recovery metric: posterior mean GT (and PMF) vs. the true value, alongside ESS,
 divergences and tree-depth saturation.
 
-Gate (pre-registered): if the posterior recovers the truth only at near-imposed
+Gate (agreed in advance): if the posterior recovers the truth only at near-imposed
 concentration, the learn arm is reported as prior-dominated and Q2 is reframed as
 bounded ("the data cannot recover the delay; expert values are irreplaceable
 here"). A pilot fit already shows the fully-free end (`concentration = 1`) is
@@ -271,7 +269,7 @@ confidence intervals** — no significance testing. Overlapping intervals are a
 first-class result ("no clear difference"), which is what makes the write-up
 robust to inconclusive outcomes.
 
-**Pre-registered outcome mapping** (so any result is writable without new
+**Outcome mapping, agreed in advance** (so any result is writable without new
 choices):
 
 - *Learn's interval below impose in ≥2 diseases* → "learning improves forecasts."
@@ -301,11 +299,16 @@ Notes:
 
 ### Potential extensions (future work)
 
-- Repeat analysis with additional parameters that are varied:
-  - Under-reporting ("scale").
+- Repeat the analysis varying factors we hold fixed here:
+  - Case ascertainment / under-reporting (the observation scale).
+  - The Rt projection method (`rt_opts`: latest vs. project).
   - Observation family and, if negative binomial, overdispersion of reporting
-    ("rep_phi").
-  - Truncation (would require more work/thinking).
+    (`rep_phi`).
+  - The standard deviation or shape of the delays (we vary only the mean).
+  - Truncation, i.e. real-time forecasting from incomplete recent data.
+- Enrich the observation model (day-of-week term, overdispersion) and check
+  whether an estimated delay returns to a plausible shape — a test of whether a
+  free delay is absorbing model misspecification.
 
 ## Data sources
 
