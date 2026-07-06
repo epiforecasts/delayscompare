@@ -139,10 +139,19 @@ We model the observation delay as the incubation period alone.
 | Case ascertainment | 0.83 | | @Scarpino2015 |
 | R trajectory / horizon | Aug 2014 – Feb 2015 | | @Funk2019 |
 | **Cholera** | | | |
-| Generation interval | 5 (s.d. 4) days | gamma | @Azman2018 |
+| Generation interval | 5 (s.d. 7.1) days | gamma (shape 0.5) | @Azman2016 |
 | Incubation period | 1.77 (s.d. 1.36) days | lognormal | @Azman2013 |
 | Case ascertainment | 0.28 | | ≈ 1/3.2 infection-to-case ratio, naive population [@Finger2023]; held fixed though it rose over the outbreak |
 | R trajectory / horizon | Apr 2017 – Jul 2018 | | |
+
+No study has estimated the cholera generation interval, so the value we impose is
+an assumption. @Azman2016 took a gamma (shape 0.5, rate 0.1; mean 5 days, SD ~7)
+from household-contact data [@Weil2009] that capture fast, direct within-household
+transmission and mix it with co-primary infections from shared water. Those data
+point to a shorter, tighter interval than the assumed distribution, and the
+environmental route driving population-level cholera has no well-characterised
+generation interval. We therefore treat cholera as the weakest of the three
+imposed values and do not read any single number as its true generation interval.
 
 #### Rt trajectory scenarios
 
