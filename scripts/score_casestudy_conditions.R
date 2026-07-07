@@ -2,7 +2,7 @@
 ##   (i)   no informed input  : casestudy gt=1, inc=1
 ##   (ii)  imposed literature : casestudy gt=4, inc=4 (correct cell)
 ##   (iii) estimated from data: weightprior=FALSE, both varied
-## R^ filter applied as in fig_weightprior.R; mean CRPS taken across
+## R-hat filter applied to drop non-converged fits; mean CRPS taken across
 ## per-timepoint forecast horizons.
 
 library(here)
@@ -69,7 +69,10 @@ for (disease in diseases){
                                   paste0("res_", disease, "_casestudy_", rt_opts, "_all_diagnostics")),
                       error = function(e) NULL)
 
-  for (cell in list(c("no_input", 1, 1), c("imposed", 4, 4))){
+  for (cell in list(c("no_anything", 1, 1),
+                    c("no_GT",       1, 4),
+                    c("no_delays",   4, 1),
+                    c("imposed",     4, 4))){
     label <- cell[[1]]; gt <- as.integer(cell[[2]]); inc <- as.integer(cell[[3]])
     id_sub   <- cs_id   |> dplyr::filter(gt == !!gt, inc == !!inc)
     samp_sub <- cs_samp |> dplyr::filter(gt == !!gt, inc == !!inc)
@@ -78,16 +81,20 @@ for (disease in diseases){
     results[[paste(disease, label)]] <- tibble::tibble(disease = disease, condition = label, crps = crps)
   }
 
-  ## estimated-from-data: weightprior=FALSE, vary=both
-  prefix <- paste0("res_", disease, "_weightprior_FALSE_both_", rt_opts, "_all_")
-  est_id   <- tryCatch(read_latest(here("results/weightprior"), paste0(prefix, "id")),
-                       error = function(e) NULL)
-  est_samp <- tryCatch(read_latest(here("results/weightprior"), paste0(prefix, "samples")),
-                       error = function(e) NULL)
-  est_diag <- tryCatch(read_latest(here("results/weightprior"), paste0(prefix, "diagnostics")),
-                       error = function(e) NULL)
-  crps <- score_block(est_samp, est_id, est_diag, true_cases)
-  results[[paste(disease, "estimated")]] <- tibble::tibble(disease = disease, condition = "estimated", crps = crps)
+  ## estimated GT (delays held at literature) — vary="gt", weight_prior=FALSE
+  ## estimated delays (GT held at literature) — vary="inc", weight_prior=FALSE
+  for (cond in list(c("est_GT", "gt"), c("est_delays", "inc"), c("est_both", "both"))){
+    label <- cond[[1]]; v <- cond[[2]]
+    prefix <- paste0("res_", disease, "_weightprior_FALSE_", v, "_", rt_opts, "_all_")
+    est_id   <- tryCatch(read_latest(here("results/weightprior"), paste0(prefix, "id")),
+                         error = function(e) NULL)
+    est_samp <- tryCatch(read_latest(here("results/weightprior"), paste0(prefix, "samples")),
+                         error = function(e) NULL)
+    est_diag <- tryCatch(read_latest(here("results/weightprior"), paste0(prefix, "diagnostics")),
+                         error = function(e) NULL)
+    crps <- score_block(est_samp, est_id, est_diag, true_cases)
+    results[[paste(disease, label)]] <- tibble::tibble(disease = disease, condition = label, crps = crps)
+  }
 }
 
 out <- dplyr::bind_rows(results)

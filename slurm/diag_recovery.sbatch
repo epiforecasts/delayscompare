@@ -14,4 +14,5 @@ set -euo pipefail
 #   Rscript scripts/diag_grid_aggregate.R
 
 cd ~/delayscompare
+module load R
 Rscript scripts/diag_gt_recovery_grid.R

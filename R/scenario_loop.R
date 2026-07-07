@@ -34,6 +34,7 @@ sim_scenarios <- function(case_data,
       case_data,
       missing_dates = c("accumulate"),
       missing_obs = c("accumulate"),
+      initial_accumulate = 7,
       obs_column = "confirm",
       by = NULL
     )

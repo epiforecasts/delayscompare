@@ -2,7 +2,7 @@
 #### Wide-prior case-study figure ####
 #######################################
 
-# Mirrors fig_weightprior.R for the regime-2 wide-prior rerun.
+# Figures for the regime-2 wide-prior rerun.
 # weight_prior is fixed to FALSE (learn-from-data without prior weighting);
 # the prior SDs were widened to 25% relative.
 # Input prefix: res_<disease>_widepriors_FALSE_<vary>_<rt>_all_*

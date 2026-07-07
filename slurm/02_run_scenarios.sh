@@ -6,17 +6,17 @@
 #SBATCH --mem=16gb
 #SBATCH --ntasks=4
 #SBATCH --nodes=1
-#SBATCH --array=1-432%40
+#SBATCH --array=1-324%40
 set -euo pipefail
 
 # Run all scenario analyses with independent GT and INC variation
-# Array structure: 432 jobs = 3 diseases × 4 scenario_types × 6 GT × 6 INC
+# Array structure: 324 jobs = 3 diseases × 3 scenario_types × 6 GT × 6 INC
 # Limited to 40 concurrent jobs (LSHTM max)
 #
-# Per disease: 144 jobs (4 scenarios × 36 GT×INC combinations)
-# Jobs 1-144:    ebola
-# Jobs 145-288:  covid
-# Jobs 289-432:  cholera
+# Per disease: 108 jobs (3 scenarios × 36 GT×INC combinations)
+# Jobs 1-108:    ebola
+# Jobs 109-216:  covid
+# Jobs 217-324:  cholera
 
 # Get project root from SLURM_SUBMIT_DIR
 if [[ "$SLURM_SUBMIT_DIR" == */slurm ]]; then
@@ -30,20 +30,20 @@ module load R
 
 TASK_ID=$SLURM_ARRAY_TASK_ID
 
-# Determine disease (144 jobs per disease)
-if [ $TASK_ID -le 144 ]; then
+# Determine disease (108 jobs per disease)
+if [ $TASK_ID -le 108 ]; then
     DISEASE="ebola"
     LOCAL_ID=$TASK_ID
-elif [ $TASK_ID -le 288 ]; then
+elif [ $TASK_ID -le 216 ]; then
     DISEASE="covid"
-    LOCAL_ID=$((TASK_ID - 144))
+    LOCAL_ID=$((TASK_ID - 108))
 else
     DISEASE="cholera"
-    LOCAL_ID=$((TASK_ID - 288))
+    LOCAL_ID=$((TASK_ID - 216))
 fi
 
 # Within each disease: 36 jobs per scenario type (6 GT × 6 INC)
-# LOCAL_ID 1-36=constRt, 37-72=incdecRt, 73-108=casestudy, 109-144=weightprior
+# LOCAL_ID 1-36=constRt, 37-72=incdecRt, 73-108=casestudy
 if [ $LOCAL_ID -le 36 ]; then
     SCENARIO="constRt"
     COMBO_ID=$LOCAL_ID
@@ -52,14 +52,10 @@ elif [ $LOCAL_ID -le 72 ]; then
     SCENARIO="incdecRt"
     COMBO_ID=$((LOCAL_ID - 36))
     SCRIPT="scripts/06c_scenariorun_incdecRt.R"
-elif [ $LOCAL_ID -le 108 ]; then
+else
     SCENARIO="casestudy"
     COMBO_ID=$((LOCAL_ID - 72))
     SCRIPT="scripts/06d_scenariorun_casestudy.R"
-else
-    SCENARIO="weightprior"
-    COMBO_ID=$((LOCAL_ID - 108))
-    SCRIPT="scripts/06e_scenariorun_weightprior.R"
 fi
 
 # Determine GT and INC from COMBO_ID (1-36)

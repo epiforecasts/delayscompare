@@ -28,9 +28,6 @@ Rscript scripts/fig_resim.R
 echo "=== Generating casestudy figures ==="
 Rscript scripts/fig_casestudy.R
 
-echo "=== Generating weightprior figures ==="
-Rscript scripts/fig_weightprior.R
-
 echo "=== Generating fig1 (simulated scenarios) ==="
 Rscript scripts/fig1.R
 
