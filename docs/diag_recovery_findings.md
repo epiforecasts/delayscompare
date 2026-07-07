@@ -57,8 +57,22 @@ shape, which never identifies regardless.
 
 ## Implication for the plan
 
-The learn arm works parametrically with a deliberately wide prior, and does not
-work as a free-form Dirichlet estimate at these data volumes. The plan's learn arm
-would rest on the parametric form, with the over-long-GT blind spot reported rather
-than hidden. Whether to drop the Dirichlet arm entirely or keep it as a documented
-negative result is a design decision.
+The outcome of interest is predictive performance, not recovery of the true
+generation time, so the recovery numbers above are a check on whether the fit is
+usable rather than a target in themselves. Read that way, two things decide the
+learn arm.
+
+The free-form Dirichlet fit is not usable: it crashed during sampling in 20 of the
+288 cells, all at the wrong-prior-plus-weak-concentration corner, and the
+free-form geometry is unstable even where it does complete. The learn arm drops the
+Dirichlet form on those grounds. The parametric Gamma fit samples cleanly across
+the grid, so it stays.
+
+The parametric arm does not fully correct an over-long generation-time prior, but
+that blind spot does not disqualify it here. We are not trying to recover the true
+generation time; we are asking how the resulting forecasts score. A biased but
+stable fit is fine for that purpose, and the forecast scoring will pick up any cost
+of the bias directly.
+
+Decision: the learn arm uses the parametric form with a deliberately wide prior,
+and drops the Dirichlet form because its fit fails.
