@@ -60,13 +60,16 @@ sim <- simulate_infections(R = rt, initial_infections = 2000,
 cases <- sim |> filter(variable == "reported_cases") |> transmute(date, confirm = round(value))
 
 ## --- learn arm with a prior centred at (misspec x true mean) -----------------
+## Scale mean and SD together (constant CV), so the prior is a well-behaved gamma
+## with the same shape at every misspecification rather than a shape < 1 spike.
 prior_mean <- row$misspec * true_mean_g
+prior_sd   <- row$misspec * true_sd_g
 if (row$method == "nonparametric") {
-  prior_pmf <- gt_pmf_of(prior_mean, true_sd_g)
+  prior_pmf <- gt_pmf_of(prior_mean, prior_sd)
   gt_opts <- generation_time_opts(NonParametric(pmf = Dirichlet(prior = prior_pmf, concentration = row$setting)))
   prior_eff <- sum((seq_along(prior_pmf) - 1) * prior_pmf)
 } else {
-  shape_p <- (prior_mean / true_sd_g)^2; rate_p <- prior_mean / true_sd_g^2
+  shape_p <- (prior_mean / prior_sd)^2; rate_p <- prior_mean / prior_sd^2
   w <- row$setting
   gt_opts <- generation_time_opts(
     Gamma(shape = Normal(shape_p, w * shape_p), rate = Normal(rate_p, w * rate_p), max = 15),
