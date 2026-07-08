@@ -77,7 +77,9 @@ score_case_forecasts <- function(res_samples, res_id, true_cases) {
     filter(type == "forecast") |>
     left_join(id_dedup, by = c("result_list", "gt", "inc")) |>
     left_join(true_cases, by = "date") |>
-    filter(!is.na(true_value))
+    filter(!is.na(true_value)) |>
+    mutate(horizon = as.numeric(date - forecast_origin) / 7) |>
+    filter(horizon %in% c(1, 2))
 
   if (nrow(res_samples) == 0) return(NULL)
 
@@ -85,7 +87,7 @@ score_case_forecasts <- function(res_samples, res_id, true_cases) {
     as_forecast_sample(
       data = res_samples,
       forecast_unit = c("date", "type", "result_list", "gt", "inc",
-                        "model", "timepoint"),
+                        "model", "timepoint", "horizon"),
       observed = "true_value",
       predicted = "prediction",
       sample_id = "sample"
@@ -99,7 +101,6 @@ score_case_forecasts <- function(res_samples, res_id, true_cases) {
 
   res_forecast |>
     transform_forecasts(fun = log_shift, offset = 1, label = "log") |>
-    filter(scale == "log") |>
     score()
 }
 
@@ -147,11 +148,10 @@ score_rt_forecasts <- function(res_R, res_id, rt_truth) {
 #' @return Data frame with gt, inc, gen_time, inc_period, crps, rank
 summarise_rankings <- function(scores) {
   scores |>
-    group_by(timepoint, gt, inc) |>
-    filter(date == max(date)) |>
-    ungroup() |>
-    group_by(gt, inc) |>
+    group_by(gt, inc, horizon) |>
     summarise(crps = mean(crps, na.rm = TRUE), .groups = "drop") |>
     add_delay_labels() |>
-    mutate(rank = rank(crps))
+    group_by(horizon) |>
+    mutate(rank = rank(crps)) |>
+    ungroup()
 }

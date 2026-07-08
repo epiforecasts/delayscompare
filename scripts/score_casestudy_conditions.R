@@ -17,38 +17,36 @@ case_col <- function(d){
   if ("confirm" %in% names(d)) "confirm" else "cases"
 }
 
-score_block <- function(samples, id, diagnostics, true_cases){
-  if (is.null(samples) || is.null(id)) return(NA_real_)
-  if (!is.null(diagnostics)) {
+score_block <- function(samples, id, diagnostics, true_cases, filter_rhat = TRUE){
+  if (is.null(samples) || is.null(id)) return(NULL)
+  if (filter_rhat && !is.null(diagnostics)) {
     keep <- diagnostics |>
       dplyr::filter(!is.na(max_rhat), max_rhat <= 1.05)
     samples <- samples |> dplyr::semi_join(keep, by = "result_list")
   }
-  if (nrow(samples) == 0) return(NA_real_)
+  if (nrow(samples) == 0) return(NULL)
   id_dedup <- id |> dplyr::distinct(result_list, .keep_all = TRUE)
   scored <- samples |>
     dplyr::filter(type == "forecast") |>
     dplyr::left_join(id_dedup, by = "result_list") |>
     dplyr::left_join(true_cases, by = "date") |>
-    dplyr::filter(!is.na(true_value))
-  if (nrow(scored) == 0) return(NA_real_)
+    dplyr::filter(!is.na(true_value)) |>
+    dplyr::mutate(horizon = as.numeric(date - forecast_origin) / 7) |>
+    dplyr::filter(horizon %in% c(1, 2))
+  if (nrow(scored) == 0) return(NULL)
   fc <- tryCatch(scoringutils::as_forecast_sample(
     data = scored,
-    forecast_unit = c("date", "type", "result_list", "model", "timepoint"),
+    forecast_unit = c("date", "type", "result_list", "model", "timepoint", "horizon"),
     observed = "true_value", predicted = "prediction", sample_id = "sample"),
     error = function(e) NULL)
-  if (is.null(fc)) return(NA_real_)
+  if (is.null(fc)) return(NULL)
   sc <- fc |>
     scoringutils::transform_forecasts(fun = scoringutils::log_shift, offset = 1, label = "log") |>
-    dplyr::filter(scale == "log") |>
     scoringutils::score()
   res <- sc |>
-    dplyr::group_by(timepoint) |>
-    dplyr::filter(date == max(date)) |>
-    dplyr::ungroup() |>
-    dplyr::summarise(crps = mean(crps, na.rm = TRUE)) |>
-    dplyr::pull(crps)
-  if (length(res) == 0) NA_real_ else res
+    dplyr::group_by(scale, horizon) |>
+    dplyr::summarise(crps = mean(crps, na.rm = TRUE), .groups = "drop")
+  if (nrow(res) == 0) NULL else res
 }
 
 results <- list()
@@ -61,12 +59,12 @@ for (disease in diseases){
   ## casestudy aggregated files: cells indexed by gt (1..6) and inc (1..6).
   ## "no informed input" cell is gt=1 (one-day) and inc=1 (no delay).
   ## "imposed literature" cell is gt=4 (correct mean) and inc=4 (correct mean).
-  cs_id   <- read_latest(here("results/casestudy"),
-                         paste0("res_", disease, "_casestudy_", rt_opts, "_all_id"))
-  cs_samp <- read_latest(here("results/casestudy"),
-                         paste0("res_", disease, "_casestudy_", rt_opts, "_all_samples"))
-  cs_diag <- tryCatch(read_latest(here("results/casestudy"),
-                                  paste0("res_", disease, "_casestudy_", rt_opts, "_all_diagnostics")),
+  cs_id   <- read_latest(here("results", "agg"),
+                         paste0(disease, "_casestudy_", rt_opts, "_id"))
+  cs_samp <- read_latest(here("results", "agg"),
+                         paste0(disease, "_casestudy_", rt_opts, "_samples"))
+  cs_diag <- tryCatch(read_latest(here("results", "agg"),
+                                  paste0(disease, "_casestudy_", rt_opts, "_diagnostics")),
                       error = function(e) NULL)
 
   for (cell in list(c("no_anything", 1, 1),
@@ -77,23 +75,31 @@ for (disease in diseases){
     id_sub   <- cs_id   |> dplyr::filter(gt == !!gt, inc == !!inc)
     samp_sub <- cs_samp |> dplyr::filter(gt == !!gt, inc == !!inc)
     diag_sub <- if (!is.null(cs_diag)) cs_diag |> dplyr::filter(gt == !!gt, inc == !!inc) else NULL
-    crps <- score_block(samp_sub, id_sub, diag_sub, true_cases)
-    results[[paste(disease, label)]] <- tibble::tibble(disease = disease, condition = label, crps = crps)
+    ## impose/omit conditions: discard non-converged fits (R-hat filter on)
+    sc <- score_block(samp_sub, id_sub, diag_sub, true_cases, filter_rhat = TRUE)
+    if (!is.null(sc)) {
+      results[[paste(disease, label)]] <- tibble::tibble(disease = disease, condition = label) |>
+        dplyr::cross_join(sc)
+    }
   }
 
   ## estimated GT (delays held at literature) — vary="gt", weight_prior=FALSE
   ## estimated delays (GT held at literature) — vary="inc", weight_prior=FALSE
   for (cond in list(c("est_GT", "gt"), c("est_delays", "inc"), c("est_both", "both"))){
     label <- cond[[1]]; v <- cond[[2]]
-    prefix <- paste0("res_", disease, "_weightprior_FALSE_", v, "_", rt_opts, "_all_")
-    est_id   <- tryCatch(read_latest(here("results/weightprior"), paste0(prefix, "id")),
+    prefix <- paste0(disease, "_weightprior_FALSE_", v, "_", rt_opts, "_")
+    est_id   <- tryCatch(read_latest(here("results", "agg"), paste0(prefix, "id")),
                          error = function(e) NULL)
-    est_samp <- tryCatch(read_latest(here("results/weightprior"), paste0(prefix, "samples")),
+    est_samp <- tryCatch(read_latest(here("results", "agg"), paste0(prefix, "samples")),
                          error = function(e) NULL)
-    est_diag <- tryCatch(read_latest(here("results/weightprior"), paste0(prefix, "diagnostics")),
+    est_diag <- tryCatch(read_latest(here("results", "agg"), paste0(prefix, "diagnostics")),
                          error = function(e) NULL)
-    crps <- score_block(est_samp, est_id, est_diag, true_cases)
-    results[[paste(disease, label)]] <- tibble::tibble(disease = disease, condition = label, crps = crps)
+    ## learn conditions: report non-convergence, do not discard (R-hat filter off)
+    sc <- score_block(est_samp, est_id, est_diag, true_cases, filter_rhat = FALSE)
+    if (!is.null(sc)) {
+      results[[paste(disease, label)]] <- tibble::tibble(disease = disease, condition = label) |>
+        dplyr::cross_join(sc)
+    }
   }
 }
 

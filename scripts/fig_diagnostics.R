@@ -38,7 +38,7 @@ for(disease in c("ebola", "covid", "cholera")) {
   # Simulated scenarios
   for(scen in c("const_low", "const_high", "inc", "dec")) {
     diag <- tryCatch(
-      read_latest(here("results/sim"), paste0("res_", disease, "_", scen, "_", rt_opts, "_all_diagnostics")),
+      read_latest(here("results", "agg"), paste0(disease, "_", scen, "_", rt_opts, "_diagnostics")),
       error = function(e) NULL
     )
     if(!is.null(diag)) {
@@ -51,7 +51,7 @@ for(disease in c("ebola", "covid", "cholera")) {
 
   # Case study
   diag <- tryCatch(
-    read_latest(here("results/casestudy"), paste0("res_", disease, "_casestudy_", rt_opts, "_all_diagnostics")),
+    read_latest(here("results", "agg"), paste0(disease, "_casestudy_", rt_opts, "_diagnostics")),
     error = function(e) NULL
   )
   if(!is.null(diag)) {
@@ -65,7 +65,7 @@ for(disease in c("ebola", "covid", "cholera")) {
   for(vary in c("gt", "inc", "both")) {
     for(wp in c("TRUE", "FALSE")) {
       diag <- tryCatch(
-        read_latest(here("results/weightprior"), paste0("res_", disease, "_weightprior_", wp, "_", vary, "_", rt_opts, "_all_diagnostics")),
+        read_latest(here("results", "agg"), paste0(disease, "_weightprior_", wp, "_", vary, "_", rt_opts, "_diagnostics")),
         error = function(e) NULL
       )
       if(!is.null(diag)) {

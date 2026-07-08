@@ -9,10 +9,10 @@ if ("inc" %in% names(res_samples) && "inc" %in% names(res_id)) {
 res_samples <- res_samples |>
   left_join(res_id, by = join_keys)
 
-# Get 2-week forecast only
+# Keep 1- and 2-week forecast horizons (day 7 and 14 relative to origin)
 res_samples <- res_samples |>
-  group_by(timepoint) |>
-  filter(date == max(date))                                                                           
+  mutate(horizon = as.numeric(date - forecast_origin) / 7) |>
+  filter(horizon %in% c(1, 2))
 
 # Add simulated data to samples for rankings
 res_samples <- sim_data_scen |>
@@ -23,11 +23,11 @@ res_samples <- sim_data_scen |>
 
 # Prepare samples for scoring and ranking
 res_samples <- res_samples |>
-  select(date, true_value, prediction, sample, model, gen_time, inc_period, timepoint, type) 
+  select(date, true_value, prediction, sample, model, gen_time, inc_period, timepoint, horizon, type)
 
 res_samples <- as_forecast_sample(
   data=res_samples,
-  forecast_unit=c("date", "type", "gen_time", "inc_period", "model", "timepoint"),
+  forecast_unit=c("date", "type", "gen_time", "inc_period", "model", "timepoint", "horizon"),
   observed="true_value",
   predicted="prediction",
   sample_id='sample'
@@ -35,9 +35,10 @@ res_samples <- as_forecast_sample(
 
 res_samples <- transform_forecasts(res_samples, fun = log_shift, offset = 1, label="log")
 
+# Score on both natural and log scales
 scores <- res_samples |>
-  filter(type=="forecast", scale=="log") |>
-  score() 
+  filter(type=="forecast") |>
+  score()
 
 return(scores)
 
@@ -60,23 +61,23 @@ generate_scores_rt <- function(res_R, res_id, rt_traj_scen) {
   }
   res_R <- res_R |>
     left_join(res_id, by = join_keys)
-  
-  # Get 2-week forecast only
+
+  # Keep 1- and 2-week forecast horizons (day 7 and 14 relative to origin)
   res_R <- res_R |>
-    group_by(timepoint) |>
-    filter(date == max(date))
-  
+    mutate(horizon = as.numeric(date - forecast_origin) / 7) |>
+    filter(horizon %in% c(1, 2))
+
   # Add simulated data to samples for rankings
   res_R <- rt_traj_scen |>
     right_join(res_R |> filter(type=="forecast"), by="date")
-  
+
   # Prepare samples for scoring and ranking
   res_R <- res_R |>
-    select(date, R, value, sample, model, gen_time, inc_period, timepoint, type) 
-  
+    select(date, R, value, sample, model, gen_time, inc_period, timepoint, horizon, type)
+
   res_R <- as_forecast_sample(
     data=res_R,
-    forecast_unit=c("date", "type", "gen_time", "inc_period", "model", "timepoint"),
+    forecast_unit=c("date", "type", "gen_time", "inc_period", "model", "timepoint", "horizon"),
     observed="R",
     predicted="value",
     sample_id='sample'

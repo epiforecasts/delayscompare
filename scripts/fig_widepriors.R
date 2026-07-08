@@ -5,8 +5,8 @@
 # Figures for the regime-2 wide-prior rerun.
 # weight_prior is fixed to FALSE (learn-from-data without prior weighting);
 # the prior SDs were widened to 25% relative.
-# Input prefix: res_<disease>_widepriors_FALSE_<vary>_<rt>_all_*
-# Read from results/widepriors/ (populated by scripts/07_resultsprocessing.R).
+# Input prefix: <disease>_widepriors_FALSE_<vary>_<rt>_*
+# Read from results/agg/ (populated by scripts/07_resultsprocessing.R).
 
 library(here)
 source(here("scripts", "01_packages.R"))
@@ -38,14 +38,14 @@ for(disease in c("ebola", "covid", "cholera")) {
 
     message(paste("\n=== Processing", disease, "vary =", vary, "(wide priors) ===\n"))
 
-    file_prefix <- paste0("res_", disease, "_widepriors_", wp, "_", vary, "_", rt_opts, "_all_")
+    file_prefix <- paste0(disease, "_widepriors_", wp, "_", vary, "_", rt_opts, "_")
 
     res_samples <- tryCatch(
-      read_latest(here("results/widepriors"), paste0(file_prefix, "samples")),
+      read_latest(here("results", "agg"), paste0(file_prefix, "samples")),
       error = function(e) { message("  Missing samples"); NULL }
     )
     res_id <- tryCatch(
-      read_latest(here("results/widepriors"), paste0(file_prefix, "id")),
+      read_latest(here("results", "agg"), paste0(file_prefix, "id")),
       error = function(e) { message("  Missing id"); NULL }
     )
 
@@ -55,7 +55,7 @@ for(disease in c("ebola", "covid", "cholera")) {
     }
 
     diagnostics <- tryCatch(
-      read_latest(here("results/widepriors"), paste0(file_prefix, "diagnostics")),
+      read_latest(here("results", "agg"), paste0(file_prefix, "diagnostics")),
       error = function(e) { message("  No diagnostics"); NULL }
     )
     if(!is.null(diagnostics)) {

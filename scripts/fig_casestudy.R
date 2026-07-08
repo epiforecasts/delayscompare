@@ -34,11 +34,11 @@ for(disease in c("ebola", "covid", "cholera")) {
 
   # Load processed casestudy results
   res_samples <- tryCatch(
-    read_latest(here("results/casestudy"), paste0("res_", disease, "_casestudy_", rt_opts, "_all_samples")),
+    read_latest(here("results", "agg"), paste0(disease, "_casestudy_", rt_opts, "_samples")),
     error = function(e) { message(paste("  Missing samples for", disease)); NULL }
   )
   res_id <- tryCatch(
-    read_latest(here("results/casestudy"), paste0("res_", disease, "_casestudy_", rt_opts, "_all_id")),
+    read_latest(here("results", "agg"), paste0(disease, "_casestudy_", rt_opts, "_id")),
     error = function(e) { message(paste("  Missing id for", disease)); NULL }
   )
 
@@ -49,7 +49,7 @@ for(disease in c("ebola", "covid", "cholera")) {
 
   # Load and apply diagnostics filter
   diagnostics <- tryCatch(
-    read_latest(here("results/casestudy"), paste0("res_", disease, "_casestudy_", rt_opts, "_all_diagnostics")),
+    read_latest(here("results", "agg"), paste0(disease, "_casestudy_", rt_opts, "_diagnostics")),
     error = function(e) { message(paste("  No diagnostics for", disease)); NULL }
   )
   if(!is.null(diagnostics)) {
