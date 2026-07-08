@@ -1,87 +1,85 @@
+# Timepoint number parsed from a "..._tp<k>.rds" filename
+tp_num <- function(paths) as.integer(sub(".*_tp([0-9]+)\\.rds$", "\\1", basename(paths)))
+
 read_latest <- function(dir, file_name) {
-  # First try exact match (non-split files)
-  files <- list.files(dir, pattern = paste0("^", file_name, "[0-9]{4}-[0-9]{2}-[0-9]{2}\\.rds$"))
+  # Deterministic aggregated file: one <file_name>.rds
+  exact <- file.path(dir, paste0(file_name, ".rds"))
+  if (file.exists(exact)) return(readRDS(exact))
 
-  if (length(files) > 0) {
-    # Return latest single file
-    return(readRDS(file.path(dir, files[length(files)])))
+  # Raw per-timepoint files: <file_name>_tp<k>.rds, combined in timepoint order
+  tp_files <- list.files(dir, pattern = paste0("^", file_name, "_tp[0-9]+\\.rds$"),
+                         full.names = TRUE)
+  if (length(tp_files) > 0) {
+    tp_files <- tp_files[order(tp_num(tp_files))]
+    dat <- lapply(tp_files, readRDS)
+    dfs <- Filter(is.data.frame, dat)
+    if (length(dfs) > 0) return(dplyr::bind_rows(dfs))
+    return(dat[[1]])
   }
-
-  # Try split files (e.g., file_name_tp1-2, file_name_tp3-4, etc.)
-  split_files <- list.files(dir, pattern = paste0("^", file_name, "_tp[0-9]+-[0-9]+.*\\.rds$"))
-
-  if (length(split_files) > 0) {
-    # Read and combine all split files
-    split_data <- lapply(file.path(dir, split_files), readRDS)
-    # Only bind data.frames; return first element if none are data.frames
-    df_elements <- Filter(is.data.frame, split_data)
-    if (length(df_elements) > 0) return(dplyr::bind_rows(df_elements))
-    return(split_data[[1]])
-  }
-
-  # Fall back to original behaviour for backwards compatibility
-  files <- list.files(dir, pattern = file_name)
-  if (length(files) == 0) {
-    stop(paste("No files found matching pattern:", file_name))
-  }
-  readRDS(file.path(dir, files[length(files)]))
+  stop(paste("No file(s) found for:", file_name, "in", dir))
 }
 
 read_latest_list <- function(dir, file_name) {
-  # Like read_latest but concatenates lists (for summary files containing
-  # lists of epinowfit objects rather than data.frames)
-  files <- list.files(dir, pattern = paste0("^", file_name, "[0-9]{4}-[0-9]{2}-[0-9]{2}\\.rds$"))
-  if (length(files) > 0) {
-    return(readRDS(file.path(dir, files[length(files)])))
-  }
+  # Like read_latest but concatenates lists (e.g. summary lists of epinowfit objects)
+  exact <- file.path(dir, paste0(file_name, ".rds"))
+  if (file.exists(exact)) return(readRDS(exact))
 
-  split_files <- list.files(dir, pattern = paste0("^", file_name, "_tp[0-9]+-[0-9]+.*\\.rds$"))
-  if (length(split_files) > 0) {
-    split_data <- lapply(file.path(dir, split_files), readRDS)
-    return(do.call(c, split_data))
+  tp_files <- list.files(dir, pattern = paste0("^", file_name, "_tp[0-9]+\\.rds$"),
+                         full.names = TRUE)
+  if (length(tp_files) > 0) {
+    tp_files <- tp_files[order(tp_num(tp_files))]
+    return(do.call(c, lapply(tp_files, readRDS)))
   }
-
-  files <- list.files(dir, pattern = file_name)
-  if (length(files) == 0) {
-    stop(paste("No files found matching pattern:", file_name))
-  }
-  readRDS(file.path(dir, files[length(files)]))
+  stop(paste("No file(s) found for:", file_name, "in", dir))
 }
 
-extract_diagnostics <- function(summary_list) {
-  # Extract MCMC diagnostics (Rhat, divergent transitions, ESS) from a list
-  # of epinowfit objects. Returns a data.frame with one row per timepoint.
-  diagnostics <- lapply(seq_along(summary_list), function(i) {
-    tryCatch({
-      fit <- summary_list[[i]]$fit
-      if (is.null(fit)) {
-        return(data.frame(result_list = i, max_rhat = NA_real_,
-                          num_divergent = NA_integer_, min_ess = NA_real_))
-      }
-
-      s <- rstan::summary(fit)$summary
-      sp <- rstan::get_sampler_params(fit, inc_warmup = FALSE)
-      divs <- sum(sapply(sp, function(z) sum(z[, "divergent__"])))
-
-      rhat_vals <- s[, "Rhat"]
-      ess_vals <- s[, "n_eff"]
-
-      data.frame(
-        result_list = i,
-        max_rhat = if (all(is.na(rhat_vals))) NA_real_ else max(rhat_vals, na.rm = TRUE),
-        num_divergent = divs,
-        min_ess = if (all(is.na(ess_vals))) NA_real_ else min(ess_vals, na.rm = TRUE)
-      )
-    }, error = function(e) {
-      data.frame(result_list = i, max_rhat = NA_real_,
-                 num_divergent = NA_integer_, min_ess = NA_real_)
-    })
-  })
-
-  dplyr::bind_rows(diagnostics)
+fit_diagnostics <- function(fit, timepoint) {
+  # Compact MCMC diagnostics (max Rhat, divergences, min ESS) from one stan fit.
+  # Called at run time with return_fit = TRUE, so the heavy fit can then be dropped.
+  tryCatch({
+    if (is.null(fit)) {
+      return(data.frame(timepoint = timepoint, max_rhat = NA_real_,
+                        num_divergent = NA_integer_, min_ess = NA_real_))
+    }
+    s  <- rstan::summary(fit)$summary
+    sp <- rstan::get_sampler_params(fit, inc_warmup = FALSE)
+    data.frame(
+      timepoint = timepoint,
+      max_rhat = if (all(is.na(s[, "Rhat"]))) NA_real_ else max(s[, "Rhat"], na.rm = TRUE),
+      num_divergent = sum(sapply(sp, function(z) sum(z[, "divergent__"]))),
+      min_ess = if (all(is.na(s[, "n_eff"]))) NA_real_ else min(s[, "n_eff"], na.rm = TRUE)
+    )
+  }, error = function(e) data.frame(timepoint = timepoint, max_rhat = NA_real_,
+                                    num_divergent = NA_integer_, min_ess = NA_real_))
 }
 
 save_latest <- function(x, dir, file_name) {
+  # Deterministic write: overwrites in place on re-run (no date suffix), so
+  # results never accumulate stale copies.
   if (!dir.exists(dir)) dir.create(dir, recursive = TRUE)
-  saveRDS(x, file.path(dir, paste0(file_name, Sys.Date(), ".rds")))
+  saveRDS(x, file.path(dir, paste0(file_name, ".rds")))
+}
+
+save_scenario <- function(res, dir, disease, scenario, rt, gt, inc) {
+  # Write one deterministic file per (type, timepoint):
+  #   <dir>/<disease>_<scenario>_<rt>_<type>_gt<gt>_inc<inc>_tp<k>.rds
+  # Splitting on the actual timepoint means single- and multi-timepoint jobs
+  # produce the same per-timepoint layout, which read_latest() re-binds.
+  if (!dir.exists(dir)) dir.create(dir, recursive = TRUE)
+  fname <- function(type, k)
+    file.path(dir, paste0(disease, "_", scenario, "_", rt, "_", type,
+                          "_gt", gt, "_inc", inc, "_tp", k, ".rds"))
+  tps <- sort(unique(res$id$result_list))
+  for (k in tps) {
+    write_sub <- function(x, type, key) {
+      sub <- x[x[[key]] == k, , drop = FALSE]
+      if (nrow(sub) > 0) saveRDS(sub, fname(type, k))
+    }
+    write_sub(res$samples, "samples", "result_list")
+    write_sub(res$id, "id", "result_list")
+    write_sub(res$R, "R", "result_list")
+    write_sub(res$diagnostics, "diagnostics", "result_list")
+    write_sub(res$timing, "timing", "timepoint")
+    saveRDS(res$warnings, fname("warnings", k))  # whole-run warnings, per timepoint
+  }
 }

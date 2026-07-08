@@ -92,12 +92,7 @@ if (rt_level %in% c("low", "both")) {
                              timepoint_range=timepoint_range)
 
   if (nrow(res_disease$samples) > 0) {
-    save_latest(res_disease[[1]], here("results"), paste0("res_", disease, "_const_low_", rt_opts, "_samples", gt, inc, tp_suffix))
-    save_latest(res_disease[[2]], here("results"), paste0("res_", disease, "_const_low_", rt_opts, "_id", gt, inc, tp_suffix))
-    save_latest(res_disease[[3]], here("results"), paste0("res_", disease, "_const_low_", rt_opts, "_R", gt, inc, tp_suffix))
-    save_latest(res_disease[[4]], here("results"), paste0("res_", disease, "_const_low_", rt_opts, "_summary", gt, inc, tp_suffix))
-    save_latest(res_disease[[5]], here("results"), paste0("res_", disease, "_const_low_", rt_opts, "_warnings", gt, inc, tp_suffix))
-    save_latest(res_disease[[6]], here("results"), paste0("res_", disease, "_const_low_", rt_opts, "_timing", gt, inc, tp_suffix))
+    save_scenario(res_disease, here("results", "raw"), disease, "const_low", rt_opts, gt, inc)
   }
 }
 
@@ -131,12 +126,7 @@ if (rt_level %in% c("high", "both")) {
                              timepoint_range=timepoint_range)
 
   if (nrow(res_disease$samples) > 0) {
-    save_latest(res_disease[[1]], here("results"), paste0("res_", disease, "_const_high_", rt_opts, "_samples", gt, inc, tp_suffix))
-    save_latest(res_disease[[2]], here("results"), paste0("res_", disease, "_const_high_", rt_opts, "_id", gt, inc, tp_suffix))
-    save_latest(res_disease[[3]], here("results"), paste0("res_", disease, "_const_high_", rt_opts, "_R", gt, inc, tp_suffix))
-    save_latest(res_disease[[4]], here("results"), paste0("res_", disease, "_const_high_", rt_opts, "_summary", gt, inc, tp_suffix))
-    save_latest(res_disease[[5]], here("results"), paste0("res_", disease, "_const_high_", rt_opts, "_warnings", gt, inc, tp_suffix))
-    save_latest(res_disease[[6]], here("results"), paste0("res_", disease, "_const_high_", rt_opts, "_timing", gt, inc, tp_suffix))
+    save_scenario(res_disease, here("results", "raw"), disease, "const_high", rt_opts, gt, inc)
   }
 }
   

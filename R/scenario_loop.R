@@ -95,9 +95,10 @@ if(length(scen_timepoints) == 0){
         case_segment <- case_data |>
           filter(date <= scen_timepoints[k])
 
-        # Use previous 12 weeks of data for forecast
+        # Use previous 12 weeks of data for forecast (window relative to the
+        # forecast origin, not the last available row)
         case_segment <- case_segment |>
-          filter(date > (case_segment$date[nrow(case_segment)] - weeks_inc*7))
+          filter(date > (scen_timepoints[k] - weeks_inc*7))
 
         print(nrow(case_segment))
 
@@ -133,7 +134,7 @@ start_runtime <- Sys.time()
                                      obs=obs_opts(family="negbin", scale=Fixed(obs_scale)),
                                      rt=rt_opts(future=rt_opts_choice),
                                      stan = stan_opts(samples = 3000,
-                                                      return_fit = FALSE,
+                                                      return_fit = TRUE,
                                                       control=list(adapt_delta=adapt_delta,
                                                                    max_treedepth=20)),
                                      forecast = forecast_opts(horizon=14),
@@ -144,7 +145,7 @@ start_runtime <- Sys.time()
         end_runtime <- Sys.time()
         elapsed_seconds <- as.numeric(difftime(end_runtime, start_runtime, units = "secs"))
         timing_log <- data.frame(
-          timepoint=k, 
+          timepoint=original_tp,
           gen_time=names(scen_values)[var],
           inc_period=names(scen_values)[inc],
           elapsed_seconds=elapsed_seconds
@@ -170,7 +171,12 @@ start_runtime <- Sys.time()
 
         rm(def_samples)
 
+        # Compact convergence diagnostics (return_fit=TRUE above), then drop the fit
+        diag_row <- fit_diagnostics(def$fit, original_tp)
+        rm(def)
+
         res_id <- data.frame(timepoint=original_tp,
+                             forecast_origin=scen_timepoints[k],
                              gen_time=names(scen_values)[var],
                              inc_period=names(scen_values)[inc])
 
@@ -178,60 +184,39 @@ start_runtime <- Sys.time()
         return(list(samples = res_samples,
                     R = res_R,
                     id = res_id,
-                    summary = def,
+                    diagnostics = diag_row,
                     timing = timing_log))
   }, .progress = TRUE)
 
   save_warnings <- warnings()
   res <- transpose(res)
-  
-  res_samples <- lapply(seq_along(res$samples), function(i) {
-    if (is.null(res$samples[[i]]) || nrow(res$samples[[i]]) == 0) {
-      stop(paste("Timepoint", i, "has NULL or empty samples - model fit likely failed"))
-    }
-    samples_scen <- res$samples[[i]] |>
-      mutate(model="EpiNow2")
 
-    # Use actual timepoint as result_list so split jobs don't collide
-    samples_scen$result_list <- res$id[[i]]$timepoint
+  # Keep only timepoints that produced a non-empty fit; warn (do not stop) so a
+  # single failed fit does not discard the whole job's other timepoints.
+  ok <- vapply(res$samples, function(x) !is.null(x) && nrow(x) > 0, logical(1))
+  if (any(!ok)) warning(paste("Dropped", sum(!ok),
+                              "timepoint(s) with empty samples (fit failed)"))
 
-    # Bind to dataframe
-    return(samples_scen)
+  # result_list = the actual timepoint number, so split jobs never collide
+  res_samples <- bind_rows(lapply(which(ok), function(i)
+    res$samples[[i]] |> mutate(model = "EpiNow2", result_list = res$id[[i]]$timepoint)))
+  if (nrow(res_samples) > 0) res_samples <- res_samples |> rename(prediction = value)
 
-  })
+  res_R <- bind_rows(lapply(which(ok), function(i)
+    res$R[[i]] |> mutate(model = "EpiNow2", result_list = res$id[[i]]$timepoint)))
 
-  res_id <- lapply(seq_along(res$id), function(i){
-    res_id <- res$id[[i]] |>
-      mutate(result_list = timepoint)
-    return(res_id)
-  })
+  res_id <- bind_rows(lapply(which(ok), function(i)
+    res$id[[i]] |> mutate(result_list = timepoint)))
 
-  res_R <- lapply(seq_along(res$R), function(i) {
-    if (is.null(res$R[[i]]) || nrow(res$R[[i]]) == 0) {
-      stop(paste("Timepoint", i, "has NULL or empty R samples - model fit likely failed"))
-    }
-    samples_scen <- res$R[[i]] |>
-      mutate(model="EpiNow2")
+  res_diagnostics <- bind_rows(lapply(which(ok), function(i)
+    res$diagnostics[[i]] |> mutate(result_list = timepoint)))
 
-    # Use actual timepoint as result_list so split jobs don't collide
-    samples_scen$result_list <- res$id[[i]]$timepoint
-
-    # Bind to dataframe
-    return(samples_scen)
-
-  })
-
-  res_samples <- bind_rows(res_samples) |>
-    rename(prediction=value)
-
-  res_id <- bind_rows(res_id)
-  res_R <- bind_rows(res_R)
-  res_timing <- bind_rows(res$timing)
+  res_timing <- bind_rows(res$timing[ok])
 
   return(list(samples = res_samples,
               id = res_id,
               R = res_R,
-              summary = res$summary,
+              diagnostics = res_diagnostics,
               warnings = save_warnings,
               timing = res_timing))
 }
@@ -327,9 +312,10 @@ res <- pmap(scenarios, \(k) {
         case_segment <- case_data |>
           filter(date <= scen_timepoints[k])
         
-        # Use previous 12 weeks of data for forecast
+        # Use previous 12 weeks of data for forecast (window relative to the
+        # forecast origin, not the last available row)
         case_segment <- case_segment |>
-          filter(date > (case_segment$date[nrow(case_segment)] - weeks_inc*7))
+          filter(date > (scen_timepoints[k] - weeks_inc*7))
         
         print(nrow(case_segment))
         

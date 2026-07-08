@@ -11,9 +11,12 @@ ebola_confirmed_linelist <- read_xlsx(here("data", "ebola_linelist.xlsx"), "lab-
 
 # Formating for EpiNow2
 
+# Count by date of symptom onset, so the observation delay EpiNow2 sees is the
+# incubation period alone (matching the analysis plan's provenance note).
 ebola_confirmed <- ebola_confirmed_linelist |>
-  count(`Date of sample tested`, name = "confirm") |>
-  rename(date = `Date of sample tested`) |>
+  count(`Date of symptom onset`, name = "confirm") |>
+  rename(date = `Date of symptom onset`) |>
+  filter(!is.na(date)) |>
   mutate(date = as.Date(date))
 
 # Assuming no data reported on missing days

@@ -80,12 +80,5 @@ d <- delays[[disease]]
                            timepoint_range=timepoint_range)
 
 if (nrow(res_disease$samples) > 0) {
-  save_latest(res_disease[[2]], here("results"), paste0("res_", disease, "_casestudy_", rt_opts, "_id", gt, inc, tp_suffix))
-  save_latest(res_disease[[4]], here("results"), paste0("res_", disease, "_casestudy_", rt_opts, "_summary", gt, inc, tp_suffix))
-  save_latest(res_disease[[5]], here("results"), paste0("res_", disease, "_casestudy_", rt_opts, "_warnings", gt, inc, tp_suffix))
-  save_latest(res_disease[[6]], here("results"), paste0("res_", disease, "_casestudy_", rt_opts, "_timing", gt, inc, tp_suffix))
-
-  ## Saving samples and R ##
-  save_latest(res_disease[[1]], here("results"), paste0("res_", disease, "_casestudy_", rt_opts, "_samples", gt, inc, tp_suffix))
-  save_latest(res_disease[[3]], here("results"), paste0("res_", disease, "_casestudy_", rt_opts, "_R", gt, inc, tp_suffix))
+  save_scenario(res_disease, here("results", "raw"), disease, "casestudy", rt_opts, gt, inc)
 }
