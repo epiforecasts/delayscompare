@@ -70,6 +70,10 @@ sim_data_low_cases <- sim_data_low_cases |>
 freq_fc=4
 weeks_inc=12
 
+## Sampler settings (overridable via env vars for tighter re-runs)
+adapt_delta <- as.numeric(Sys.getenv("ADAPT_DELTA", "0.99"))
+max_treedepth <- as.integer(Sys.getenv("MAX_TREEDEPTH", "20"))
+
 ## Rt const low - under-reporting=no ##
 
 if (rt_level %in% c("low", "both")) {
@@ -89,7 +93,9 @@ if (rt_level %in% c("low", "both")) {
                              weeks_inc=weeks_inc,
                              rt_opts_choice=rt_opts,
                              obs_scale=1,
-                             timepoint_range=timepoint_range)
+                             timepoint_range=timepoint_range,
+                             adapt_delta=adapt_delta,
+                             max_treedepth=max_treedepth)
 
   if (nrow(res_disease$samples) > 0) {
     save_scenario(res_disease, here("results", "raw"), disease, "const_low", rt_opts, gt, inc)
@@ -123,7 +129,9 @@ if (rt_level %in% c("high", "both")) {
                              weeks_inc=weeks_inc,
                              rt_opts_choice=rt_opts,
                              obs_scale=1,
-                             timepoint_range=timepoint_range)
+                             timepoint_range=timepoint_range,
+                             adapt_delta=adapt_delta,
+                             max_treedepth=max_treedepth)
 
   if (nrow(res_disease$samples) > 0) {
     save_scenario(res_disease, here("results", "raw"), disease, "const_high", rt_opts, gt, inc)

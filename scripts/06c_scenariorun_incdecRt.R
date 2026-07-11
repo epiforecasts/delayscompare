@@ -50,6 +50,10 @@ print(paste("Timepoint range:", paste(timepoint_range, collapse="-")))
 
 d <- delays[[disease]]
 
+## Sampler settings (overridable via env vars for tighter re-runs)
+adapt_delta <- as.numeric(Sys.getenv("ADAPT_DELTA", "0.99"))
+max_treedepth <- as.integer(Sys.getenv("MAX_TREEDEPTH", "20"))
+
 ############### SCENARIOS #################
 
 #### Increasing Rt ####
@@ -81,7 +85,9 @@ if (rt_trend %in% c("inc", "both")) {
                              weeks_inc=12,
                              rt_opts_choice=rt_opts,
                              obs_scale=1,
-                             timepoint_range=timepoint_range)
+                             timepoint_range=timepoint_range,
+                             adapt_delta=adapt_delta,
+                             max_treedepth=max_treedepth)
 
   if (nrow(res_disease$samples) > 0) {
     save_scenario(res_disease, here("results", "raw"), disease, "inc", rt_opts, gt, inc)
@@ -117,7 +123,9 @@ if (rt_trend %in% c("dec", "both")) {
                              weeks_inc=12,
                              rt_opts_choice=rt_opts,
                              obs_scale=1,
-                             timepoint_range=timepoint_range)
+                             timepoint_range=timepoint_range,
+                             adapt_delta=adapt_delta,
+                             max_treedepth=max_treedepth)
 
   if (nrow(res_disease$samples) > 0) {
     save_scenario(res_disease, here("results", "raw"), disease, "dec", rt_opts, gt, inc)

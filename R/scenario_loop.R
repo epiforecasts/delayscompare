@@ -17,7 +17,8 @@ sim_scenarios <- function(case_data,
                           obs_scale,
                           report_freq="day",
                           timepoint_range=NULL,
-                          adapt_delta=0.99){
+                          adapt_delta=0.99,
+                          max_treedepth=20){
   
   ## Scenarios
   
@@ -136,7 +137,7 @@ start_runtime <- Sys.time()
                                      stan = stan_opts(samples = 3000,
                                                       return_fit = TRUE,
                                                       control=list(adapt_delta=adapt_delta,
-                                                                   max_treedepth=20)),
+                                                                   max_treedepth=max_treedepth)),
                                      forecast = forecast_opts(horizon=14),
                                      verbose = FALSE)
           

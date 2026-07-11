@@ -52,6 +52,10 @@ tp_suffix <- if(!is.null(timepoint_range)) paste0("_tp", min(timepoint_range), "
 freq_fc <- 4
 weeks_inc <- 12
 
+## Sampler settings (overridable via env vars for tighter re-runs)
+adapt_delta <- as.numeric(Sys.getenv("ADAPT_DELTA", "0.99"))
+max_treedepth <- as.integer(Sys.getenv("MAX_TREEDEPTH", "20"))
+
 ## Load data ##
 
 case_data <- casestudydata[[disease]]
@@ -77,7 +81,9 @@ d <- delays[[disease]]
                            weeks_inc=weeks_inc,
                            rt_opts_choice=rt_opts,
                            obs_scale=d$underreport,
-                           timepoint_range=timepoint_range)
+                           timepoint_range=timepoint_range,
+                           adapt_delta=adapt_delta,
+                           max_treedepth=max_treedepth)
 
 if (nrow(res_disease$samples) > 0) {
   save_scenario(res_disease, here("results", "raw"), disease, "casestudy", rt_opts, gt, inc)
