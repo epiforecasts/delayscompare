@@ -55,6 +55,7 @@ weeks_inc <- 12
 ## Sampler settings (overridable via env vars for tighter re-runs)
 adapt_delta <- as.numeric(Sys.getenv("ADAPT_DELTA", "0.99"))
 max_treedepth <- as.integer(Sys.getenv("MAX_TREEDEPTH", "20"))
+samples <- as.integer(Sys.getenv("SAMPLES", "3000"))
 
 ## Load data ##
 
@@ -83,7 +84,8 @@ d <- delays[[disease]]
                            obs_scale=d$underreport,
                            timepoint_range=timepoint_range,
                            adapt_delta=adapt_delta,
-                           max_treedepth=max_treedepth)
+                           max_treedepth=max_treedepth,
+                           samples=samples)
 
 if (nrow(res_disease$samples) > 0) {
   save_scenario(res_disease, here("results", "raw"), disease, "casestudy", rt_opts, gt, inc)

@@ -18,7 +18,8 @@ sim_scenarios <- function(case_data,
                           report_freq="day",
                           timepoint_range=NULL,
                           adapt_delta=0.99,
-                          max_treedepth=20){
+                          max_treedepth=20,
+                          samples=3000){
   
   ## Scenarios
   
@@ -134,7 +135,7 @@ start_runtime <- Sys.time()
                                      delays = delay_opts(inc_period + reporting_delay),
                                      obs=obs_opts(family="negbin", scale=Fixed(obs_scale)),
                                      rt=rt_opts(future=rt_opts_choice),
-                                     stan = stan_opts(samples = 3000,
+                                     stan = stan_opts(samples = samples,
                                                       return_fit = TRUE,
                                                       control=list(adapt_delta=adapt_delta,
                                                                    max_treedepth=max_treedepth)),
