@@ -156,3 +156,16 @@ CONV2_96h	0.999	25	958	covid	constRt	2	6	6
 CONV2_96h	0.999	25	1181	covid	incdecRt	1	4	5
 CONV2_96h	0.999	25	1412	covid	incdecRt	6	3	4
 CONV2_96h	0.999	25	1844	cholera	constRt	3	3	4
+CONV3_s6000_96h	0.999	25	9	ebola	constRt	1	2	1
+CONV3_s6000_96h	0.999	25	873	covid	constRt	1	2	1
+CONV3_s6000_96h	0.999	25	902	covid	constRt	1	5	6
+CONV3_s6000_96h	0.999	25	908	covid	constRt	1	6	4
+CONV3_s6000_96h	0.999	25	909	covid	constRt	1	6	5
+CONV3_s6000_96h	0.999	25	958	covid	constRt	2	6	6
+CONV3_s6000_96h	0.999	25	1195	covid	incdecRt	1	6	3
+CONV3_s6000_96h	0.999	25	1197	covid	incdecRt	1	6	5
+CONV3_s6000_96h	0.999	25	1461	covid	casestudy	1	3	5
+CONV3_s6000_96h	0.999	25	1469	covid	casestudy	1	4	5
+CONV3_s6000_96h	0.999	25	1477	covid	casestudy	1	5	5
+CONV3_s6000_96h	0.999	25	1501	covid	casestudy	2	2	5
+CONV3_s6000_96h	0.999	25	1549	covid	casestudy	3	2	5

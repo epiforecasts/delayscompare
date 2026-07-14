@@ -27,20 +27,34 @@ poorly converged (>100 divergences OR max R-hat > 1.05). These were re-run with 
 tighter sampler (`adapt_delta=0.999`, `max_treedepth=25`); the 121 affected tasks
 are listed in `results/tighter_sampler_cells.tsv` (72 covid, 37 cholera, 12 ebola).
 
-Before → after (with 100 of the 121 re-fitted so far; the 21 hardest no-delay
-corners were still running at time of writing and will lower these further):
+Poorly-converged fits (>100 divergences OR max R-hat > 1.05) fell at each round of
+the escalation ladder — the settings for each cell are in
+`results/tighter_sampler_cells.tsv`:
 
-| Metric | Default | Tighter |
+| Round | Sampler | Poorly converged |
 |---|---|---|
-| Poorly converged (>100 div OR R-hat>1.05) | 125 | 39 |
-| max R-hat > 1.05 | 121 | 38 |
-| >100 divergences | 22 | 8 |
-| >500 divergences | 7 | 2 |
+| default | `adapt_delta=0.99`, td=20, 3000 samples | 125 |
+| ROUND1 | `adapt_delta=0.999`, td=25 | 39 |
+| ROUND2 + CONV2 | `adapt_delta=0.9999`, td=30 / 0.999 at 96h wall | 18 |
+| CONV3 | `adapt_delta=0.999`, td=25, **6000 samples**, 96h wall | **14** (floor) |
 
-The residual poorly-converged fits concentrate at gt1 (no-delay generation time),
-where the model is most severely misspecified — that non-convergence is the
-expected identifiability degradation, reported rather than filtered (plan
-decision 7).
+So of 3384 fits, **99.6% (3370) are well-converged**. The residual **~14 fits (13
+tasks)** stopped shrinking under further tightening — 12 of the 14 are **gt1
+(no-delay generation time)**, plus one gt2 and one gt3. These do not converge even
+with `adapt_delta=0.999`, doubled samples, and a 96h wall, so this is a **genuine
+non-identifiable floor**: with no transmission delay to infer, the model cannot
+separate the (absent) generation time from the reproduction number. It is reported,
+not filtered (plan decision 7 revisited — see below).
+
+## Scoring the full grid (no convergence-based exclusion)
+
+Because every cell has a fit and 99.6% converge, forecasts are scored on the **full
+6×6 grid without dropping non-converged fits**. Discarding the ~13 residual cells
+would preferentially remove the most-misspecified (no-delay) conditions and bias the
+misspecification-sensitivity comparison toward "misspecification does not hurt". The
+convergence quality is instead reported as a per-cell diagnostic and the residual set
+is flagged. This supersedes the original plan decision 7 ("discard non-converged
+impose fits").
 
 ## Note on the min-ESS diagnostic
 
