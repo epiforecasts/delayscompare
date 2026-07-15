@@ -38,23 +38,25 @@ the escalation ladder — the settings for each cell are in
 | ROUND2 + CONV2 | `adapt_delta=0.9999`, td=30 / 0.999 at 96h wall | 18 |
 | CONV3 | `adapt_delta=0.999`, td=25, **6000 samples**, 96h wall | **14** (floor) |
 
-So of 3384 fits, **99.6% (3370) are well-converged**. The residual **~14 fits (13
-tasks)** stopped shrinking under further tightening — 12 of the 14 are **gt1
-(no-delay generation time)**, plus one gt2 and one gt3. These do not converge even
-with `adapt_delta=0.999`, doubled samples, and a 96h wall, so this is a **genuine
-non-identifiable floor**: with no transmission delay to infer, the model cannot
-separate the (absent) generation time from the reproduction number. It is reported,
-not filtered (plan decision 7 revisited — see below).
+So of 3384 fits, **99.6% (3370) are well-converged** at this point. The residual
+**~14 fits (13 tasks)** are dominated by **gt1 (imposed ~1-day generation time)** —
+12 of the 14, plus one gt2 and one gt3.
 
-## Scoring the full grid (no convergence-based exclusion)
+This residual is **not** a generation-time identifiability problem: in the
+misspecification grid the generation time is *imposed* (`Fixed(1)` at gt1), so it is
+not an estimated parameter. The poor mixing instead comes from forcing a near-zero
+generation interval onto data with a much longer true one, which drives the
+reproduction-number / Gaussian-process posterior into a stiff, hard-to-sample
+geometry. That is a sampling problem, so it is expected to yield to more effort
+(more samples, longer warmup, fresh seeds) rather than being a fundamental floor.
 
-Because every cell has a fit and 99.6% converge, forecasts are scored on the **full
-6×6 grid without dropping non-converged fits**. Discarding the ~13 residual cells
-would preferentially remove the most-misspecified (no-delay) conditions and bias the
-misspecification-sensitivity comparison toward "misspecification does not hurt". The
-convergence quality is instead reported as a per-cell diagnostic and the residual set
-is flagged. This supersedes the original plan decision 7 ("discard non-converged
-impose fits").
+## Requirement: converge every cell before analysis
+
+Analysis begins only once **all runs are in and converged** (no non-converged fits,
+no runaway divergences). So the residual is not accepted or scored as-is — the retry
+ladder continues on the efficient recipe (`adapt_delta=0.999` + generous wall time +
+fresh-seed restarts + more samples) until zero cells remain poorly converged. Each
+retry round's cells and settings are logged in `tighter_sampler_cells.tsv`.
 
 ## Note on the min-ESS diagnostic
 
