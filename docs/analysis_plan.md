@@ -109,10 +109,21 @@ infectious disease dynamics.
    the fit degenerates is itself the identifiability result, so we report
    posterior shape, contraction and convergence diagnostics rather than quietly
    filtering those fits out.
-7. **Sampling: EpiNow2 (Stan) defaults**, tightening the sampler (`adapt_delta`,
-   `max_treedepth`) when it reports divergences or saturates the tree depth (both
-   seen in the learn arm). In the *impose* conditions we discard fits that did not
-   converge (max R-hat > 1.05); in the *learn* conditions we report
+7. **Sampling: EpiNow2 (Stan) defaults**, tightening the sampler (`warmup`,
+   `adapt_delta`, `max_treedepth`) when it reports divergences or saturates the
+   tree depth (both seen in the learn arm). In the *impose* conditions we exclude
+   from analysis any individual scenario forecast origin whose fit did not converge
+   (max R-hat > 1.05 or ≥ 100 divergent transitions); the exclusion is applied
+   automatically at aggregation by this convergence criterion, and each grid cell is
+   then scored over its remaining converged origins (a cell is never dropped whole
+   unless every origin fails). The non-converged fits are few and concentrate at the
+   extreme double-misspecification corner (imposed one-day generation time with the
+   largest incubation/reporting error), where the deconvolution is near-singular;
+   they are enumerated with the mechanism in
+   `docs/rerun-and-convergence-provenance.md`. Because this drops a small number of
+   origins from only the hardest cells, the supplement repeats the affected
+   comparison on the common set of origins that converged across all cells, to
+   confirm the ranking is unchanged. In the *learn* conditions we report
    non-convergence instead of discarding it.
 
 ## Methods
