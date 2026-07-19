@@ -29,7 +29,7 @@ add_delay_labels <- function(df) {
 filter_by_diagnostics <- function(df, diagnostics,
                                   max_rhat = 1.05,
                                   min_ess = NULL,
-                                  max_divergent = NULL) {
+                                  max_divergent = 100) {
   n_before <- length(unique(paste(df$result_list, df$gt, df$inc)))
 
   if (n_before == 0) {
@@ -47,7 +47,8 @@ filter_by_diagnostics <- function(df, diagnostics,
     converged <- converged |> filter(min_ess >= .env$min_ess)
   }
   if (!is.null(max_divergent)) {
-    converged <- converged |> filter(num_divergent <= .env$max_divergent)
+    converged <- converged |>
+      filter(is.na(num_divergent) | num_divergent <= .env$max_divergent)
   }
 
   df_filtered <- df |>

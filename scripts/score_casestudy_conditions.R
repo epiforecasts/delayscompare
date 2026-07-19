@@ -21,7 +21,8 @@ score_block <- function(samples, id, diagnostics, true_cases, filter_rhat = TRUE
   if (is.null(samples) || is.null(id)) return(NULL)
   if (filter_rhat && !is.null(diagnostics)) {
     keep <- diagnostics |>
-      dplyr::filter(!is.na(max_rhat), max_rhat <= 1.05)
+      dplyr::filter(!is.na(max_rhat), max_rhat <= 1.05,
+                    is.na(num_divergent) | num_divergent <= 100)
     samples <- samples |> dplyr::semi_join(keep, by = "result_list")
   }
   if (nrow(samples) == 0) return(NULL)

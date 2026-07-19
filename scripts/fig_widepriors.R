@@ -60,7 +60,8 @@ for(disease in c("ebola", "covid", "cholera")) {
     )
     if(!is.null(diagnostics)) {
       converged <- diagnostics |>
-        filter(!is.na(max_rhat), max_rhat <= 1.05)
+        filter(!is.na(max_rhat), max_rhat <= 1.05,
+               is.na(num_divergent) | num_divergent <= 100)
       n_before <- length(unique(res_samples$result_list))
       res_samples <- res_samples |>
         semi_join(converged, by = "result_list")
