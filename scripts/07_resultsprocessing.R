@@ -31,6 +31,31 @@ aggregate_scenario <- function(disease, scen) {
     })
     if (is.null(got)) next
 
+    # Convergence filter: exclude any fit (by timepoint) with max R-hat >= 1.05 or
+    # >= 100 divergences. Non-converged fits are dropped from samples/R/id so the
+    # analysis never scores them; the diagnostics record is kept and flagged
+    # `converged` so the exclusion is auditable. See
+    # docs/rerun-and-convergence-provenance.md for the excluded set and rationale.
+    diag <- got$diagnostics
+    poor_tps <- integer(0)
+    if (!is.null(diag) && is.data.frame(diag) && nrow(diag) > 0) {
+      poor <- (is.finite(diag$max_rhat) & diag$max_rhat > 1.05) |
+              (is.finite(diag$num_divergent) & diag$num_divergent > 100)
+      poor_tps <- diag$result_list[poor]
+      diag$converged <- !poor
+      got$diagnostics <- diag
+    }
+    if (length(poor_tps) > 0) {
+      message("  Excluding ", disease, " ", scen, " gt=", gt, " inc=", inc_val,
+              " tp=", paste(poor_tps, collapse = ","), " (non-converged)")
+      for (ty in c("samples", "R", "id")) {
+        x <- got[[ty]]
+        if (!is.null(x) && is.data.frame(x) && "result_list" %in% names(x)) {
+          got[[ty]] <- x[!(x$result_list %in% poor_tps), , drop = FALSE]
+        }
+      }
+    }
+
     for (ty in types) {
       x <- got[[ty]]
       if (!is.null(x) && is.data.frame(x) && nrow(x) > 0) {

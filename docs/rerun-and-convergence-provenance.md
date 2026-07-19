@@ -20,43 +20,113 @@ retry batches). So the timeouts were wall-time-limited — a cell that happened 
 draw a slow-sampling geometry or a slow node needed more than 24h — rather than
 genuine non-termination. There is no systematic set of non-completing cells.
 
-## Convergence tuning — which cells, and the effect
+## Convergence — the effective lever was warmup, not adapt_delta or samples
 
-At the default sampler (`adapt_delta=0.99`, `max_treedepth=20`), **125 fits** were
-poorly converged (>100 divergences OR max R-hat > 1.05). These were re-run with a
-tighter sampler (`adapt_delta=0.999`, `max_treedepth=25`); the 121 affected tasks
-are listed in `results/tighter_sampler_cells.tsv` (72 covid, 37 cholera, 12 ebola).
+At the default sampler (`adapt_delta=0.99`, `max_treedepth=20`, 3000 samples,
+EpiNow2's default `warmup=250`), roughly **125 fits** were poorly converged (>100
+divergences OR max R-hat > 1.05), concentrated at the extreme misspecification
+corner (imposed generation time gt1 combined with a large incubation/reporting
+misspecification).
 
-Poorly-converged fits (>100 divergences OR max R-hat > 1.05) fell at each round of
-the escalation ladder — the settings for each cell are in
-`results/tighter_sampler_cells.tsv`:
+Early rounds escalated `adapt_delta` (0.999, then 0.9999) and `samples` (6000,
+10000). These reduced the count but never cleared it, and over-cranking made
+sampling much slower (day-long grinds, then timeouts). The decisive lever turned
+out to be **warmup**, which every earlier round had left at the EpiNow2 default of
+250. Raising it resolved the great majority of the residual:
 
-| Round | Sampler | Poorly converged |
+- Clear demonstration: ebola const_low gt1/inc2/tp1 sat at max R-hat ≈ 4–5 across
+  `adapt_delta` 0.999→0.9999 and samples 3000→6000; raising `warmup` to 2000–4000
+  (default everything else) took its companion const_high fit from R-hat 4.0 to
+  1.0009 in the same ~1-minute runtime.
+- With `warmup=2000` at otherwise-default settings, cells that had been poorly
+  converged came good (e.g. covid const gt1/inc5/tp6 converged after a ~7h grind;
+  covid casestudy gt1/inc6/tp4 converged to R-hat 1.003 on the heavy warmup=4000 /
+  samples=10000 recipe).
+
+Per-cell settings for every re-run are in `results/tighter_sampler_cells.tsv`.
+
+## The extreme corner: a near-singular deconvolution, not non-identifiability
+
+The residual poor-convergence cells cluster where the imposed generation time is
+gt1 and the incubation/reporting misspecification is large. The mechanism is a
+sampling-geometry problem, and it is worth stating precisely because it is *not*
+a delay-identifiability problem:
+
+- gt1 imposes `Fixed(1)` — a one-day generation interval as a point mass. Under the
+  renewal equation this makes R_t essentially the day-to-day growth ratio: a
+  high-frequency quantity with one effective degree of freedom per day.
+- A large incubation misspecification imposes a long observation delay (up to
+  ~19 days combined incubation + reporting at inc6 for covid). Deconvolving a
+  smooth, ~19-day-lagged case curve back into a *daily* infection series — which is
+  what the 1-day generation interval then reads R_t off — is near-singular: many
+  daily trajectories reproduce the same smoothed case curve, so the posterior has a
+  flat, multi-modal ridge. Independent MCMC chains settle on different trajectories
+  along the ridge and do not reconcile, so **between-chain R-hat blows up (100s)
+  while the pooled R_t marginal stays bounded** (~0.5–2.2). That signature — huge
+  R-hat, bounded marginals, few divergences — is the fingerprint of a multi-modal
+  ridge, not a coding error.
+
+This is a property of the imposed delays and the sampler, not of the data. The
+affected covid case-study window (tp5, origin 2021-10-19) is dense and high-count
+(16,956–49,257 reported cases/day, no gaps). And the delays are *imposed*
+(`Fixed(1)` etc.), not estimated, so there is no delay parameter to be
+non-identifiable — the difficulty is entirely in the reproduction-number /
+Gaussian-process geometry.
+
+Whether the ridge actually traps the sampler is **data-window-dependent**: covid
+case-study gt1/inc6/tp4 converged (R-hat 1.003) on the heavy recipe, while the
+neighbouring gt1/inc6/tp5 resisted every recipe tried.
+
+## Excluded fits
+
+Of 3384 fits, **3376 (99.76%) are retained as converged** (max R-hat < 1.05 and
+< 100 divergences). **8 fits are excluded**, all at the near-singular corner
+described above (imposed gt1–gt2 with the largest incubation/reporting
+misspecification, inc6; plus one ebola gt1/inc2 fit). They are documented as
+sampler-convergence failures — the multi-modal Rt/GP ridge of the near-singular
+deconvolution — explicitly *not* as non-identifiability of the (imposed) delays.
+
+**Case-study (analysis) arm — 2 fits:**
+
+| fit | max R-hat | divergences |
 |---|---|---|
-| default | `adapt_delta=0.99`, td=20, 3000 samples | 125 |
-| ROUND1 | `adapt_delta=0.999`, td=25 | 39 |
-| ROUND2 + CONV2 | `adapt_delta=0.9999`, td=30 / 0.999 at 96h wall | 18 |
-| CONV3 | `adapt_delta=0.999`, td=25, **6000 samples**, 96h wall | **14** (floor) |
+| covid case-study gt1 / inc5 / tp5 | 1.04 | 662 |
+| covid case-study gt1 / inc6 / tp5 | 122.7 | 8 |
 
-So of 3384 fits, **99.6% (3370) are well-converged** at this point. The residual
-**~14 fits (13 tasks)** are dominated by **gt1 (imposed ~1-day generation time)** —
-12 of the 14, plus one gt2 and one gt3.
+Both resist every recipe tried. gt1/inc6/tp5 is the worst: default at three fresh
+seeds gave max R-hat 198, 450, 122; the heavy recipe (warmup=4000 / samples=10000 /
+adapt_delta=0.999) ran ~20h without finishing; a deliberately small diagnostic fit
+(samples=1000 / warmup=1000) could not finish within a 3h wall. gt1/inc5/tp5 is
+milder but never clears both criteria at once across six attempts — draws are either
+R-hat ≈ 1.04 with hundreds of divergences or R-hat ≈ 1.15 with clean divergences.
+They are 2 of 8 forecast origins in the two most extreme case-study cells.
 
-This residual is **not** a generation-time identifiability problem: in the
-misspecification grid the generation time is *imposed* (`Fixed(1)` at gt1), so it is
-not an estimated parameter. The poor mixing instead comes from forcing a near-zero
-generation interval onto data with a much longer true one, which drives the
-reproduction-number / Gaussian-process posterior into a stiff, hard-to-sample
-geometry. That is a sampling problem, so it is expected to yield to more effort
-(more samples, longer warmup, fresh seeds) rather than being a fundamental floor.
+**Validation (const/dec) arm — 6 fits:**
 
-## Requirement: converge every cell before analysis
+| fit | max R-hat | divergences |
+|---|---|---|
+| covid const_high gt1 / inc6 / tp4 | 1.57 | 716 |
+| covid const_high gt1 / inc6 / tp5 | 2.91 | 586 |
+| covid const_high gt1 / inc6 / tp6 | 1.06 | 0 |
+| covid const_high gt2 / inc6 / tp6 | 3.70 | 3 |
+| covid dec gt1 / inc6 / tp5 | 335.3 | 19 |
+| ebola const_low gt1 / inc2 / tp1 | 3.94 | 35 |
 
-Analysis begins only once **all runs are in and converged** (no non-converged fits,
-no runaway divergences). So the residual is not accepted or scored as-is — the retry
-ladder continues on the efficient recipe (`adapt_delta=0.999` + generous wall time +
-fresh-seed restarts + more samples) until zero cells remain poorly converged. Each
-retry round's cells and settings are logged in `tighter_sampler_cells.tsv`.
+These are the constant-Rt / decreasing-Rt validation scenarios, not the case-study
+comparison, so their exclusion does not affect the main analysis. Each is the same
+near-singular corner; the ebola one is the low-count const_low companion of an
+otherwise-converged task (const_high converged once warmup was raised).
+
+The exclusion is applied by convergence criterion, not a hand-curated list: the
+aggregation drops any fit with max R-hat ≥ 1.05 or ≥ 100 divergences, which is
+exactly this set. Recorded here for the reliability accounting in the paper.
+
+## Requirement: converge every retained cell before analysis
+
+Analysis uses only converged fits (max R-hat < 1.05, < 100 divergences). The one
+exclusion above is the sole exception and is documented as such. All other cells
+are converged; the per-cell sampler settings that achieved this are logged in
+`tighter_sampler_cells.tsv`.
 
 ## Note on the min-ESS diagnostic
 

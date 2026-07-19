@@ -19,7 +19,8 @@ sim_scenarios <- function(case_data,
                           timepoint_range=NULL,
                           adapt_delta=0.99,
                           max_treedepth=20,
-                          samples=3000){
+                          samples=3000,
+                          warmup=250){
   
   ## Scenarios
   
@@ -136,6 +137,7 @@ start_runtime <- Sys.time()
                                      obs=obs_opts(family="negbin", scale=Fixed(obs_scale)),
                                      rt=rt_opts(future=rt_opts_choice),
                                      stan = stan_opts(samples = samples,
+                                                      warmup = warmup,
                                                       return_fit = TRUE,
                                                       control=list(adapt_delta=adapt_delta,
                                                                    max_treedepth=max_treedepth)),

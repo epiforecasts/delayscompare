@@ -54,6 +54,7 @@ d <- delays[[disease]]
 adapt_delta <- as.numeric(Sys.getenv("ADAPT_DELTA", "0.99"))
 max_treedepth <- as.integer(Sys.getenv("MAX_TREEDEPTH", "20"))
 samples <- as.integer(Sys.getenv("SAMPLES", "3000"))
+warmup <- as.integer(Sys.getenv("WARMUP", "250"))
 
 ############### SCENARIOS #################
 
@@ -89,7 +90,8 @@ if (rt_trend %in% c("inc", "both")) {
                              timepoint_range=timepoint_range,
                              adapt_delta=adapt_delta,
                              max_treedepth=max_treedepth,
-                             samples=samples)
+                             samples=samples,
+                             warmup=warmup)
 
   if (nrow(res_disease$samples) > 0) {
     save_scenario(res_disease, here("results", "raw"), disease, "inc", rt_opts, gt, inc)
@@ -128,7 +130,8 @@ if (rt_trend %in% c("dec", "both")) {
                              timepoint_range=timepoint_range,
                              adapt_delta=adapt_delta,
                              max_treedepth=max_treedepth,
-                             samples=samples)
+                             samples=samples,
+                             warmup=warmup)
 
   if (nrow(res_disease$samples) > 0) {
     save_scenario(res_disease, here("results", "raw"), disease, "dec", rt_opts, gt, inc)
