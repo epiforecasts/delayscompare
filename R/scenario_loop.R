@@ -251,7 +251,8 @@ sim_weightprior <- function(case_data,
                           timepoint_start=NULL,
                           timepoint_end=NULL,
                           adapt_delta=0.99,
-                          samples=3000){
+                          samples=3000,
+                          warmup=250){
 
   stopifnot(vary %in% c("gt", "inc", "both"))
 
@@ -373,6 +374,7 @@ start_runtime <- Sys.time()
                                      obs=obs_opts(family="negbin", scale=Fixed(obs_scale)),
                                      rt=rt_opts(future=rt_opts_choice),
                                      stan = stan_opts(samples = samples,
+                                                      warmup = warmup,
                                                       return_fit = FALSE,
                                                       control=list(adapt_delta=adapt_delta,
                                                                    max_treedepth=20)),

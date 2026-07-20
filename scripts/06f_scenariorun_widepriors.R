@@ -71,7 +71,8 @@ res_disease <- sim_weightprior(case_data=case_data,
                            timepoint_start=timepoint_start,
                            timepoint_end=timepoint_end,
                            adapt_delta=0.995,
-                           samples=4000)
+                           samples=4000,
+                           warmup=as.integer(Sys.getenv("WARMUP", "2000")))
 
 if (nrow(res_disease$samples) > 0) {
   prefix <- paste0("res_", disease, "_widepriors_", wp_label, "_", vary, "_", rt_opts, "_")
