@@ -70,8 +70,8 @@ res_disease <- sim_weightprior(case_data=case_data,
                            obs_scale=d$underreport,
                            timepoint_start=timepoint_start,
                            timepoint_end=timepoint_end,
-                           adapt_delta=0.995,
-                           samples=4000,
+                           adapt_delta=as.numeric(Sys.getenv("ADAPT_DELTA", "0.995")),
+                           samples=as.integer(Sys.getenv("SAMPLES", "4000")),
                            warmup=as.integer(Sys.getenv("WARMUP", "2000")))
 
 if (nrow(res_disease$samples) > 0) {
@@ -82,4 +82,5 @@ if (nrow(res_disease$samples) > 0) {
   save_latest(res_disease[[4]], here("results"), paste0(prefix, "summary", tp_suffix))
   save_latest(res_disease[[5]], here("results"), paste0(prefix, "warnings", tp_suffix))
   save_latest(res_disease[[6]], here("results"), paste0(prefix, "timing", tp_suffix))
+  save_latest(res_disease[["diagnostics"]], here("results"), paste0(prefix, "diagnostics", tp_suffix))
 }

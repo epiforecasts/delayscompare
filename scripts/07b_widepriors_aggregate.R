@@ -28,21 +28,38 @@ for(disease in c("ebola", "covid", "cholera")){
     for(tp in seq_len(n_tp)){
       suf <- paste0("_tp", tp, "-", tp)
       tryCatch({
-        id_list[[tp]]      <- read_latest(here("results"), paste0(prefix, "id", suf))
-        R_list[[tp]]       <- read_latest(here("results"), paste0(prefix, "R", suf))
-        samples_list[[tp]] <- read_latest(here("results"), paste0(prefix, "samples", suf))
+        id_tp      <- read_latest(here("results"), paste0(prefix, "id", suf))
+        R_tp       <- read_latest(here("results"), paste0(prefix, "R", suf))
+        samples_tp <- read_latest(here("results"), paste0(prefix, "samples", suf))
 
-        summ <- tryCatch(read_latest_list(here("results"), paste0(prefix, "summary", suf)),
-                         error = function(e) NULL)
-        if(!is.null(summ)) diag_list[[tp]] <- extract_diagnostics(summ)
+        # Convergence filter: exclude this timepoint from samples/R/id if its fit is
+        # poorly converged (max R-hat >= 1.05 or >= 100 divergences), matching the
+        # impose-arm criterion. Keep the diagnostics record, flagged `converged`.
+        diag_tp <- tryCatch(read_latest(here("results"), paste0(prefix, "diagnostics", suf)),
+                            error = function(e) NULL)
+        poor <- FALSE
+        if(!is.null(diag_tp) && is.data.frame(diag_tp) && nrow(diag_tp) > 0){
+          poor <- (is.finite(diag_tp$max_rhat) & diag_tp$max_rhat > 1.05) |
+                  (is.finite(diag_tp$num_divergent) & diag_tp$num_divergent > 100)
+          diag_tp$converged <- !poor
+          diag_list[[tp]] <- diag_tp
+        }
 
-        warn <- tryCatch(read_latest(here("results"), paste0(prefix, "warnings", suf)),
-                         error = function(e) NULL)
-        if(!is.null(warn) && is.data.frame(warn)) warn_list[[tp]] <- warn
+        if(!any(poor)){
+          id_list[[tp]]      <- id_tp
+          R_list[[tp]]       <- R_tp
+          samples_list[[tp]] <- samples_tp
 
-        tim <- tryCatch(read_latest(here("results"), paste0(prefix, "timing", suf)),
-                        error = function(e) NULL)
-        if(!is.null(tim) && is.data.frame(tim)) timing_list[[tp]] <- tim
+          warn <- tryCatch(read_latest(here("results"), paste0(prefix, "warnings", suf)),
+                           error = function(e) NULL)
+          if(!is.null(warn) && is.data.frame(warn)) warn_list[[tp]] <- warn
+
+          tim <- tryCatch(read_latest(here("results"), paste0(prefix, "timing", suf)),
+                          error = function(e) NULL)
+          if(!is.null(tim) && is.data.frame(tim)) timing_list[[tp]] <- tim
+        } else {
+          message(sprintf("  Excluding %s vary=%s tp=%d (non-converged)", disease, vary, tp))
+        }
       }, error = function(e){
         message(sprintf("  Missing: %s vary=%s tp=%d", disease, vary, tp))
       })

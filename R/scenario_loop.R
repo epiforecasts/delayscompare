@@ -375,7 +375,7 @@ start_runtime <- Sys.time()
                                      rt=rt_opts(future=rt_opts_choice),
                                      stan = stan_opts(samples = samples,
                                                       warmup = warmup,
-                                                      return_fit = FALSE,
+                                                      return_fit = TRUE,
                                                       control=list(adapt_delta=adapt_delta,
                                                                    max_treedepth=20)),
                                      forecast = forecast_opts(horizon=14),
@@ -385,8 +385,12 @@ start_runtime <- Sys.time()
         end_runtime <- Sys.time()
         elapsed_seconds <- as.numeric(difftime(end_runtime, start_runtime, units = "secs"))
         timing_log <- data.frame(
-          timepoint=k, 
+          timepoint=k,
           elapsed_seconds=elapsed_seconds)
+
+        # Convergence diagnostics (return_fit=TRUE above); the fit is dropped below
+        # after get_samples() has used it, so the stored summary stays small.
+        diag_row <- fit_diagnostics(def$fit, k)
 
         # Handle case where samples are NULL (model fit failed)
         def_samples <- get_samples(def)
@@ -407,6 +411,7 @@ start_runtime <- Sys.time()
         }
 
         rm(def_samples)
+        def$fit <- NULL   # drop the (large) fit now that samples are extracted
 
         res_id <- data.frame(timepoint=k)
 
@@ -414,6 +419,7 @@ start_runtime <- Sys.time()
         return(list(samples = res_samples,
                     R = res_R,
                     id = res_id,
+                    diagnostics = diag_row,
                     summary = def,
                     timing = timing_log))
   }, .progress = TRUE)
@@ -464,11 +470,15 @@ res_id <- bind_rows(res_id)
 res_R <- bind_rows(res_R)
 res_timing <- bind_rows(res$timing)
 
+res_diagnostics <- bind_rows(lapply(seq_along(res$diagnostics), function(i)
+  res$diagnostics[[i]] |> mutate(result_list = res$id[[i]]$timepoint)))
+
   return(list(samples = res_samples,
               id = res_id,
               R = res_R,
               summary = res$summary,
               warnings = save_warnings,
-              timing = res_timing))
+              timing = res_timing,
+              diagnostics = res_diagnostics))
 }
 
