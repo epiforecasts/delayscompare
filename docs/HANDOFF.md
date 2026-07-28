@@ -140,9 +140,14 @@ because they sit on smoother, near-log-linear stretches.
    present at all timepoints; the flexible Rt/GP absorbs the identifying curvature.
    `results.md` §1 updated to the final wording: covid observation delay is never
    identified from case counts. No curve overlay needed.
-7. **Build the Q2 impose-vs-learn comparison** from aggregated learn + impose arms
-   (analysis plan Evaluation — log-CRPS score model). Main outstanding analysis;
-   likely wants user steer on model spec.
+7. **Q2 impose-vs-learn — DONE.** `scripts/score_q2_gamm.R` (samples equalised to
+   2000, per-origin log-CRPS, `mgcv::bam` GAMM, condition marginal effects with CIs).
+   Outputs `results/q2_perorigin_logcrps.csv`, `q2_gamm.rds`,
+   `q2_condition_marginal_effects.csv`, `fig_q2_marginal_effects.png`. Result in
+   `results.md` §4: learning never beats imposing (ebola equal, cholera worse, covid
+   can't learn the delay + informing hurts). Q1 GAMM still to build (plan spec:
+   `log_crps ~ s(level, by=disease) + trajectory + s(time, by=disease) + horizon` on
+   the simulated const/inc/dec scenarios; also Rt scoring, synthetic-only).
 8. **Supplement robustness** (impose): common-origin panel for the 2 excluded
    case-study cells (covid gt1/inc5/tp5, gt1/inc6/tp5) — analysis_plan decision #7.
    If a different sampler is wanted for the stuck learn cells: expose `max_treedepth`
