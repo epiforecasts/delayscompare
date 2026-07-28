@@ -123,7 +123,41 @@ disease × varied quantity:
 | cholera | 7/8 | 8/8 | 8/8 |
 
 covid `both` has no aggregated cell (all non-identifiable, §1); covid `inc` is tp1
-only. ebola is complete; cholera is complete bar `gt/tp7` (one stuck cell). The
-covid asymmetry — generation time learnable, observation delay not — carries into the
-impose-vs-learn comparison. Formal log-CRPS comparison across impose vs learn still
-TBD.
+only. ebola is complete; cholera is complete bar `gt/tp7` (one stuck cell).
+
+### Impose-vs-learn score model
+Per-origin log-scale CRPS (posterior samples equalised to 2000), modelled with a
+GAMM (`log_crps ~ condition*disease + s(time, by=disease) + horizon`,
+`mgcv::bam`); condition marginal effects with 95% CIs, no significance testing
+(`scripts/score_q2_gamm.R`; `fig_q2_marginal_effects.png`). Marginal log-CRPS
+(1-week horizon; lower = better):
+
+| disease | no-input | impose | learn GT | learn delay | learn both |
+|---|---|---|---|---|---|
+| ebola | 0.27 | 0.20 | 0.20 | 0.20 | 0.20 |
+| covid | **0.21** | 0.51 | 0.48 | 0.36† | — |
+| cholera | −0.11 | **−0.13** | 0.15 | 0.14 | 0.13 |
+
+†covid learn-delay is tp1 only → very wide CI [−0.08, 0.80], uninformative.
+
+**Learning never beats imposing.**
+- **ebola**: impose ≈ learn ≈ 0.20, all CIs overlapping — no clear difference
+  between imposing and learning (informed slightly better than no-input, overlapping).
+- **covid**: no-input (0.21, CI [0.03, 0.39]) is clearly better than impose (0.51,
+  [0.32, 0.69]) and learn-GT (0.48) — the CIs barely overlap. Learning ≈ imposing
+  (the delay is prior-dominated, §1), and both are *worse* than ignoring delays.
+  Learn-both is absent (non-identifiable). So for covid, informing the model about
+  the observation delay degrades short-term case forecasts.
+- **cholera**: impose ≈ no-input (best, ~−0.12); learning is worse (~0.14) with
+  partial CI overlap — weekly data can't inform the delay, so estimating it injects
+  noise.
+
+**Overall**: imposing literature delays is never beaten by learning them; learning
+is at best equal (ebola) and at worst harmful (cholera), and for covid the
+observation delay cannot be learned at all. A secondary result — for short-term
+*case* forecasting, delay structure can hurt (covid: no-input best) — is consistent
+across the informed conditions.
+
+Caveats: single real outbreak per disease (no replication); covid learn-delay rests
+on one origin; the GAMM `s(time)` is weak with ≤8 origins. Q1 (simulated
+disease-like scenarios) GAMM still TBD.
