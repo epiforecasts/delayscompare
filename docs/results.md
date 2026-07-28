@@ -91,7 +91,20 @@ Do not state conclusions until scored.
 ## 4. Q2 — impose vs learn (TBD)
 
 Case-study condition CRPS computed (`score_casestudy_conditions.R`); case-study
-heatmaps generated (`fig_casestudy_*`). The learn-arm side needs aggregation
-(`07b_widepriors_aggregate.R` → `fig_widepriors.R`) and, given §1, will be
-asymmetric (covid: generation time learnable, observation delay not). Formal
-comparison TBD.
+heatmaps generated (`fig_casestudy_*`).
+
+**Learn arm aggregated** (`results/widepriors/`, via `07b_widepriors_aggregate.R`
+with the convergence filter; figure `fig_widepriors_crps.png`). Cells retained by
+disease × varied quantity:
+
+| disease | gt | inc | both |
+|---|---|---|---|
+| ebola | 8/8 | 8/8 | 8/8 |
+| covid | 6/6 | **1/6 (tp1)** | **0/6 (excluded)** |
+| cholera | 7/8 | 8/8 | 8/8 |
+
+covid `both` has no aggregated cell (all non-identifiable, §1); covid `inc` is tp1
+only. ebola is complete; cholera is complete bar `gt/tp7` (one stuck cell). The
+covid asymmetry — generation time learnable, observation delay not — carries into the
+impose-vs-learn comparison. Formal log-CRPS comparison across impose vs learn still
+TBD.

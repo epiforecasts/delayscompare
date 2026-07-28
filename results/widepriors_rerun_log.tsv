@@ -1,0 +1,6 @@
+round	timestamp	job_id	disease	tasks	settings	reason
+RESEED1	2026-07-22T20:26:23Z	6416780	covid	3,5,6,7,8,9,10,11,12,13,14,15,17,18,2	warmup2000_s2000_ad0.99	stalled >3h no completion at adapt_delta=0.99 (also 24h at 0.995); fresh-seed re-run, failures may be stochastic
+RESEED2	2026-07-22T21:53:32Z	6417462	covid	2,3,5,6,7,8,9,11,12,14,15,17,18	warmup2000_s2000_ad0.99	stochastic re-roll of still-stuck cells (2/15 cleared in RESEED1 via good seeds)
+RESEED3	2026-07-22T22:39:38Z	6417476	covid	3,5,6,8,9,11,12,14,15,17,18,2	warmup2000_s2000_ad0.99	stochastic re-roll (RESEED1-2 cleared 3/15 via good seeds)
+RESEED4	2026-07-22T23:25:28Z	6417672	covid	3,5,6,8,9,11,12,14,15,17,18	warmup2000_s2000_ad0.99	stochastic re-roll (7/18 covid done after RESEED1-3)
+RESEED5	2026-07-23T00:11:38Z	6418219	covid	3,5,6,8,9,11,12,14,15,17,18	warmup2000_s2000_ad0.99	stochastic re-roll; RESEED4 cleared 0 (these 11 cells persistently stuck)

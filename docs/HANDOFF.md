@@ -119,14 +119,16 @@ because they sit on smoother, near-log-linear stretches.
 ## 6. NEXT STEPS (ordered)
 
 1. **Cancel the futile re-run**: DONE — `RESEED5` (6418219) cancelled 2026-07-23.
-2. **Close the covid learn arm**: accept the 11 covid `inc`/`both` cells as
-   **excluded, documented as non-identifiable**. Covid learn = `gt` (all 6 tp) +
-   `inc` tp1; ebola/cholera = full.
-3. **Aggregate the learn arm**: on cluster, `module load R; Rscript
-   scripts/07b_widepriors_aggregate.R` (applies convergence filter → `results/widepriors/`),
-   then `Rscript scripts/fig_widepriors.R`.
-4. **Sync back**: rsync `results/widepriors/`, `results/widepriors_rerun_log.tsv`,
-   and any `fig_widepriors*` PNGs to the local worktree `results/`.
+2. **Close the covid learn arm**: DONE — 11 covid `inc`/`both` cells accepted as
+   non-identifiable (documented `results.md` §1). Covid learn = `gt` (6) + `inc`
+   tp1; ebola full; cholera all bar `gt/tp7`.
+3. **Aggregate the learn arm**: DONE — `07b_widepriors_aggregate.R` →
+   `results/widepriors/` (32 files, convergence-filtered); `fig_widepriors.R` →
+   `fig_widepriors_crps.png`. Retained-cell table in `results.md` §4.
+4. **Sync back**: DONE — `results/widepriors/`, `results/widepriors_rerun_log.tsv`,
+   `fig_widepriors_crps.png` in the local worktree. (cholera `gt/tp7` re-run job
+   6467184 may still be finishing on the cluster; if it lands, re-aggregate to
+   pick up that one cell.)
 5. **Results go in `docs/results.md`** (already seeded — §1 is the covid
    identifiability finding). Extend it as analysis proceeds. Do NOT put results in
    `analysis_plan.md`: the plan changes only if the *methodology* changes.
