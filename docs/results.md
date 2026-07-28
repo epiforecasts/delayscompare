@@ -16,24 +16,37 @@ while ebola and cholera identify both. Completion by disease × varied quantity:
 | ebola | 5/8 | 8/8 | 7/8 |
 | cholera | 7/8 | 8/8 | 8/8 |
 
-The stuck covid `inc`/`both` fits do not converge at any sampler setting or seed —
-they are structurally non-identifiable.
+The stuck covid `inc`/`both` fits do not converge at any sampler setting or seed. The
+single covid `inc` cell that does complete (tp1) is *not* an exception: it converges
+only because its sparse window leaves the delay prior-dominated (posterior = prior;
+see Diagnostic evidence), so covid's observation delay is never actually informed by
+the data — "completed" here does not mean "identified".
 
 ### Diagnostic evidence
-A short tree-depth-capped fit of a stuck covid `vary=inc` cell (covid case-study,
-forecast origin 2021-08-24) shows:
+Short tree-depth-capped fits of stuck cells (jobs 6418486 tp3, 6467755 tp1) plus a
+production-settings fit of the one cell that converges (tp1, job 6467858) localise
+the failure to the incubation delay and show it is never informed by the data:
 
-- **Incubation parameter unpinned**: posterior SD of the incubation mean (log scale)
-  = 0.60 vs prior SD = 0.10 — the posterior is *wider* than the prior, with R-hat 8.5.
-- **Delay ↔ timing ridge**: |correlation| of the incubation parameter with the
-  Rt / Gaussian-process / infection parameters is **max 0.99, mean 0.86, 54/60
-  parameters > 0.5**.
-- **Timing undetermined**: the worst-mixing parameters are the infection and
-  reported-case time series (`infections[...]`, `reports[...]`), R-hat ~10¹³.
-- **Sampler grind**: 12.8% of transitions hit the tree-depth cap even at 10
-  (production uses 20 → 2²⁰ leapfrog steps per iteration → runs of days).
+- **The delay is confounded with Rt/infection timing — the ridge.** In both a stuck
+  cell (origin 2021-08-24) and the converging tp1 cell (origin 2021-06-29), the
+  crippled short chains show |correlation| of the incubation parameter with the
+  Rt/GP/infection parameters up to **0.99** (mean 0.80–0.86). The worst-mixing
+  parameters are the infection and reported-case time series (`infections[...]`,
+  `reports[...]`) — the model cannot place infections in time.
+- **The data does not inform the delay.** At production settings the tp1 fit
+  converges cleanly (R-hat 1.01, 0% tree-depth saturation, 7 divergences) and its
+  incubation posterior is **exactly the prior**: mean 1.607 (prior 1.608), SD 0.100
+  (prior 0.10). Zero information gained — tp1 samples only because its sparse 29-point
+  window lets the prior dominate.
+- **More data makes it intractable, not identified.** The later windows (tp2–6, ~84
+  points) engage the confounded likelihood and stop sampling — the sampler grinds at
+  the tree-depth cap (production td=20 → up to 2²⁰ leapfrog steps/iteration → runs of
+  days), R-hat ~10¹³ on the timing parameters, and does not converge under any
+  setting or seed.
 
-(Reproduce: `diag_learn.R` on the cluster; diagnostic job 6418486.)
+So covid's observation delay is **prior-dominated where samplable (tp1) and
+computationally intractable otherwise (tp2–6)** — never identified from case counts.
+(Reproduce: `diag_learn.R`, `diag_learn_tp1.R`, `diag_learn_tp1_prod.R` on the cluster.)
 
 ### Mechanism
 Reported cases are infections convolved with the delay, R(t) = ∫ I(t−s) f(s) ds.
@@ -61,11 +74,17 @@ smeared over ~10 days while dynamics turn over every ~3.6 days. This is the
 natural-parameter version of the impose arm's short-GT × long-delay near-singular
 corner (§2).
 
-### Prediction (not yet tested)
-The one covid `inc` cell that identified (tp1) should be the forecast-origin window
-containing a clear trend change; the stuck tp2–6 should sit on smoother, near
-log-linear stretches. Testable against `casestudydata[["covid"]]` (see next-steps in
-`HANDOFF.md` §6.6).
+### Why trend changes do not rescue it here
+In principle the delay is identifiable at trend changes (curvature is the landmark;
+§Mechanism). It was tempting to predict that the one covid `inc` cell that converged
+(tp1) did so because its window contains a trend change — but the diagnostics refute
+that: tp1's incubation posterior equals its prior (no information), and the delay↔Rt
+correlation is ~0.99 at tp1 as well. The reason is the **flexible Rt/GP**: it can
+manufacture curvature at any time, so whatever bends the covid case curve contains are
+explained by moving Rt rather than by the delay. The curvature that could identify the
+delay is absorbed by the reproduction-number process. Identifying the delay would
+require constraining the Rt/GP (a stiffer prior / longer length-scale) or external
+timing data — not simply a window with a bend.
 
 ### Implication
 For a pathogen like covid (short generation time, long reporting delay) the
