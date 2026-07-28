@@ -133,11 +133,13 @@ because they sit on smoother, near-log-linear stretches.
    identifiability finding). Extend it as analysis proceeds. Do NOT put results in
    `analysis_plan.md`: the plan changes only if the *methodology* changes.
    `rerun-and-convergence-provenance.md` holds the convergence/exclusion provenance.
-6. **Verify the trend-change prediction** (optional, strong): overlay covid
-   forecast-origin windows on the case curve; mark trend-change vs log-linear;
-   confirm tp1 (identified) coincides with a bend and tp2–6 (stuck) do not. Data:
-   `casestudydata[["covid"]]` via `scripts/datacollect_casestudy.R`; timepoints:
-   freq_fc=4 weeks, 12-week windows, drop first, cap 8 (see `sim_weightprior`).
+6. **Trend-change prediction — DONE (refuted, finding strengthened).** Diagnostics
+   (`diag_learn_tp1.R`, `diag_learn_tp1_prod.R`; jobs 6467755, 6467858) showed tp1 is
+   prior-dominated (production posterior = prior exactly: mean 1.607/SD 0.100 vs prior
+   1.608/0.10), not identified by a trend change. The delay↔Rt ridge (~0.99) is
+   present at all timepoints; the flexible Rt/GP absorbs the identifying curvature.
+   `results.md` §1 updated to the final wording: covid observation delay is never
+   identified from case counts. No curve overlay needed.
 7. **Build the Q2 impose-vs-learn comparison** from aggregated learn + impose arms
    (analysis plan Evaluation — log-CRPS score model). Main outstanding analysis;
    likely wants user steer on model spec.
