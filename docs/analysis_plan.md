@@ -111,20 +111,21 @@ infectious disease dynamics.
    filtering those fits out.
 7. **Sampling: EpiNow2 (Stan) defaults**, tightening the sampler (`warmup`,
    `adapt_delta`, `max_treedepth`) when it reports divergences or saturates the
-   tree depth (both seen in the learn arm). In the *impose* conditions we exclude
-   from analysis any individual scenario forecast origin whose fit did not converge
-   (max R-hat > 1.05 or ≥ 100 divergent transitions); the exclusion is applied
-   automatically at aggregation by this convergence criterion, and each grid cell is
-   then scored over its remaining converged origins (a cell is never dropped whole
-   unless every origin fails). The non-converged fits are few and concentrate at the
-   extreme double-misspecification corner (imposed one-day generation time with the
-   largest incubation/reporting error), where the deconvolution is near-singular;
-   they are enumerated with the mechanism in
-   `docs/rerun-and-convergence-provenance.md`. Because this drops a small number of
-   origins from only the hardest cells, the supplement repeats the affected
-   comparison on the common set of origins that converged across all cells, to
-   confirm the ranking is unchanged. In the *learn* conditions we report
-   non-convergence instead of discarding it.
+   tree depth. In the *impose* conditions we exclude from analysis any individual
+   scenario forecast origin whose fit did not converge (max R-hat > 1.05 or ≥ 100
+   divergent transitions); the exclusion is applied automatically at aggregation by
+   this convergence criterion, and each grid cell is then scored over its remaining
+   converged origins (a cell is never dropped whole unless every origin fails).
+   Because this may drop a small number of origins, the supplement repeats any
+   affected comparison on the common set of origins that converged across all cells,
+   to confirm the ranking is unchanged. In the *learn* conditions we treat
+   non-convergence as an informative outcome rather than discarding it; where
+   sampler tightening (warmup, adapt_delta, stochastic re-seeding) cannot achieve
+   convergence because a parameter is not identifiable from the data, re-running is
+   halted and the cell recorded. The excluded / non-converged set and its provenance
+   are documented in `docs/rerun-and-convergence-provenance.md`; the substantive
+   findings this yields (which parameters are non-identifiable, and why) belong in
+   the results document, not here.
 
 ## Methods
 

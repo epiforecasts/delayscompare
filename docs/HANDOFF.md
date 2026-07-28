@@ -127,11 +127,10 @@ because they sit on smoother, near-log-linear stretches.
    then `Rscript scripts/fig_widepriors.R`.
 4. **Sync back**: rsync `results/widepriors/`, `results/widepriors_rerun_log.tsv`,
    and any `fig_widepriors*` PNGs to the local worktree `results/`.
-5. **Document the identifiability finding** in
-   `docs/rerun-and-convergence-provenance.md` and `docs/analysis_plan.md`: covid
-   observation delay non-identifiable (the 0.99 ridge, convolution/curvature
-   mechanism, delay:GT ratio table, trend-change interpretation). Headline result,
-   not just an exclusion.
+5. **Results go in `docs/results.md`** (already seeded — §1 is the covid
+   identifiability finding). Extend it as analysis proceeds. Do NOT put results in
+   `analysis_plan.md`: the plan changes only if the *methodology* changes.
+   `rerun-and-convergence-provenance.md` holds the convergence/exclusion provenance.
 6. **Verify the trend-change prediction** (optional, strong): overlay covid
    forecast-origin windows on the case curve; mark trend-change vs log-linear;
    confirm tp1 (identified) coincides with a bend and tp2–6 (stuck) do not. Data:
@@ -149,6 +148,9 @@ because they sit on smoother, near-log-linear stretches.
 
 ## 7. Gotchas
 
+- **Docs routing**: `results.md` = findings; `analysis_plan.md` = plan/methods only
+  (edit only if the plan changes); `rerun-and-convergence-provenance.md` =
+  convergence/exclusion provenance. Don't write results into the plan.
 - Non-interactive `ssh hpclogin` needs `module load R` for `Rscript`.
 - zsh `noclobber` is on: use `>|` to overwrite in redirects.
 - rsync remote paths: use home-relative (`hpclogin:delayscompare/...`), not `~`.
