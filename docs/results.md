@@ -120,9 +120,31 @@ convergence filter, *not* concentrated at the gt1×inc6 corner (the simulated da
 smoother than real surveillance series, so the near-singular corner that broke the
 case-study/learn arms does not bite here).
 
-Formal read — the Q1 log-CRPS GAMM (`s(level, by=disease) + trajectory + s(time,
-by=disease) + horizon`, plus Rt scoring which is synthetic-only) — is **still TBD**.
-Do not state sensitivity conclusions until scored.
+### Sensitivity score model
+Per-origin log-scale CRPS (samples equalised to 2000) across all simulated scenarios
+(trivial + disease-like), modelled with a GAMM (`log_crps ~ s(gt, by=disease) +
+s(inc, by=disease) + trajectory + s(time, by=disease) + horizon`, `mgcv::bam`);
+marginal log-CRPS vs misspecification level with 95% CIs, no significance testing
+(`scripts/score_q1_gamm.R`; `fig_q1_sensitivity.png`).
+
+**Forecast skill is largely insensitive to delay misspecification.** The marginal
+log-CRPS moves by < ~0.02 across the *entire* GT and INC misspecification range
+(no-delay → ×2), with CIs that overlap across levels for almost every
+disease × axis — i.e. no clear difference between correct and misspecified delays.
+By far the largest term is `s(time)` (variation across forecast origins), which
+dwarfs the misspecification effects. This is the informative-null outcome the plan
+anticipated: for short-term *case* forecasting, getting the generation time or
+observation delay wrong barely changes skill.
+
+Weak exceptions, all small: covid incubation misspecification is slightly harmful at
+the extreme (inc = ×2), and covid generation-time over-specification is marginally
+*better* — both tiny. **cholera is flat on both axes** (weekly data, incubation far
+below the weekly bin, so delay misspecification is undetectable — as expected).
+
+Consistent with Q2 (§4): informing the model about delays does little for short-term
+case forecasts. Caveat: the simulated series are easy to forecast, so absolute CRPS
+is tiny; the Rt-scoring arm of Q1 (synthetic-only ground-truth Rt) is still TBD, and
+covid's resim gt6 row was pending at fit time (re-run when complete).
 
 ## 4. Q2 — impose vs learn (TBD)
 
