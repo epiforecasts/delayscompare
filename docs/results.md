@@ -101,11 +101,28 @@ observation delay), the same short-GT × long-delay mechanism as §1. Enumerated
 per-fit R-hat/divergences in `rerun-and-convergence-provenance.md`. The effective
 sampler lever was warmup, not adapt_delta or samples.
 
-## 3. Q1 — sensitivity of forecast skill to delay misspecification (TBD)
+## 3. Q1 — sensitivity of forecast skill to delay misspecification
 
-Figures generated (`fig1_<disease>_crps_heatmap.png`, rank, marginal) but the formal
-read (log-CRPS score model per the analysis-plan Evaluation section) is not yet done.
-Do not state conclusions until scored.
+Two families of simulated scenarios, each a 6×6 GT×INC misspecification grid scored
+against known ground truth:
+
+- **Artificial Rt trajectories** (const<1, const>1, increasing, decreasing) —
+  `fig1_<disease>_*` (heatmap, rank, marginal).
+- **Disease-like re-simulated trajectories** (ebola-like / covid-like /
+  cholera-like), regenerated fresh (03 → 05 under current code) then run over the
+  grid — `fig_resim_<disease>_crps_heatmap.png`, `fig_resim_combined_crps.png`,
+  marginal. This is the realistic-dynamics counterpart to the trivial trajectories.
+
+**Resim convergence** (warmup=500): ~99% converged. Retained cells — ebola 36/36,
+cholera 36/36, covid 30/36 (the gt6 = ×2 generation-time row was still finishing at
+figure time; re-aggregate to fill it). ~10 scattered cells excluded by the
+convergence filter, *not* concentrated at the gt1×inc6 corner (the simulated data is
+smoother than real surveillance series, so the near-singular corner that broke the
+case-study/learn arms does not bite here).
+
+Formal read — the Q1 log-CRPS GAMM (`s(level, by=disease) + trajectory + s(time,
+by=disease) + horizon`, plus Rt scoring which is synthetic-only) — is **still TBD**.
+Do not state sensitivity conclusions until scored.
 
 ## 4. Q2 — impose vs learn (TBD)
 
