@@ -8,10 +8,13 @@
 #SBATCH --nodes=1
 set -euo pipefail
 
-# Run resim scenarios: 1 GT x 1 INC per task
-# Array: 36 jobs = 6 GT x 6 INC per disease
+# Run resim (re-simulated disease-like) scenarios, one estimate_infections fit per
+# (GT, INC, timepoint) task. 288 tasks per disease = 36 cells (6 GT x 6 INC) x 8
+# timepoints. Timepoints over-provisioned to 8; an out-of-range timepoint is a clean
+# no-op (sim_scenarios returns empty, runner writes nothing).
 #
-# Usage: sbatch --array=1-36%40 slurm/02_run_scenarios_resim.sh <disease>
+# Usage: sbatch --array=1-288%40 slurm/02_run_scenarios_resim.sh <disease>
+# Sampler overridable via --export=ALL,WARMUP=...,ADAPT_DELTA=...,SAMPLES=...
 
 DISEASE=${1:-covid}
 
@@ -27,26 +30,28 @@ module load R
 
 TASK_ID=$SLURM_ARRAY_TASK_ID
 
-if (( TASK_ID < 1 || TASK_ID > 36 )); then
-  echo "Error: SLURM_ARRAY_TASK_ID must be in [1,36], got ${TASK_ID}" >&2
+if (( TASK_ID < 1 || TASK_ID > 288 )); then
+  echo "Error: SLURM_ARRAY_TASK_ID must be in [1,288], got ${TASK_ID}" >&2
   exit 2
 fi
 
-GT=$(( ((TASK_ID - 1) / 6) + 1 ))
-INC=$(( ((TASK_ID - 1) % 6) + 1 ))
+# Split into a cell (1-36) and a timepoint (1-8), tp innermost so a cell's 8
+# timepoints are contiguous.
+CELL_ID=$(( ((TASK_ID - 1) / 8) + 1 ))
+TP=$(( ((TASK_ID - 1) % 8) + 1 ))
+
+GT=$(( ((CELL_ID - 1) / 6) + 1 ))
+INC=$(( ((CELL_ID - 1) % 6) + 1 ))
 
 RT_OPTS="latest"
 SCRIPT="scripts/06a_scenariorun_resim.R"
 
 echo "=========================================="
-echo "Job: $TASK_ID"
-echo "Disease: $DISEASE"
-echo "GT level: $GT"
-echo "INC level: $INC"
-echo "RT opts: $RT_OPTS"
+echo "Task: $TASK_ID  Cell: $CELL_ID  Timepoint: $TP"
+echo "Disease: $DISEASE  GT: $GT  INC: $INC"
 echo "Script: $SCRIPT"
 echo "=========================================="
 
-Rscript $SCRIPT $GT $INC $RT_OPTS $DISEASE
+Rscript $SCRIPT $GT $INC $RT_OPTS $DISEASE "${TP}-${TP}"
 
-echo "Done: $DISEASE resim gt=$GT inc=$INC"
+echo "Done: $DISEASE resim gt=$GT inc=$INC tp=$TP"
