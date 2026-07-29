@@ -1,7 +1,10 @@
 library(here)
 
+source(here("scripts", "01_packages.R"))
 source(here("R", "funcs_rtraj.R"))
 source(here("scripts", "02b_definedelays.R"))
+## defines the real-data fit inputs ebola_confirmed and cholera_yem_tot
+source(here("scripts", "datacollect_casestudy.R"))
 
 #############################
 #### Ebola Rt trajectory ####
@@ -51,11 +54,11 @@ ebola_epinow <- epinow(
   ebola_confirmed,
   ## Ebola generation time
   generation_time = generation_time_opts(ebola_gen_time),
-  ## Ebola delay
-  delay = delay_opts(combined_delay_ebola),
-  ## assume 83% of infections are observed
-  ## accumulate incidence over missing days (as data is weekly)
-  obs = obs_opts(scale = 0.83, na = "accumulate"),
+  ## Ebola delay: data is by date of symptom onset, so the observation delay is
+  ## the incubation period alone (no separate reporting delay).
+  delay = delay_opts(ebola_inc_period),
+  ## assume 83% of infections are observed (data is daily by onset, no accumulation)
+  obs = obs_opts(scale = Fixed(0.83)),
   ## generate 1000 samples
   stan = stan_opts(chains = 4, cores = 4, samples = 1500), 
   ## when there is no data, revert to mean Rt
@@ -66,7 +69,7 @@ ebola_epinow <- epinow(
 
 plot(ebola_epinow)
 
-rt_ebola <- ebola_epinow$estimates$samples |>
+rt_ebola <- get_samples(ebola_epinow) |>
   filter(variable == "R", type!="forecast") |>
   group_by(date) |>
   summarise(R=median(value),
@@ -81,32 +84,47 @@ saveRDS(rt_ebola, here("data", "rt_ebola.rds"))
 #### SARS-CoV-2 ####
 ####################
 
-rt_covid <- get_covid19_nowcasts()
-
-# Keep UK and up to end of 2021 only
-rt_covid <- rt_covid |>
-  filter(country=="United Kingdom") |>
-  filter(date<="2021-12-31")
-
-saveRDS(rt_covid, here("data", "rt_covid.rds"))
+# The covid trajectory is downloaded from the epiforecasts/covid-rt-estimates
+# archive (a fixed historical snapshot), not fitted. It needs internet + GitHub
+# access, so on an offline compute node we keep the existing rt_covid.rds.
+rt_covid <- tryCatch(get_covid19_nowcasts(), error = function(e) {
+  message("covid nowcast download unavailable (", conditionMessage(e),
+          "); keeping existing data/rt_covid.rds")
+  NULL
+})
+if (!is.null(rt_covid)) {
+  # Keep UK and up to end of 2021 only
+  rt_covid <- rt_covid |>
+    filter(country=="United Kingdom") |>
+    filter(date<="2021-12-31")
+  saveRDS(rt_covid, here("data", "rt_covid.rds"))
+}
 
 #################
 #### cholera ####
 #################
 
+# Cholera data is weekly: expand to daily with accumulation over the missing days
+# (the na="accumulate" obs_opts argument was removed in EpiNow2 >= 1.9).
+cholera_yem_daily <- fill_missing(cholera_yem_tot,
+                                  missing_dates = "accumulate",
+                                  missing_obs = "accumulate",
+                                  initial_accumulate = 7,
+                                  obs_column = "confirm", by = NULL)
+
 cholera_epinow <- estimate_infections(
-  cholera_yem_tot,
+  cholera_yem_daily,
   generation_time=generation_time_opts(cholera_gen_time),
   delay = delay_opts(combined_delay_cholera),
-  obs = obs_opts(family="poisson", scale = 0.28, na = "accumulate"),
-  stan = stan_opts(chains = 4, cores = 2, samples = 2000), 
-  rt = rt_opts(prior = list(mean = 2, sd = 2), 
+  obs = obs_opts(family="poisson", scale = Fixed(0.28)),
+  stan = stan_opts(chains = 4, cores = 2, samples = 2000),
+  rt = rt_opts(prior = LogNormal(mean = 2, sd = 2),
                gp_on = "R0")
 )
 
 plot(cholera_epinow)
 
-rt_cholera <- cholera_epinow$samples |>
+rt_cholera <- get_samples(cholera_epinow) |>
   filter(variable == "R", type!="forecast") |>
   group_by(date) |>
   summarise(R=median(value),
