@@ -113,12 +113,12 @@ against known ground truth:
   grid — `fig_resim_<disease>_crps_heatmap.png`, `fig_resim_combined_crps.png`,
   marginal. This is the realistic-dynamics counterpart to the trivial trajectories.
 
-**Resim convergence** (warmup=500): ~99% converged. Retained cells — ebola 36/36,
-cholera 36/36, covid 30/36 (the gt6 = ×2 generation-time row was still finishing at
-figure time; re-aggregate to fill it). ~10 scattered cells excluded by the
-convergence filter, *not* concentrated at the gt1×inc6 corner (the simulated data is
-smoother than real surveillance series, so the near-singular corner that broke the
-case-study/learn arms does not bite here).
+**Resim convergence** (warmup=500, one fresh-seed re-roll of transient failures):
+all three diseases **36/36 cells retained**. ~7 individual forecast origins excluded
+by the convergence filter (covid 6, ebola 1, cholera 0), scattered and *not*
+concentrated at the gt1×inc6 corner — the simulated data is smoother than real
+surveillance series, so the near-singular corner that broke the case-study/learn
+arms does not bite here.
 
 ### Sensitivity score model
 Per-origin log-scale CRPS (samples equalised to 2000) across all simulated scenarios
@@ -143,7 +143,7 @@ below the weekly bin, so delay misspecification is undetectable — as expected)
 
 Consistent with Q2 (§4): informing the model about delays does little for short-term
 case forecasts. Caveat: the simulated series are easy to forecast, so absolute CRPS
-is tiny; covid's resim gt6 row was pending at fit time (re-run when complete).
+is tiny.
 
 ### Rt-estimation sensitivity — the key contrast
 Scoring the *reproduction-number* forecasts against the synthetic true Rt
