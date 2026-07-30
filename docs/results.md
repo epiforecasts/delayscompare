@@ -226,5 +226,15 @@ observation delay cannot be learned at all. A secondary result — for short-ter
 across the informed conditions.
 
 Caveats: single real outbreak per disease (no replication); covid learn-delay rests
-on one origin; the GAMM `s(time)` is weak with ≤8 origins. Q1 (simulated
-disease-like scenarios) GAMM still TBD.
+on one origin; the GAMM `s(time)` is weak with ≤8 origins.
+
+## 5. Supplement — case-study ranking robustness
+
+The two excluded case-study fits (covid gt1/inc5/tp5, gt1/inc6/tp5) leave those cells
+averaged over one fewer forecast origin than the rest (analysis plan #7). Recomputing
+the per-cell log-CRPS on the **common** origin set that converged across *all* cells
+(drop tp5 uniformly) leaves the gt×inc ranking essentially unchanged:
+**Spearman ρ = 0.99 for covid** (the only affected disease), **1.0 for ebola and
+cholera** (no exclusions). So the per-cell-available-origins heatmaps are not an
+artefact of the dropped origins (`score_casestudy_robustness.R`;
+`fig_casestudy_robustness.png`).
