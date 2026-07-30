@@ -1,18 +1,24 @@
 # Handoff — delayscompare analysis state
 
-Status as of 2026-07-23. Single entry point for continuing the work: what has been
-done, where everything lives, the key findings, and the concrete next steps.
+Status as of 2026-07-30. Single entry point: what has been done, where everything
+lives, the key findings, and any remaining work.
 
 ## 1. One-paragraph status
 
 The study compares forecast skill under **imposed** vs **learned** generation-time /
-observation-delay assumptions across three pathogens (ebola, covid, cholera). The
-**impose arm is complete** (all runs converged bar 8 documented exclusions; scored;
-figures generated). The **learn arm is mostly complete**: ebola and cholera fully
-converged; **covid is only 7/18 fits** because estimating covid's *observation delay*
-from incidence is **non-identifiable** — confirmed with a dedicated diagnostic. The
-immediate remaining work: stop the futile covid re-runs, aggregate the learn arm,
-write up the identifiability finding.
+observation-delay assumptions across three pathogens (ebola, covid, cholera). **The
+analysis is essentially complete** — all four scientific results are in `results.md`,
+scored with GAMMs, figured, and committed on `parallel-timepoints` (unpushed):
+(1) **§1 identifiability** — covid's observation delay is non-identifiable from case
+counts (posterior = prior; delay↔Rt ridge ~0.99); (2) **Q1 sensitivity** — case
+forecasts are ~insensitive to *any* delay misspecification, but **Rt estimation is
+strongly degraded by generation-time misspecification** (U-shape, ~25× worse at ×2)
+and insensitive to observation-delay misspecification; (3) **Q2 impose-vs-learn** —
+learning the delays never beats imposing (equal for ebola, worse for cholera, covid
+can't learn it); (4) reliability accounting + supplement robustness (case-study
+ranking robust to the excluded origins, Spearman ρ ≥ 0.99). Both simulated-scenario
+families (trivial const/inc/dec + disease-like resim) and the real case studies are
+scored. Remaining is optional polish only (see §6).
 
 ## 2. Where the work lives
 
@@ -111,10 +117,13 @@ time (~3.6 d); ebola (~0.8×) and cholera (~1.2×) have delay ≈ GT, so their d
 stay identifiable. This is the natural-parameter version of the impose arm's
 short-GT × long-delay near-singular corner (excluded 1485 cell).
 
-**User's framing (endorsed)**: the observation delay can only be identified when
-there is a clear change in trend. **Testable prediction (NOT yet checked)**: covid
-`inc` tp1 identified because its 12-week window contains a trend change; tp2–6 stuck
-because they sit on smoother, near-log-linear stretches.
+**Trend-change framing (checked, refuted → finding strengthened)**: the delay is in
+principle identifiable only at trend changes (curvature). But the production-settings
+tp1 fit converges with its incubation posterior *exactly equal to the prior* (mean
+1.607/SD 0.100 vs prior 1.608/0.10) — prior-dominated, not identified — and the
+delay↔Rt correlation is ~0.99 at tp1 too. So the delay is *never* identified from
+these case counts: the flexible Rt/GP absorbs whatever curvature could pin it. Final
+wording is in `results.md` §1.
 
 ## 6. NEXT STEPS (ordered)
 
@@ -144,16 +153,28 @@ because they sit on smoother, near-log-linear stretches.
    2000, per-origin log-CRPS, `mgcv::bam` GAMM, condition marginal effects with CIs).
    Outputs `results/q2_perorigin_logcrps.csv`, `q2_gamm.rds`,
    `q2_condition_marginal_effects.csv`, `fig_q2_marginal_effects.png`. Result in
-   `results.md` §4: learning never beats imposing (ebola equal, cholera worse, covid
-   can't learn the delay + informing hurts). Q1 GAMM still to build (plan spec:
-   `log_crps ~ s(level, by=disease) + trajectory + s(time, by=disease) + horizon` on
-   the simulated const/inc/dec scenarios; also Rt scoring, synthetic-only).
-8. **Supplement robustness** (impose): common-origin panel for the 2 excluded
-   case-study cells (covid gt1/inc5/tp5, gt1/inc6/tp5) — analysis_plan decision #7.
-   If a different sampler is wanted for the stuck learn cells: expose `max_treedepth`
-   as an env var in `sim_weightprior` (currently hardcoded 20), try lower treedepth +
-   samples=1000.
-9. **Branch review / merge**: user drives; never push or merge without instruction.
+   `results.md` §4: learning never beats imposing.
+8. **Q1 sensitivity — DONE (both outcomes).** `scripts/score_q1_gamm.R` (case CRPS)
+   and `scripts/score_q1_rt_gamm.R` (Rt CRPS), over the GT×INC grid across the trivial
+   *and* disease-like (resim) scenarios; GAMM `s(gt,by=disease)+s(inc,by=disease)+
+   trajectory+s(time,by=disease)+horizon`; marginal effects with CIs; figures
+   `fig_q1_sensitivity.png`, `fig_q1_rt_sensitivity.png`. Result in `results.md` §3:
+   case forecasts insensitive to any misspecification; **Rt strongly degraded by GT
+   misspecification, insensitive to observation delay**.
+9. **Disease-like (resim) Q1 arm — DONE.** Regenerated fresh (`03`→`05` under current
+   code — needed 5 EpiNow2 1.9 API fixes to `03`), grid run at warmup=500, all three
+   diseases 36/36 cells (~7 scattered origins excluded), aggregated + figured
+   (`fig_resim_*`). rerun log for resim re-rolls is ad-hoc (jobs 6478881-3).
+10. **Supplement robustness — DONE.** `scripts/score_casestudy_robustness.R` →
+   `results.md` §5: case-study ranking robust to common-origin restriction (covid
+   ρ=0.99, ebola/cholera 1.0). `fig_casestudy_robustness.png`.
+
+**Optional remaining polish** (nothing blocks the write-up):
+- Trivial vs disease-like Q1 could be reported separately (currently combined via the
+  `trajectory` covariate).
+- If a different sampler is ever wanted for the stuck learn cells: expose
+  `max_treedepth` as an env var in `sim_weightprior` (hardcoded 20).
+- **Branch review / merge**: user drives; never push or merge without instruction.
 
 ## 7. Gotchas
 
