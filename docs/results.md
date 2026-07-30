@@ -143,8 +143,36 @@ below the weekly bin, so delay misspecification is undetectable — as expected)
 
 Consistent with Q2 (§4): informing the model about delays does little for short-term
 case forecasts. Caveat: the simulated series are easy to forecast, so absolute CRPS
-is tiny; the Rt-scoring arm of Q1 (synthetic-only ground-truth Rt) is still TBD, and
-covid's resim gt6 row was pending at fit time (re-run when complete).
+is tiny; covid's resim gt6 row was pending at fit time (re-run when complete).
+
+### Rt-estimation sensitivity — the key contrast
+Scoring the *reproduction-number* forecasts against the synthetic true Rt
+(`score_q1_rt_gamm.R`; `fig_q1_rt_sensitivity.png`; Rt is synthetic-only, the case
+studies have no ground-truth Rt) tells a very different story from the case
+forecasts:
+
+- **Rt estimation is strongly sensitive to generation-time misspecification.** On the
+  GT axis the marginal Rt-CRPS is a clear U-shape with its minimum at the correct GT
+  and rising sharply at both extremes — e.g. ebola 0.007 (correct) → **0.17 at gt=×2**
+  (~25× worse), covid 0.025 → 0.11, cholera 0.037 → 0.10. CIs at the extremes are well
+  separated from the correct level. This holds for all three diseases.
+- **Rt estimation is largely insensitive to incubation/observation-delay
+  misspecification** — the INC axis is nearly flat (small, mostly monotone drift; no
+  U-shape), a much weaker effect than GT.
+
+So the two Q1 outcomes dissociate cleanly:
+
+| misspecify | short-term case forecast | Rt estimation |
+|---|---|---|
+| generation time | ~insensitive | **strongly degraded at extremes** |
+| observation delay | ~insensitive | ~insensitive |
+
+Epidemiologically coherent: the generation time is what maps growth rate to Rt, so
+getting it wrong biases the *quantity of interest* (Rt) even though the *case* forecast
+just tracks the observed growth regardless. The observation delay — which the Q2/§1
+work shows is barely learnable and, per Q1, barely matters for cases — also does
+little to Rt. Net: **the generation time is the delay that matters, and it matters for
+Rt rather than for case forecasts.**
 
 ## 4. Q2 — impose vs learn (TBD)
 
