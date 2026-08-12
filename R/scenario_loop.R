@@ -20,8 +20,9 @@ sim_scenarios <- function(case_data,
                           adapt_delta=0.99,
                           max_treedepth=20,
                           samples=3000,
-                          warmup=250){
-  
+                          warmup=250,
+                          horizon=14){
+
   ## Scenarios
   
   scen_values <- c(0, 0.25, 0.8, 1, 1.25, 2) 
@@ -141,9 +142,9 @@ start_runtime <- Sys.time()
                                                       return_fit = TRUE,
                                                       control=list(adapt_delta=adapt_delta,
                                                                    max_treedepth=max_treedepth)),
-                                     forecast = forecast_opts(horizon=14),
+                                     forecast = forecast_opts(horizon=horizon),
                                      verbose = FALSE)
-          
+
         # Recording runtime
           
         end_runtime <- Sys.time()
