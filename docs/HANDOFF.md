@@ -11,9 +11,9 @@ analysis is essentially complete** — all four scientific results are in `resul
 scored with GAMMs, figured, and committed on `parallel-timepoints` (unpushed):
 (1) **§1 identifiability** — covid's observation delay is non-identifiable from case
 counts (posterior = prior; delay↔Rt ridge ~0.99); (2) **Q1 sensitivity** — case
-forecasts are ~insensitive to *any* delay misspecification, but **Rt estimation is
-strongly degraded by generation-time misspecification** (U-shape, ~25× worse at ×2)
-and insensitive to observation-delay misspecification; (3) **Q2 impose-vs-learn** —
+forecasts (1–2 wk) are ~insensitive to *any* delay misspecification; the Rt-scoring
+arm merely recovers the expected Euler–Lotka R = 1/M_g(−r) dependence at fixed growth
+rate (a consistency check, not a finding); (3) **Q2 impose-vs-learn** —
 learning the delays never beats imposing (equal for ebola, worse for cholera, covid
 can't learn it); (4) reliability accounting + supplement robustness (case-study
 ranking robust to the excluded origins, Spearman ρ ≥ 0.99). Both simulated-scenario
@@ -159,8 +159,8 @@ wording is in `results.md` §1.
    *and* disease-like (resim) scenarios; GAMM `s(gt,by=disease)+s(inc,by=disease)+
    trajectory+s(time,by=disease)+horizon`; marginal effects with CIs; figures
    `fig_q1_sensitivity.png`, `fig_q1_rt_sensitivity.png`. Result in `results.md` §3:
-   case forecasts insensitive to any misspecification; **Rt strongly degraded by GT
-   misspecification, insensitive to observation delay**.
+   case forecasts insensitive to any misspecification; the Rt-vs-GT U-shape is the
+   mechanical Euler–Lotka consequence (validation, not a finding).
 9. **Disease-like (resim) Q1 arm — DONE.** Regenerated fresh (`03`→`05` under current
    code — needed 5 EpiNow2 1.9 API fixes to `03`), grid run at warmup=500, all three
    diseases 36/36 cells (~7 scattered origins excluded), aggregated + figured
