@@ -17,7 +17,7 @@ case_col <- function(d){
   if ("confirm" %in% names(d)) "confirm" else "cases"
 }
 
-score_block <- function(samples, id, diagnostics, true_cases, filter_rhat = TRUE){
+score_block <- function(samples, id, diagnostics, true_cases, filter_rhat = TRUE, case_data = NULL){
   if (is.null(samples) || is.null(id)) return(NULL)
   if (filter_rhat && !is.null(diagnostics)) {
     keep <- diagnostics |>
@@ -27,6 +27,19 @@ score_block <- function(samples, id, diagnostics, true_cases, filter_rhat = TRUE
   }
   if (nrow(samples) == 0) return(NULL)
   id_dedup <- id |> dplyr::distinct(result_list, .keep_all = TRUE)
+  if (!"forecast_origin" %in% names(id_dedup) && !is.null(case_data)) {
+    start_date <- min(case_data$date)
+    end_date <- max(case_data$date)
+    target_dates <- seq.Date(from=start_date, to=end_date, by="4 weeks")
+    scen_tps <- sapply(target_dates, function(target){
+      avail <- case_data$date[case_data$date >= target]
+      if(length(avail) > 0) min(avail) else NA
+    }) |> as.Date(origin = "1970-01-01")
+    scen_tps <- scen_tps[!is.na(scen_tps)][-1]
+    if(length(scen_tps) > 8) scen_tps <- scen_tps[1:8]
+    tp_map <- tibble::tibble(timepoint = seq_along(scen_tps), forecast_origin = scen_tps)
+    id_dedup <- id_dedup |> dplyr::left_join(tp_map, by = "timepoint")
+  }
   scored <- samples |>
     dplyr::filter(type == "forecast") |>
     dplyr::left_join(id_dedup, by = "result_list") |>
@@ -88,15 +101,15 @@ for (disease in diseases){
   ## estimated delays (GT held at literature) — vary="inc", weight_prior=FALSE
   for (cond in list(c("est_GT", "gt"), c("est_delays", "inc"), c("est_both", "both"))){
     label <- cond[[1]]; v <- cond[[2]]
-    prefix <- paste0(disease, "_weightprior_FALSE_", v, "_", rt_opts, "_")
-    est_id   <- tryCatch(read_latest(here("results", "agg"), paste0(prefix, "id")),
+    prefix <- paste0("res_", disease, "_widepriors_FALSE_", v, "_", rt_opts, "_all_")
+    est_id   <- tryCatch(read_latest(here("results", "widepriors"), paste0(prefix, "id")),
                          error = function(e) NULL)
-    est_samp <- tryCatch(read_latest(here("results", "agg"), paste0(prefix, "samples")),
+    est_samp <- tryCatch(read_latest(here("results", "widepriors"), paste0(prefix, "samples")),
                          error = function(e) NULL)
-    est_diag <- tryCatch(read_latest(here("results", "agg"), paste0(prefix, "diagnostics")),
+    est_diag <- tryCatch(read_latest(here("results", "widepriors"), paste0(prefix, "diagnostics")),
                          error = function(e) NULL)
     ## learn conditions: report non-convergence, do not discard (R-hat filter off)
-    sc <- score_block(est_samp, est_id, est_diag, true_cases, filter_rhat = FALSE)
+    sc <- score_block(est_samp, est_id, est_diag, true_cases, filter_rhat = FALSE, case_data = cd)
     if (!is.null(sc)) {
       results[[paste(disease, label)]] <- tibble::tibble(disease = disease, condition = label) |>
         dplyr::cross_join(sc)
@@ -105,4 +118,6 @@ for (disease in diseases){
 }
 
 out <- dplyr::bind_rows(results)
+readr::write_csv(out, here("results", "q2_casestudy_scores.csv"))
+message("Saved Q2 scores to results/q2_casestudy_scores.csv")
 print(out, n = 50)

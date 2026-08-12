@@ -38,14 +38,14 @@ for(disease in c("ebola", "covid", "cholera")) {
 
     message(paste("\n=== Processing", disease, "vary =", vary, "(wide priors) ===\n"))
 
-    file_prefix <- paste0(disease, "_widepriors_", wp, "_", vary, "_", rt_opts, "_")
+    file_prefix <- paste0("res_", disease, "_widepriors_", wp, "_", vary, "_", rt_opts, "_all_")
 
     res_samples <- tryCatch(
-      read_latest(here("results", "agg"), paste0(file_prefix, "samples")),
+      read_latest(here("results", "widepriors"), paste0(file_prefix, "samples")),
       error = function(e) { message("  Missing samples"); NULL }
     )
     res_id <- tryCatch(
-      read_latest(here("results", "agg"), paste0(file_prefix, "id")),
+      read_latest(here("results", "widepriors"), paste0(file_prefix, "id")),
       error = function(e) { message("  Missing id"); NULL }
     )
 
@@ -55,7 +55,7 @@ for(disease in c("ebola", "covid", "cholera")) {
     }
 
     diagnostics <- tryCatch(
-      read_latest(here("results", "agg"), paste0(file_prefix, "diagnostics")),
+      read_latest(here("results", "widepriors"), paste0(file_prefix, "diagnostics")),
       error = function(e) { message("  No diagnostics"); NULL }
     )
     if(!is.null(diagnostics)) {

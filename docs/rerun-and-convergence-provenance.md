@@ -134,3 +134,47 @@ are converged; the per-cell sampler settings that achieved this are logged in
 convergence signal here: it is taken over every parameter including fixed /
 deterministic ones whose ESS is degenerate, so it reads as tiny (<100) for ~97% of
 fits regardless of sampling quality. Use max R-hat and divergence count instead.
+
+## Learn Arm — Non-Identifiability Results & Provenance
+
+### Convergence Summary by Disease × Parameter
+
+| Disease | Generation Time (`vary=gt`) | Incubation Period (`vary=inc`) | Both (`vary=both`) |
+|---|---|---|---|
+| **Ebola** | 5/8 | 8/8 | 7/8 |
+| **Cholera** | 7/8 | 8/8 | 8/8 |
+| **COVID-19** | 6/6 | **1/6 (TP1 only)** | **0/6** |
+
+All completed learn fits converged (max R-hat < 1.05). The 11 uncompleted COVID-19 `inc` (TP2–6) and `both` (TP1–6) cells failed to converge due to **structural non-identifiability** of the COVID-19 observation delay from incidence.
+
+### Structural Non-Identifiability Fingerprint
+
+Diagnostic fit (job `6418486`, `diag_learn.R` on COVID `vary=inc` TP3) confirmed an unconstrained parameter ridge:
+- **Delay posterior unpinned**: `delay_params[1]` (incubation meanlog) posterior SD = 0.599 vs prior SD = 0.10 (6× wider), max R-hat = 8.54.
+- **Explicit correlation ridge**: Absolute correlation of the incubation delay parameter with Rt / Gaussian Process / infection parameters reached **max 0.99, mean 0.86, with 54 of 60 parameters showing |r| > 0.5**.
+- **Timing unconstrained**: Parameters with extreme R-hat (~10¹³) were unanchored `infections[...]`, `reports[...]`, and `obs_reports[...]`.
+- **Tree-depth saturation**: 12.8% of leapfrog transitions hit the tree-depth cap even when capped at 10.
+
+### Mechanism: Delay-to-Generation-Time Ratio
+
+| Disease | Generation Time (GT) | Obs Delay (Inc + Rep) | Ratio (Obs Delay / GT) | Learn Arm Incubation Status |
+|---|---|---|---|---|
+| **Ebola** | 10.90 d | 8.50 d | **0.78×** | Fully identifiable (8/8) |
+| **Cholera** | 5.00 d | 6.17 d | **1.23×** | Fully identifiable (8/8) |
+| **COVID-19** | 3.60 d | 9.60 d | **2.67×** | Non-identifiable (1/6) |
+
+When the observation delay is significantly longer than the generation time ($2.67\times$ for COVID-19), the delay enters the renewal convolution $R(t) = \int I(t-s) f(s) ds$ primarily as a scalar confounded with seeding/growth rates, producing a flat parameter ridge against a flexible GP prior.
+
+### Trend-Change Prediction Verification
+
+Identifiability requires clear curvature in the infection series to anchor timing. This prediction was empirically tested against the COVID-19 forecast origin windows:
+
+- **TP 1 (Origin 2021-06-29, Window: 2021-06-01 to 2021-06-29, 29 days)**: **Identified**. Covers the sharp turning point / initial exponential takeoff of the UK Delta wave (~4.5k to ~21k cases/day; quadratic log-scale curvature $p = 6.98 \times 10^{-13}$). The short window boundary and sharp curvature constrain $I(t)$ and pin down the delay.
+- **TP 2–6 (Origins 2021-07-27 to 2021-11-16, Windows: 57–85 days)**: **Non-identifiable**. Over extended multi-month windows across smooth peaks and plateaus, the GP $R(t)$ prior flexes to fit curvature, leaving the long observation delay unconstrained along the 0.99 correlation ridge.
+
+### Stochastic Re-Seed Lottery & Job Cancellation
+
+- **RESEED 1–3**: Cleared 3 stuck cells by random seed selection.
+- **RESEED 4–5**: Cleared 0 cells across 11 remaining COVID-19 fits.
+- **Cancellation**: `RESEED5` (job `6418219`) was cancelled on 2026-07-23 once the diagnostic confirmed the 11 cells are structurally non-identifiable. The 11 cells are formally documented as excluded non-identifiable fits.
+
