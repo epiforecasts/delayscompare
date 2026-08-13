@@ -23,6 +23,7 @@ set -euo pipefail
 DISEASE=${1:-covid}
 NREP=${NREP:-20}
 REP_OFFSET=${REP_OFFSET:-0}   # add to replicate index, e.g. 10 to run rep11..20
+DATA_TAG=${DATA_TAG:-}        # dataset tag, e.g. const_low / const_hi (empty = resim)
 INC=4
 
 # Get project root
@@ -57,6 +58,6 @@ echo "Disease: $DISEASE  INC: $INC (fixed)  Horizon: ${HORIZON:-42}"
 echo "Script: $SCRIPT"
 echo "=========================================="
 
-Rscript $SCRIPT $GT $INC $RT_OPTS $DISEASE "${TP}-${TP}" $REP
+Rscript $SCRIPT $GT $INC $RT_OPTS $DISEASE "${TP}-${TP}" $REP "$DATA_TAG"
 
-echo "Done: $DISEASE horizon gt=$GT inc=$INC tp=$TP rep=$REP"
+echo "Done: $DISEASE horizon gt=$GT inc=$INC tp=$TP rep=$REP tag=${DATA_TAG:-resim}"

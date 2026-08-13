@@ -34,6 +34,11 @@ if (!is.na(tp_arg) && tp_arg != "all") {
 rep_id <- as.integer(var[6])
 if (is.na(rep_id)) stop("Missing replicate id (arg 6)")
 
+# optional dataset tag (arg 7): loads <disease>_sim_data_<tag>_rep<r>.rds and saves
+# scenario "hz_<tag>_rep<r>". Empty/NA -> resim replicates (hz_rep<r>).
+data_tag <- var[7]
+if (is.na(data_tag) || data_tag == "") data_tag <- NULL
+
 d <- delays[[disease]]
 
 adapt_delta   <- as.numeric(Sys.getenv("ADAPT_DELTA", "0.99"))
@@ -42,11 +47,13 @@ samples       <- as.integer(Sys.getenv("SAMPLES", "3000"))
 warmup        <- as.integer(Sys.getenv("WARMUP", "500"))
 horizon       <- as.integer(Sys.getenv("HORIZON", "42"))
 
-sim_file <- here("data", paste0(disease, "_sim_data_rep", rep_id, ".rds"))
+tag_infix <- if (is.null(data_tag)) "" else paste0("_", data_tag)
+sim_file <- here("data", paste0(disease, "_sim_data", tag_infix, "_rep", rep_id, ".rds"))
 if (!file.exists(sim_file)) {
-  stop("Replicate data not found: ", sim_file, ". Run 05d_simulatedata_replicates.R first.")
+  stop("Replicate data not found: ", sim_file, ". Run 05d/05e replicate generator first.")
 }
 sim_data <- readRDS(sim_file)
+scen_label <- paste0("hz", tag_infix, "_rep", rep_id)
 
 sim_data_cases <- sim_data |> filter(variable == "reported_cases") |>
   select(date, value) |> rename(confirm = value)
@@ -76,5 +83,5 @@ res_disease <- sim_scenarios(case_data = sim_data_cases,
 
 if (nrow(res_disease$samples) > 0) {
   save_scenario(res_disease, here("results", "raw"), disease,
-                paste0("hz_rep", rep_id), rt_opts, gt, inc)
+                scen_label, rt_opts, gt, inc)
 }
