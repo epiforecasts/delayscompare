@@ -22,6 +22,7 @@ set -euo pipefail
 
 DISEASE=${1:-covid}
 NREP=${NREP:-20}
+REP_OFFSET=${REP_OFFSET:-0}   # add to replicate index, e.g. 10 to run rep11..20
 INC=4
 
 # Get project root
@@ -44,7 +45,7 @@ fi
 
 # tp innermost (contiguous), then replicate, then GT outermost.
 TP=$(( ((TASK_ID - 1) % 8) + 1 ))
-REP=$(( ((TASK_ID - 1) / 8) % NREP + 1 ))
+REP=$(( ((TASK_ID - 1) / 8) % NREP + 1 + REP_OFFSET ))
 GT=$(( ((TASK_ID - 1) / (8 * NREP)) + 1 ))
 
 RT_OPTS="latest"
