@@ -163,6 +163,49 @@ The informative content of Q1 is therefore the *case-forecast* side above: skill
 insensitive to delay misspecification over the 1–2 week horizon, even though the
 underlying Rt reinterpretation is (necessarily) GT-dependent.
 
+### Medium horizons: where GT misspecification starts to matter, and why
+
+The 1–2 week insensitivity above leaves open the operationally hard 3–4 week question.
+A dedicated horizon sweep addresses it: the disease-like re-simulated trajectories, GT
+axis varied (0→×2), incubation held correct, 20 replicate noise realisations each,
+forecast horizon extended to 42 days and scored at 1–6 weeks with a
+`te(gt, horizon, by=disease)` GAMM (`06h_scenariorun_horizon.R`,
+`score_horizon_gamm.R`; `fig_horizon_sensitivity.png`). 98.5% of ~2,900 fits converge;
+the non-converged tail sits at the degenerate near-zero-GT corner and is filtered out.
+
+**A modest medium-horizon effect emerges that the 1–2 week analysis cannot see.** The
+marginal log-CRPS gap between correct and worst-misspecified GT is negligible at 1–2
+weeks (< 0.02) and grows monotonically to ≈0.09–0.10 by 6 weeks (ebola 0.093, covid
+0.096, cholera 0.066) — a ~10–15% relative degradation, resolved at 20 replicates. The
+effect scales with generation-time *length*, not shortness: ebola (longest GT,
+comparable to the 42-day window) carries the most, covid less, cholera least. covid
+shows a clean U-shape with its minimum at the correct GT; ebola and cholera are
+monotone (shorter- or longer-than-correct GT respectively forecasts marginally better),
+so there is no single universal direction.
+
+**The mechanism is trajectory curvature, not epidemic phase.** A constant-Rt phase test
+isolates the cause: replicate const-low (R = 0.8, sustained decline) and const-high
+(R = 1.2, sustained growth) trajectories at matched |R − 1|, same horizon sweep
+(`05e_simulatedata_const_replicates.R`, `score_horizon_phasetest.R`;
+`fig_horizon_phasetest.png`). On constant Rt the case forecast is **GT-invariant at
+every horizon** — flat across the full 0.25×–2× GT range even at 6 weeks (ebola
+const-high 6-week log-CRPS: 0.050, 0.049, 0.046, 0.044, 0.039 for GT ×0.25→×2), for
+growing and declining epidemics alike (GT slope |·| < 0.007 in every cell, versus
++0.144 in the resim). Phase per se does nothing.
+
+This locates the effect precisely. Under constant R, log-incidence is a straight line:
+the model absorbs any GT into a re-scaled constant Rt (Euler–Lotka, §1), and
+extrapolating a straight line forward is GT-independent — so both estimation *and*
+forecasting are GT-blind. The real disease trajectories are *curved* (waves, peaks,
+turnarounds); a misspecified GT mis-propagates that curvature forward over the forecast
+window, and the error compounds with horizon and with GT length. Curvature is the
+second-order information that breaks the first-order degeneracy of §1.
+
+Operationally: getting the generation interval wrong barely costs short-term case-
+forecast skill, and even at 3–6 weeks costs little — and only where the growth rate is
+*changing* over the forecast window. The 3–4 week horizon is hard for reasons other
+than the generation interval.
+
 ## 4. Q2 — impose vs learn (TBD)
 
 Case-study condition CRPS computed (`score_casestudy_conditions.R`); case-study
