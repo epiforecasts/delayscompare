@@ -14,33 +14,46 @@ source(here("scripts", "02b_definedelays.R"))
 source(here("R", "funcs_data.R"))
 
 NREPS <- as.integer(Sys.getenv("NREPS", "5"))
-scen_R <- c(const_low = 0.8, const_hi = 1.2)
-message("Simulating ", NREPS, " replicates per disease x {const_low, const_hi}")
+## Trivial-trajectory scenarios for the horizon mechanism test. const_low/const_hi are
+## constant R (zero curvature); inc/dec ramp R linearly 0.8<->1.2 (changing growth rate,
+## nonzero curvature). Ordered so const seeds are unchanged when inc/dec are added.
+scens <- c("const_low", "const_hi", "inc", "dec")
+message("Simulating ", NREPS, " replicates per disease x {", paste(scens, collapse=", "), "}")
 
-sim_one <- function(disease, Rval) {
+## per-scenario R(date) builder
+build_R <- function(scen, dates) {
+  n <- length(dates)
+  Rval <- switch(scen,
+    const_low = rep(0.8, n),
+    const_hi  = rep(1.2, n),
+    inc       = seq(0.8, 1.2, length.out = n),
+    dec       = rev(seq(0.8, 1.2, length.out = n)))
+  data.frame(date = dates, R = Rval)
+}
+
+sim_one <- function(disease, scen) {
   d <- delays[[disease]]
-  startdate <- startenddates[[disease]][["startdate"]]
-  enddate   <- startenddates[[disease]][["enddate"]]
+  dates <- seq.Date(startenddates[[disease]][["startdate"]],
+                    startenddates[[disease]][["enddate"]], by = 1)
   gen_time   <- get(paste0(disease, "_gen_time"))
   inc_period <- get(paste0(disease, "_inc_period"))
   combined_delay <- if (exists(paste0(disease, "_reporting_delay")))
     inc_period + get(paste0(disease, "_reporting_delay")) else inc_period
-  R <- data.frame(date = seq.Date(startdate, enddate, by = 1), R = Rval)
-  simulate_infections(R = R, initial_infections = d$init_infs,
+  simulate_infections(R = build_R(scen, dates), initial_infections = d$init_infs,
     generation_time = generation_time_opts(gen_time),
     delays = delay_opts(combined_delay),
     obs = obs_opts(family = "poisson", scale = Fixed(d$underreport)))
 }
 
 for (disease in c("ebola", "covid", "cholera")) {
-  for (scen in names(scen_R)) {
+  for (scen in scens) {
     for (r in seq_len(NREPS)) {
       set.seed(2000 * match(disease, c("ebola","covid","cholera")) +
-                 100 * match(scen, names(scen_R)) + r)
-      sd <- sim_one(disease, scen_R[[scen]])
+                 100 * match(scen, scens) + r)
+      sd <- sim_one(disease, scen)
       saveRDS(sd, here("data", paste0(disease, "_sim_data_", scen, "_rep", r, ".rds")))
     }
   }
-  message("  ", disease, ": ", NREPS, " reps x 2 scenarios saved")
+  message("  ", disease, ": ", NREPS, " reps x ", length(scens), " scenarios saved")
 }
 message("Done.")

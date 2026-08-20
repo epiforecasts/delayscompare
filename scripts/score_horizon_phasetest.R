@@ -15,7 +15,10 @@ source(here("R", "funcs_data.R"))
 
 rt_opts  <- "latest"
 diseases <- c("ebola", "covid", "cholera")
-scens    <- c(const_low = "declining", const_hi = "growing")
+## const_* are constant R (zero curvature); inc/dec ramp R (nonzero curvature). If the
+## medium-horizon GT effect is driven by curvature, const stays flat and inc/dec lift off.
+scens    <- c(const_low = "decline (flat)", const_hi = "growth (flat)",
+              inc = "accelerating (ramp)", dec = "decelerating (ramp)")
 N_SAMPLES <- 3000L
 MAX_WK   <- 6L
 raw_dir  <- here("results", "raw")
@@ -100,24 +103,27 @@ readr::write_csv(slopes, here("results", "horizon_phasetest_slopes.csv"))
 cat("\n=== GT slope by scenario (+ve = longer GT worse), horizons 4 & 6 ===\n")
 for (h in c(4, 6)) {
   cat("\n-- horizon", h, "wk --\n")
-  s <- slopes[slopes$horizon == h, c("disease","phase","gt_slope")]
-  print(as.data.frame(reshape(s, idvar="disease", timevar="phase", direction="wide")),
-        digits = 3, row.names = FALSE)
+  s <- slopes[slopes$horizon == h, c("disease","scen","gt_slope")]
+  print(as.data.frame(tidyr::pivot_wider(s, names_from = scen, values_from = gt_slope)),
+        digits = 2, row.names = FALSE)
 }
 
 ## Figure: GT slope vs horizon, growing vs declining, per disease. Divergence between
 ## the two lines (esp. a sign flip) is the phase signature.
 slopes$disease <- factor(slopes$disease, levels = diseases)
+slopes$phase <- factor(slopes$phase, levels = unname(scens))
 p <- ggplot2::ggplot(slopes, ggplot2::aes(horizon, gt_slope, colour = phase, group = phase)) +
   ggplot2::geom_hline(yintercept = 0, linetype = "dashed", colour = "grey60") +
   ggplot2::geom_line(linewidth = 0.8) + ggplot2::geom_point(size = 2) +
   ggplot2::facet_wrap(~ disease, scales = "free_y") +
   ggplot2::scale_x_continuous(breaks = 1:MAX_WK) +
-  ggplot2::scale_colour_manual(values = c(declining = "#2c7fb8", growing = "#d95f0e")) +
+  ggplot2::scale_colour_manual(values = c(
+    "decline (flat)" = "#2c7fb8", "growth (flat)" = "#7fcdbb",
+    "accelerating (ramp)" = "#d95f0e", "decelerating (ramp)" = "#fe9929")) +
   ggplot2::labs(x = "forecast horizon (weeks)",
                 y = "GT slope of log-CRPS (+ve = longer GT worse)",
-                colour = "phase (const R)",
-                title = "Phase test: GT-misspecification direction under sustained growth vs decline") +
+                colour = "trajectory",
+                title = "Curvature test: GT sensitivity under constant vs ramping R") +
   ggplot2::theme_bw()
 ggplot2::ggsave(here("results", "fig_horizon_phasetest.png"), p, width = 11, height = 4.5, dpi = 150)
 message("Saved: results/fig_horizon_phasetest.png")
