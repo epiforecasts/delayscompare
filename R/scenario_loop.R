@@ -21,7 +21,8 @@ sim_scenarios <- function(case_data,
                           max_treedepth=20,
                           samples=3000,
                           warmup=250,
-                          horizon=14){
+                          horizon=14,
+                          max_tp=8){
 
   ## Scenarios
   
@@ -71,8 +72,9 @@ scen_timepoints <- scen_timepoints[-1]
 
 names(scen_timepoints) <- seq_along(scen_timepoints)
 
-# Make sure max number of timepoints is 8 to ensure quicker runtime
-if(length(scen_timepoints)>8){scen_timepoints <- scen_timepoints[1:8]}
+# Cap the number of forecast origins (default 8 for quick runtime; raise via max_tp
+# for the dense-origin turning-point experiment)
+if(length(scen_timepoints)>max_tp){scen_timepoints <- scen_timepoints[1:max_tp]}
 
 # Filter to specific timepoint range if provided
 if(!is.null(timepoint_range)){

@@ -46,6 +46,8 @@ max_treedepth <- as.integer(Sys.getenv("MAX_TREEDEPTH", "20"))
 samples       <- as.integer(Sys.getenv("SAMPLES", "3000"))
 warmup        <- as.integer(Sys.getenv("WARMUP", "500"))
 horizon       <- as.integer(Sys.getenv("HORIZON", "42"))
+freq_fc       <- as.integer(Sys.getenv("FREQ_FC", "4"))   # weeks between origins
+max_tp        <- as.integer(Sys.getenv("MAX_TP", "8"))     # cap on number of origins
 
 tag_infix <- if (is.null(data_tag)) "" else paste0("_", data_tag)
 sim_file <- here("data", paste0(disease, "_sim_data", tag_infix, "_rep", rep_id, ".rds"))
@@ -70,7 +72,7 @@ res_disease <- sim_scenarios(case_data = sim_data_cases,
                              rep_mean = d$rep[["mean"]],
                              rep_sd = d$rep[["sd"]],
                              rep_max = d$rep[["max"]],
-                             freq_fc = 4,
+                             freq_fc = freq_fc,
                              weeks_inc = 12,
                              rt_opts_choice = rt_opts,
                              obs_scale = d$underreport,
@@ -79,7 +81,8 @@ res_disease <- sim_scenarios(case_data = sim_data_cases,
                              max_treedepth = max_treedepth,
                              samples = samples,
                              warmup = warmup,
-                             horizon = horizon)
+                             horizon = horizon,
+                             max_tp = max_tp)
 
 if (nrow(res_disease$samples) > 0) {
   save_scenario(res_disease, here("results", "raw"), disease,
