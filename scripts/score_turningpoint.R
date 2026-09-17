@@ -106,16 +106,23 @@ mean_cell <- function(df, ycol) df |> dplyr::group_by(disease, scen, origin, gt,
   dplyr::summarise(y = mean(.data[[ycol]], na.rm = TRUE),
                    dR_fc = dplyr::first(dR_fc), dR_est = dplyr::first(dR_est), .groups = "drop")
 
+## NA-robust slope of y on log(level); needs >=3 finite points
+safe_slope <- function(y, lev) {
+  ok <- is.finite(y) & is.finite(lev)
+  if (sum(ok) < 3) return(NA_real_)
+  unname(coef(lm(y[ok] ~ log(lev[ok])))[2])
+}
+
 ## GT axis: gt=1..6 at inc=4 (drop degenerate gt=1); delay axis: inc=1..6 at gt=4
 axis_slopes <- function(df, ycol, dRcol) {
   m <- mean_cell(df, ycol)
   gt_s <- m |> dplyr::filter(inc == 4) |> dplyr::mutate(lev = gt_mult[as.character(gt)]) |>
     dplyr::filter(!is.na(lev)) |> dplyr::group_by(disease, scen, origin) |>
-    dplyr::summarise(slope = if (dplyr::n() >= 3) unname(coef(lm(y ~ log(lev)))[2]) else NA,
+    dplyr::summarise(slope = safe_slope(y, lev),
                      dR = dplyr::first(.data[[dRcol]]), axis = "GT", .groups = "drop")
   del_s <- m |> dplyr::filter(gt == 4) |> dplyr::mutate(lev = gt_mult[as.character(inc)]) |>
     dplyr::filter(!is.na(lev)) |> dplyr::group_by(disease, scen, origin) |>
-    dplyr::summarise(slope = if (dplyr::n() >= 3) unname(coef(lm(y ~ log(lev)))[2]) else NA,
+    dplyr::summarise(slope = safe_slope(y, lev),
                      dR = dplyr::first(.data[[dRcol]]), axis = "delay", .groups = "drop")
   dplyr::bind_rows(gt_s, del_s)
 }
