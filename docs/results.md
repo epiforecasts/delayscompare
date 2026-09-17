@@ -206,6 +206,55 @@ forecast skill, and even at 3–6 weeks costs little — and only where the grow
 *changing* over the forecast window. The 3–4 week horizon is hard for reasons other
 than the generation interval.
 
+### Delays matter only where R is changing — the general statement
+
+The medium-horizon result above points at a sharper claim: delay misspecification
+degrades what we care about — how well R is estimated and how good forecasts are —
+**only where the reproduction number is changing**, and is essentially free during
+exponential phases. Two lines of evidence establish it, and separate "R changing" from
+the special case "R crosses 1".
+
+**Resim stratification.** Across the resim forecast origins, the GT-misspecification
+penalty scales with the change in the true R over the forecast window (ΔR from
+`rt_<disease>.rds`), not with R crossing 1 (`investigate_turningpoints.R`;
+`fig_horizon_turningpoint.png`). Mean |GT slope| at 6 weeks by ΔR tertile: 0.0015
+(R≈flat) → 0.020 → 0.099 (R changing a lot). Origins where R changes substantially
+*without* crossing 1 still show large penalties; cholera (true R almost constant over
+any window) anchors zero.
+
+**Controlled experiment.** Three synthetic trajectories with a single change at day 105
+— `flat` (R = 1.1), `bend` (R 1.3 → 1.0, changes but never crosses 1), `turn`
+(R 1.3 → 0.7, crosses 1 at a peak) — swept over *both* delay axes (generation time and
+observation delay) with dense forecast origins, scoring both R-nowcast error and 6-week
+forecast CRPS per origin (`05g_simulatedata_turningpoint.R`, `06h` with
+`FREQ_FC`/`MAX_TP`, `score_turningpoint.R`; `fig_turningpoint.png`). The per-origin
+error slope follows **flat ≈ 0 → bend → turn** in every outcome × axis panel:
+
+| outcome · axis | flat | bend | turn |
+|---|---|---|---|
+| forecast · observation delay | 0.013 | 0.063 | 0.164 |
+| forecast · generation time   | 0.004 | 0.010 | 0.033 |
+| R nowcast · observation delay | 0.002 | 0.010 | 0.021 |
+| R nowcast · generation time   | 0.019 | 0.044 | 0.057 |
+
+`bend` exceeds `flat` in every panel, so the trigger is R *changing*, not R = 1;
+`turn` (larger ΔR) exceeds `bend`, so the effect scales with how much R moves rather
+than switching on at a threshold.
+
+Two refinements fall out. **The observation delay matters *only* where R changes** —
+flat ≈ 0 for both R estimation and forecasts — exactly the identifiability degeneracy of
+§1 made dynamic (the delay is absorbed into the level under exponential growth). **The
+generation time is the same for forecasts, but for R *estimation* it carries a constant
+mechanical bias everywhere** (flat = 0.019): R = 1/M_g(−r) is GT-dependent at any growth
+rate, so a wrong GT mis-scales the R *level* even in pure exponential growth (the
+Euler–Lotka point of §3), with the turning-point rise added on top. And at turns the two
+delays fail differently: the observation delay dominates *forecast* error (mis-timing a
+peak is costly), while the generation time dominates *R-estimation* error (R depends on
+it directly).
+
+(Numbers preliminary while the covid `bend` arm finishes; the qualitative ordering is
+robust and rests mainly on ebola/cholera for `bend`.)
+
 ## 4. Q2 — impose vs learn (TBD)
 
 Case-study condition CRPS computed (`score_casestudy_conditions.R`); case-study
