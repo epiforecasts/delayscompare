@@ -136,17 +136,22 @@ readr::write_csv(sl, here("results", "turningpoint_slopes.csv"))
 cat("\n=== mean |error slope| by scenario x axis x outcome (flat should be ~0) ===\n")
 print(aggregate(abs(slope) ~ scen + axis + outcome, sl, function(x) round(mean(x, na.rm = TRUE), 4)))
 
-## Figure: error slope vs |dR over window|, for each outcome x axis, coloured by scenario
-p <- ggplot2::ggplot(sl[!is.na(sl$slope), ], ggplot2::aes(dR, slope, colour = scen)) +
-  ggplot2::geom_hline(yintercept = 0, linetype = "dashed", colour = "grey60") +
-  ggplot2::geom_point(size = 2, alpha = 0.8) +
-  ggplot2::geom_smooth(ggplot2::aes(group = 1), method = "lm", se = TRUE,
-                       colour = "black", linewidth = 0.4) +
+## Figure: mean |error slope| by trajectory, per outcome x axis. The true R is a step,
+## so |dR| is effectively categorical (0 / 0.3 / 0.6); the flat<bend<turn ordering the
+## design tests is shown directly as bars (SE whiskers) rather than a slope-vs-dR scatter.
+agg_fig <- sl |> dplyr::filter(!is.na(slope)) |>
+  dplyr::group_by(outcome, axis, scen) |>
+  dplyr::summarise(m = mean(abs(slope)), se = sd(abs(slope)) / sqrt(dplyr::n()), .groups = "drop")
+p <- ggplot2::ggplot(agg_fig, ggplot2::aes(scen, m, fill = scen)) +
+  ggplot2::geom_col(width = 0.7) +
+  ggplot2::geom_errorbar(ggplot2::aes(ymin = pmax(0, m - se), ymax = m + se), width = 0.25) +
   ggplot2::facet_grid(outcome ~ axis, scales = "free_y") +
-  ggplot2::scale_colour_manual(values = c(flat = "#1b9e77", bend = "#d95f02", turn = "#7570b3")) +
-  ggplot2::labs(x = "change in true R over the relevant window (|dR|)",
-                y = "per-origin error slope (delay misspecification)", colour = "trajectory",
-                title = "Delays bite only where R changes - both R estimation and forecasts, both axes") +
-  ggplot2::theme_bw()
-ggplot2::ggsave(here("results", "fig_turningpoint.png"), p, width = 9, height = 6.5, dpi = 150)
+  ggplot2::scale_fill_manual(values = c(flat = "#1b9e77", bend = "#d95f02", turn = "#7570b3"),
+                             guide = "none") +
+  ggplot2::labs(x = "trajectory (flat = R const, bend = R changes no crossing, turn = R crosses 1)",
+                y = "mean |per-origin error slope| from delay misspecification",
+                title = "Delays bite only where R changes - both R estimation and forecasts, both axes",
+                subtitle = "flat approx 0; bend>flat proves it is R changing, not R=1; bend approx turn (crossing adds little)") +
+  ggplot2::theme_bw() + ggplot2::theme(plot.subtitle = ggplot2::element_text(size = 9))
+ggplot2::ggsave(here("results", "fig_turningpoint.png"), p, width = 8.5, height = 6, dpi = 150)
 message("Saved: results/fig_turningpoint.png")

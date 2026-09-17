@@ -232,14 +232,15 @@ error slope follows **flat ≈ 0 → bend → turn** in every outcome × axis pa
 
 | outcome · axis | flat | bend | turn |
 |---|---|---|---|
-| forecast · observation delay | 0.013 | 0.063 | 0.164 |
-| forecast · generation time   | 0.004 | 0.010 | 0.033 |
-| R nowcast · observation delay | 0.002 | 0.010 | 0.021 |
-| R nowcast · generation time   | 0.019 | 0.044 | 0.057 |
+| forecast · observation delay | 0.013 | 0.103 | 0.142 |
+| forecast · generation time   | 0.004 | 0.028 | 0.033 |
+| R nowcast · observation delay | 0.002 | 0.013 | 0.018 |
+| R nowcast · generation time   | 0.019 | 0.045 | 0.059 |
 
-`bend` exceeds `flat` in every panel, so the trigger is R *changing*, not R = 1;
-`turn` (larger ΔR) exceeds `bend`, so the effect scales with how much R moves rather
-than switching on at a threshold.
+`bend` exceeds `flat` in every panel, so the trigger is R *changing*, not R = 1; and
+`bend` (R changes but never crosses 1) nearly matches `turn` for forecasts (0.103 vs
+0.142 on the delay axis), so crossing 1 adds little beyond changing R at all — the effect
+tracks how much R moves, with no threshold at R = 1.
 
 Two refinements fall out. **The observation delay matters *only* where R changes** —
 flat ≈ 0 for both R estimation and forecasts — exactly the identifiability degeneracy of
@@ -251,9 +252,6 @@ Euler–Lotka point of §3), with the turning-point rise added on top. And at tu
 delays fail differently: the observation delay dominates *forecast* error (mis-timing a
 peak is costly), while the generation time dominates *R-estimation* error (R depends on
 it directly).
-
-(Numbers preliminary while the covid `bend` arm finishes; the qualitative ordering is
-robust and rests mainly on ebola/cholera for `bend`.)
 
 ## 4. Q2 — impose vs learn (TBD)
 
