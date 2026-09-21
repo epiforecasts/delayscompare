@@ -63,7 +63,7 @@ res_disease <- sim_weightprior(case_data=case_data,
                            rep_sd_mean=d$rep[["sd"]],
                            rep_sd_sd=d$rep[["sd_sd"]],
                            rep_max=d$rep[["max"]],
-                           freq_fc=4,
+                           freq_fc=as.integer(Sys.getenv("FREQ_FC", "4")),
                            weeks_inc=12,
                            rt_opts_choice=rt_opts,
                            weight_prior=wp,
@@ -72,15 +72,17 @@ res_disease <- sim_weightprior(case_data=case_data,
                            timepoint_end=timepoint_end,
                            adapt_delta=as.numeric(Sys.getenv("ADAPT_DELTA", "0.995")),
                            samples=as.integer(Sys.getenv("SAMPLES", "4000")),
-                           warmup=as.integer(Sys.getenv("WARMUP", "2000")))
+                           warmup=as.integer(Sys.getenv("WARMUP", "2000")),
+                           max_tp=as.integer(Sys.getenv("MAX_TP", "8")))
 
 if (nrow(res_disease$samples) > 0) {
   prefix <- paste0("res_", disease, "_widepriors_", wp_label, "_", vary, "_", rt_opts, "_")
-  save_latest(res_disease[[1]], here("results"), paste0(prefix, "samples", tp_suffix))
-  save_latest(res_disease[[2]], here("results"), paste0(prefix, "id", tp_suffix))
-  save_latest(res_disease[[3]], here("results"), paste0(prefix, "R", tp_suffix))
-  save_latest(res_disease[[4]], here("results"), paste0(prefix, "summary", tp_suffix))
-  save_latest(res_disease[[5]], here("results"), paste0(prefix, "warnings", tp_suffix))
-  save_latest(res_disease[[6]], here("results"), paste0(prefix, "timing", tp_suffix))
+  save_latest(res_disease[["samples"]], here("results"), paste0(prefix, "samples", tp_suffix))
+  save_latest(res_disease[["id"]], here("results"), paste0(prefix, "id", tp_suffix))
+  save_latest(res_disease[["R"]], here("results"), paste0(prefix, "R", tp_suffix))
+  save_latest(res_disease[["gt"]], here("results"), paste0(prefix, "gt", tp_suffix))
+  save_latest(res_disease[["summary"]], here("results"), paste0(prefix, "summary", tp_suffix))
+  save_latest(res_disease[["warnings"]], here("results"), paste0(prefix, "warnings", tp_suffix))
+  save_latest(res_disease[["timing"]], here("results"), paste0(prefix, "timing", tp_suffix))
   save_latest(res_disease[["diagnostics"]], here("results"), paste0(prefix, "diagnostics", tp_suffix))
 }

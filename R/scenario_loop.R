@@ -255,7 +255,8 @@ sim_weightprior <- function(case_data,
                           timepoint_end=NULL,
                           adapt_delta=0.99,
                           samples=3000,
-                          warmup=250){
+                          warmup=250,
+                          max_tp=8){
 
   stopifnot(vary %in% c("gt", "inc", "both"))
 
@@ -292,8 +293,9 @@ scen_timepoints <- scen_timepoints[-1]
 
   names(scen_timepoints) <- c(1:length(scen_timepoints))
 
-# Make sure max number of timepoints is 8 to ensure quicker runtime
-if(length(scen_timepoints)>8){scen_timepoints <- scen_timepoints[1:8]}
+# Cap the number of forecast origins (default 8 for quick runtime; raise via
+# max_tp for a denser origin grid, e.g. weekly over a whole case-study wave)
+if(length(scen_timepoints)>max_tp){scen_timepoints <- scen_timepoints[1:max_tp]}
 
   # Filter to specified timepoint range if provided
   all_k <- seq_along(scen_timepoints)
@@ -403,6 +405,7 @@ start_runtime <- Sys.time()
                                     value = numeric(), type = character())
           res_R <- data.frame(date = as.Date(character()), sample = integer(),
                               value = numeric(), type = character())
+          res_gt <- data.frame(sample = integer(), gt_mean = numeric())
         } else {
           res_samples <- def_samples |>
             filter(variable == "reported_cases", type != "estimate") |>
@@ -411,6 +414,21 @@ start_runtime <- Sys.time()
           res_R <- def_samples |>
             filter(variable == "R", type != "estimate") |>
             select(date, sample, value, type)
+
+          # Estimated generation-time posterior (vary="gt"/"both" only; a Gamma
+          # shape/rate pair, one draw per sample, constant over the window). The
+          # implied mean per draw is shape/rate; used to compare the learned GT
+          # against the imposed literature value.
+          gt_shape <- def_samples |> filter(variable == "generation_time[1]") |>
+            select(sample, shape = value)
+          gt_rate  <- def_samples |> filter(variable == "generation_time[2]") |>
+            select(sample, rate = value)
+          res_gt <- if (nrow(gt_shape) > 0 && nrow(gt_rate) > 0) {
+            gt_shape |> left_join(gt_rate, by = "sample") |>
+              mutate(gt_mean = shape / rate) |> select(sample, gt_mean)
+          } else {
+            data.frame(sample = integer(), gt_mean = numeric())
+          }
         }
 
         rm(def_samples)
@@ -421,6 +439,7 @@ start_runtime <- Sys.time()
         print(paste("timepoint =", k))
         return(list(samples = res_samples,
                     R = res_R,
+                    gt = res_gt,
                     id = res_id,
                     diagnostics = diag_row,
                     summary = def,
@@ -476,9 +495,13 @@ res_timing <- bind_rows(res$timing)
 res_diagnostics <- bind_rows(lapply(seq_along(res$diagnostics), function(i)
   res$diagnostics[[i]] |> mutate(result_list = res$id[[i]]$timepoint)))
 
+res_gt <- bind_rows(lapply(seq_along(res$gt), function(i)
+  res$gt[[i]] |> mutate(result_list = res$id[[i]]$timepoint)))
+
   return(list(samples = res_samples,
               id = res_id,
               R = res_R,
+              gt = res_gt,
               summary = res$summary,
               warnings = save_warnings,
               timing = res_timing,

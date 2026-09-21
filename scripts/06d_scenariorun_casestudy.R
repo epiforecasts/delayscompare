@@ -49,8 +49,9 @@ print(paste("Timepoint range:", paste(timepoint_range, collapse="-")))
 tp_suffix <- if(!is.null(timepoint_range)) paste0("_tp", min(timepoint_range), "-", max(timepoint_range)) else ""
 
 ## Universal parameter values ##
-freq_fc <- 4
+freq_fc <- as.integer(Sys.getenv("FREQ_FC", "4"))
 weeks_inc <- 12
+max_tp <- as.integer(Sys.getenv("MAX_TP", "8"))
 
 ## Sampler settings (overridable via env vars for tighter re-runs)
 adapt_delta <- as.numeric(Sys.getenv("ADAPT_DELTA", "0.99"))
@@ -87,7 +88,8 @@ d <- delays[[disease]]
                            adapt_delta=adapt_delta,
                            max_treedepth=max_treedepth,
                            samples=samples,
-                           warmup=warmup)
+                           warmup=warmup,
+                           max_tp=max_tp)
 
 if (nrow(res_disease$samples) > 0) {
   save_scenario(res_disease, here("results", "raw"), disease, "casestudy", rt_opts, gt, inc)
