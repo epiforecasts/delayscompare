@@ -352,6 +352,33 @@ and prior direction, in when learning a delay is worth it: it needs both a
 misspecified prior *and* enough data to move the posterior without just adding
 variance.
 
+**GAMM quantification.** The visual "no difference" read above rests on eyeballing
+overlapping lines against a highly variable backdrop (cholera's origin-to-origin
+CRPS spans two orders of magnitude). To put a real effect size and CI on the
+impose-vs-estimate contrast, `score_gamm_learn_vs_impose.R` fits `log_crps ~
+condition*disease + s(disease, origin_id, bs="re")` on the paired long-format data
+(one row per origin per condition; the origin-level random effect absorbs the
+shared difficulty, so `condition` is estimated within-origin, like a smooth paired
+test). Marginal condition effect (estimated − literature, 95% CI;
+`fig_gamm_learn_vs_impose_effect.png`):
+
+| disease | effect | 95% CI |
+|---|---|---|
+| ebola | −0.0001 | [−0.039, 0.039] |
+| covid | −0.0078 | [−0.087, 0.071] |
+| cholera | **+0.0436** | **[0.0014, 0.086]** |
+
+Ebola and covid are genuine nulls — CIs symmetric around zero, not just visually
+similar. Cholera is the one disease with a CI that excludes zero: estimating is
+measurably, if modestly, worse. A second model (`delta_crps ~ s(gt_gap, by =
+disease)`, `fig_gamm_learn_vs_impose_gap.png`) shows why the harm is not "more
+posterior movement = more harm" (only cholera's smooth is non-flat, p=0.043): it
+is largest when the posterior sits *close* to the literature value (gap ≈ 0) and
+fades as the gap grows. Since a near-zero gap mostly coincides with the
+data-starved early origins (too little data to move the posterior far, but enough
+estimation uncertainty to cost accuracy), this is the data-scarcity effect above
+recovered as a smooth relationship rather than three flagged points.
+
 **A related finding, not a result but worth recording**: the covid GT-learn
 weekly array left origins from 2021-08-10 onward (tp9-24 of 24) unconverged —
 genuine 24-hour SLURM timeouts, not crashes, while every origin before it
