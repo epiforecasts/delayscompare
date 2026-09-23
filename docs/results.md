@@ -253,7 +253,7 @@ delays fail differently: the observation delay dominates *forecast* error (mis-t
 peak is costly), while the generation time dominates *R-estimation* error (R depends on
 it directly).
 
-## 4. Q2 — impose vs learn (TBD)
+## 4. Q2 — impose vs learn
 
 Case-study condition CRPS computed (`score_casestudy_conditions.R`); case-study
 heatmaps generated (`fig_casestudy_*`).
@@ -306,6 +306,60 @@ across the informed conditions.
 
 Caveats: single real outbreak per disease (no replication); covid learn-delay rests
 on one origin; the GAMM `s(time)` is weak with ≤8 origins.
+
+### Weekly GT-learn vs impose: does the posterior move, and does it matter?
+
+The monthly comparison above has only 6-8 origins per disease, too few to tell
+whether the posterior is actually moving or the CRPS difference is just noise.
+Re-run at weekly origins (`freq_fc=1`, `06f_scenariorun_widepriors.R` +
+`06d_scenariorun_casestudy.R`, both extended with `FREQ_FC`/`MAX_TP` overrides;
+`sim_weightprior` extended to extract and save the generation-time posterior
+itself, previously discarded) gives ebola 25-30, cholera 23-30 and covid 7-8
+converged, origin-matched pairs of (impose literature GT) vs (estimate GT,
+parametric wide prior). Scored with `score_casestudy_learn_vs_impose_weekly.R`;
+`fig_casestudy_learn_vs_impose_crps.png`, `fig_casestudy_gt_posterior_overtime.png`.
+
+**The posterior moves, substantially and consistently, not just noisily around
+the prior.** Ebola's posterior sits 25-35% below the literature value (10-13 days
+vs 16.2) at essentially every one of 25 origins across the full six-month
+outbreak — a stable, confident departure, not sampling noise. Covid drifts from
+~4.4 days (early June, short window) down to ~3.0-3.9 by late July, crossing the
+literature value of 3.6 on the way — consistent with the recovery diagnostic's
+asymmetry (an over-long prior corrects slowly as more outbreak-specific data
+accumulates) and with the case-study narrative that the literature (earlier-wave)
+generation time may be too long for Delta. Cholera drifts the other way, from
+~4.7 up to a stable ~5.9-6.2 plateau from August onward, away from the pooled
+literature value. None of this movement is turn-gated: it is present across
+steady and changing phases alike, matching `diag_recovery_findings.md` and
+correcting the turning-point framing floated earlier in this project for GT
+specifically (that framing holds for the *observation delay*, §1, not for GT).
+
+**None of that movement changes the forecast.** Across nearly every origin and
+all three diseases, the impose and estimate CRPS curves are visually
+indistinguishable (`fig_casestudy_learn_vs_impose_crps.png`) — including at the
+ebola origins where the posterior sits furthest from the literature value. This
+is the real-data confirmation of the turning-point result's `forecast · GT`
+finding: the generation time barely moves case-forecast CRPS anywhere, so a
+posterior that moves a lot still forecasts about the same. Estimating the GT
+buys parameter movement, not forecast improvement, because there is rarely
+anything to gain: the model already forecasts about as well on the wrong prior.
+
+**Estimating can actively hurt where data is scarce.** Cholera's three earliest,
+shortest-window origins (May 2017, ~22 days of data) show a clear CRPS penalty
+for estimating (up to 0.87 vs 1.83 log-CRPS) — a wide prior with too little data
+to constrain it adds pure noise. This is a third factor, alongside turning points
+and prior direction, in when learning a delay is worth it: it needs both a
+misspecified prior *and* enough data to move the posterior without just adding
+variance.
+
+**A related finding, not a result but worth recording**: the covid GT-learn
+weekly array left origins from 2021-08-10 onward (tp9-24 of 24) unconverged —
+genuine 24-hour SLURM timeouts, not crashes, while every origin before it
+(steady pre-peak growth) converged in minutes. The window first spans the July
+peak at almost exactly that point. Wide-prior GT estimation may become
+computationally intractable, not just harder to interpret, once the fitting
+window includes a turning point — a sampling-difficulty analog of the
+identifiability difficulty already documented for the observation delay (§1).
 
 ## 5. Supplement — case-study ranking robustness
 
