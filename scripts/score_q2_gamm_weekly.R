@@ -83,6 +83,66 @@ bind_weekly <- function(files_samples, files_id, files_diag) {
   list(samples = rd(files_samples), id = rd(files_id), diagnostics = rd(files_diag))
 }
 
+## Weekly-preferred, monthly-fallback scorer for one learn-arm condition
+## (vary = "gt"/"inc"/"both"). Uses the dense per-origin weekly runner's output
+## when present (05e/06f, `results/res_<disease>_widepriors_FALSE_<vary>_..._tp*-*`),
+## and falls back to the original monthly aggregate (`results/widepriors/`) when it
+## is not, so the joint model densifies condition-by-condition as weekly arrays are
+## launched, without code changes elsewhere.
+score_learn_condition <- function(disease, vary, cd, true_cases, filter_rhat) {
+  gf <- list.files(here("results"), pattern = paste0("^res_", disease,
+    "_widepriors_FALSE_", vary, "_", rt_opts, "_samples_tp[0-9]+-[0-9]+\\.rds$"),
+    full.names = TRUE)
+  if (length(gf) > 0) {
+    gid <- sub("_samples_", "_id_", gf); gdg <- sub("_samples_", "_diagnostics_", gf)
+    b <- bind_weekly(gf, gid, gdg)
+    ## weekly learn-arm id files have no forecast_origin column; derive it from
+    ## the actual weekly cadence, not score_origins()'s monthly default.
+    if (!is.null(b$id) && !"forecast_origin" %in% names(b$id)) {
+      target_dates <- seq.Date(min(cd$date), max(cd$date), by = "1 weeks")
+      scen_tps <- sapply(target_dates, function(t) {
+        av <- cd$date[cd$date >= t]; if (length(av)) min(av) else NA
+      }) |> as.Date(origin = "1970-01-01")
+      scen_tps <- scen_tps[!is.na(scen_tps)][-1]
+      b$id <- b$id |> dplyr::left_join(
+        tibble::tibble(timepoint = seq_along(scen_tps), forecast_origin = scen_tps),
+        by = "timepoint")
+    }
+    return(score_origins(b$samples, b$id, b$diagnostics, true_cases, filter_rhat = filter_rhat))
+  }
+  ## STOPGAP for vary="gt": raw per-origin weekly fits not available locally
+  ## (cluster unreachable). Fall back to the pre-scored weekly CSV from
+  ## score_casestudy_learn_vs_impose_weekly.R (same 1-2wk horizon and scoringutils
+  ## log-CRPS pipeline, but a separately written scoring path, not score_origins()
+  ## used everywhere else here). Flagged explicitly in the output; re-run against
+  ## raw fits once the cluster is reachable and this branch stops firing on its own
+  ## (gf above will then be non-empty).
+  if (vary == "gt") {
+    wkcsv <- here("results", "casestudy_learn_vs_impose_weekly.csv")
+    if (file.exists(wkcsv)) {
+      wk <- readr::read_csv(wkcsv, show_col_types = FALSE) |>
+        dplyr::filter(disease == !!disease, is.finite(crps_learn))
+      if (nrow(wk) > 0) {
+        ## the CSV holds one CRPS averaged over the 1-2wk window, not per-horizon;
+        ## duplicate across both horizon levels so the shared `+ horizon` term
+        ## does not silently na.omit these rows (approximation, not real per-
+        ## horizon granularity - superseded once scored from raw weekly fits)
+        base <- wk |> dplyr::transmute(timepoint = tp,
+                                       forecast_origin = as.Date(origin), log_crps = crps_learn,
+                                       stopgap_source = "weekly_csv_fallback")
+        return(dplyr::bind_rows(dplyr::mutate(base, horizon = 1),
+                                dplyr::mutate(base, horizon = 2)))
+      }
+    }
+  }
+  ## fallback: monthly aggregate
+  pfx <- paste0("res_", disease, "_widepriors_FALSE_", vary, "_", rt_opts, "_all_")
+  ei <- tryCatch(read_latest(here("results", "widepriors"), paste0(pfx, "id")),          error = function(e) NULL)
+  es <- tryCatch(read_latest(here("results", "widepriors"), paste0(pfx, "samples")),     error = function(e) NULL)
+  ed <- tryCatch(read_latest(here("results", "widepriors"), paste0(pfx, "diagnostics")), error = function(e) NULL)
+  score_origins(es, ei, ed, true_cases, filter_rhat = filter_rhat, case_data = cd)
+}
+
 rows <- list()
 for (disease in diseases) {
   cd <- casestudydata[[disease]]
@@ -100,51 +160,32 @@ for (disease in diseases) {
   if (!is.null(sc)) rows[[paste(disease, "impose")]] <- sc |>
     dplyr::mutate(disease = disease, condition = "impose")
 
-  ## --- no_input (monthly, gt=1/inc=1, from results/agg) ---
-  cs_id   <- read_latest(here("results", "agg"), paste0(disease, "_casestudy_", rt_opts, "_id"))
-  cs_samp <- read_latest(here("results", "agg"), paste0(disease, "_casestudy_", rt_opts, "_samples"))
-  cs_diag <- tryCatch(read_latest(here("results", "agg"),
-                                  paste0(disease, "_casestudy_", rt_opts, "_diagnostics")),
-                      error = function(e) NULL)
-  sc <- score_origins(cs_samp |> dplyr::filter(gt == 1, inc == 1),
-                      cs_id   |> dplyr::filter(gt == 1, inc == 1),
-                      if (!is.null(cs_diag)) cs_diag |> dplyr::filter(gt == 1, inc == 1) else NULL,
-                      true_cases, filter_rhat = TRUE)
+  ## --- no_input (weekly if launched, else monthly, gt=1/inc=1) ---
+  nf <- list.files(raw, pattern = paste0("^", disease, "_casestudy_", rt_opts,
+    "_samples_gt1_inc1_tp[0-9]+\\.rds$"), full.names = TRUE)
+  if (length(nf) > 0) {
+    nid <- sub("_samples_", "_id_", nf); ndg <- sub("_samples_", "_diagnostics_", nf)
+    b <- bind_weekly(nf, nid, ndg)
+    sc <- score_origins(b$samples, b$id, b$diagnostics, true_cases, filter_rhat = TRUE)
+  } else {
+    cs_id   <- read_latest(here("results", "agg"), paste0(disease, "_casestudy_", rt_opts, "_id"))
+    cs_samp <- read_latest(here("results", "agg"), paste0(disease, "_casestudy_", rt_opts, "_samples"))
+    cs_diag <- tryCatch(read_latest(here("results", "agg"),
+                                    paste0(disease, "_casestudy_", rt_opts, "_diagnostics")),
+                        error = function(e) NULL)
+    sc <- score_origins(cs_samp |> dplyr::filter(gt == 1, inc == 1),
+                        cs_id   |> dplyr::filter(gt == 1, inc == 1),
+                        if (!is.null(cs_diag)) cs_diag |> dplyr::filter(gt == 1, inc == 1) else NULL,
+                        true_cases, filter_rhat = TRUE)
+  }
   if (!is.null(sc)) rows[[paste(disease, "no_input")]] <- sc |>
     dplyr::mutate(disease = disease, condition = "no_input")
 
-  ## --- learn_gt (weekly, from the new per-origin runner) ---
-  gf <- list.files(here("results"), pattern = paste0("^res_", disease,
-    "_widepriors_FALSE_gt_", rt_opts, "_samples_tp[0-9]+-[0-9]+\\.rds$"), full.names = TRUE)
-  gid <- sub("_samples_", "_id_", gf); gdg <- sub("_samples_", "_diagnostics_", gf)
-  b <- bind_weekly(gf, gid, gdg)
-  ## weekly learn-arm id files have no forecast_origin column; supply case_data so
-  ## score_origins() derives it, but from the ACTUAL weekly cadence, not the
-  ## monthly default: build it directly here instead of relying on the monthly
-  ## fallback inside score_origins().
-  if (!is.null(b$id) && !"forecast_origin" %in% names(b$id)) {
-    start_date <- min(cd$date); end_date <- max(cd$date)
-    target_dates <- seq.Date(start_date, end_date, by = "1 weeks")
-    scen_tps <- sapply(target_dates, function(t) {
-      av <- cd$date[cd$date >= t]; if (length(av)) min(av) else NA
-    }) |> as.Date(origin = "1970-01-01")
-    scen_tps <- scen_tps[!is.na(scen_tps)][-1]
-    b$id <- b$id |> dplyr::left_join(
-      tibble::tibble(timepoint = seq_along(scen_tps), forecast_origin = scen_tps),
-      by = "timepoint")
-  }
-  sc <- score_origins(b$samples, b$id, b$diagnostics, true_cases, filter_rhat = TRUE)
-  if (!is.null(sc)) rows[[paste(disease, "learn_gt")]] <- sc |>
-    dplyr::mutate(disease = disease, condition = "learn_gt")
-
-  ## --- learn_delay, learn_both (monthly, from results/widepriors) ---
-  for (cond in list(c("learn_delay", "inc"), c("learn_both", "both"))) {
+  ## --- learn_gt, learn_delay, learn_both (weekly if launched, else monthly) ---
+  for (cond in list(c("learn_gt", "gt"), c("learn_delay", "inc"), c("learn_both", "both"))) {
     lab <- cond[[1]]; v <- cond[[2]]
-    pfx <- paste0("res_", disease, "_widepriors_FALSE_", v, "_", rt_opts, "_all_")
-    ei <- tryCatch(read_latest(here("results", "widepriors"), paste0(pfx, "id")),          error = function(e) NULL)
-    es <- tryCatch(read_latest(here("results", "widepriors"), paste0(pfx, "samples")),     error = function(e) NULL)
-    ed <- tryCatch(read_latest(here("results", "widepriors"), paste0(pfx, "diagnostics")), error = function(e) NULL)
-    sc <- score_origins(es, ei, ed, true_cases, filter_rhat = FALSE, case_data = cd)
+    filter_rhat <- lab == "learn_gt"   # learn_delay/both: report non-convergence, don't filter (§1)
+    sc <- score_learn_condition(disease, v, cd, true_cases, filter_rhat)
     if (!is.null(sc)) rows[[paste(disease, lab)]] <- sc |>
       dplyr::mutate(disease = disease, condition = lab)
   }
@@ -178,9 +219,16 @@ marg <- tryCatch({
   as.data.frame(summary(emm, infer = c(TRUE, FALSE)))
 }, error = function(e) {
   message("emmeans unavailable (", conditionMessage(e), "); manual reference-grid prediction")
+  ## per-disease median date, not one pooled median: the three case studies span
+  ## disjoint calendar years (ebola 2014, cholera 2017, covid 2021), so a single
+  ## global median would extrapolate each disease's s(date, by=disease) smooth far
+  ## outside its own fitted range for at least two of the three diseases, which is
+  ## exactly when spline confidence bands blow up.
+  med_date <- dat |> dplyr::group_by(disease) |>
+    dplyr::summarise(date_num = stats::median(date_num), .groups = "drop")
   grid <- dat |> dplyr::distinct(disease, condition) |>
-    dplyr::mutate(date_num = stats::median(dat$date_num),
-                 horizon = factor(1, levels = levels(dat$horizon)))
+    dplyr::left_join(med_date, by = "disease") |>
+    dplyr::mutate(horizon = factor(1, levels = levels(dat$horizon)))
   pr <- predict(m, newdata = grid, se.fit = TRUE)
   grid$emmean <- pr$fit
   grid$lower.CL <- pr$fit - 1.96 * pr$se.fit
