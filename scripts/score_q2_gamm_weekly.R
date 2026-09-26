@@ -222,56 +222,103 @@ readr::write_csv(dat, here("results", "q2_perorigin_logcrps_weekly.csv"))
 message("per-origin scores: ", nrow(dat), " rows; conditions x disease present:")
 print(as.data.frame(table(dat$disease, dat$condition)))
 
-## GAMM: log-scale CRPS ~ condition*disease + s(date, by=disease) + s(dR, by=disease)
-## + horizon. Origins are keyed by actual calendar date (numeric), not raw timepoint
-## index, so a shared smooth per disease is meaningful across mixed monthly/weekly
-## density.
+## Which origins survive to be scored differs by condition (most severely for
+## covid, but ebola/cholera's learn_gt/learn_both also have a handful fewer
+## origins than impose/no_input/learn_delay). If those missing origins are not a
+## random sample -- e.g. skewed toward high-dR, hard-to-forecast windows, the same
+## selection mechanism behind covid's survivorship problem -- a condition
+## comparison built on "whatever data that condition happens to have" partly
+## reflects which origins survived, not what the condition does. Flag, per
+## disease, the origins present in every condition at both horizons; comparisons
+## restricted to that common set are immune to this by construction, since every
+## condition then faces the identical set of forecasting problems.
+common_origins <- function(disease_name) {
+  dd <- dat[dat$disease == disease_name, ]
+  wide <- dd |> dplyr::distinct(timepoint, condition, horizon) |>
+    dplyr::mutate(present = TRUE) |>
+    tidyr::pivot_wider(names_from = c(condition, horizon), values_from = present, values_fill = FALSE)
+  wide$timepoint[apply(wide[, -1], 1, all)]
+}
+for (d in diseases) {
+  co <- common_origins(d)
+  n_any <- length(unique(dat$timepoint[dat$disease == d]))
+  message(d, ": ", length(co), " of ", n_any,
+          " origins converge under all five conditions at both horizons")
+}
+
+## Three separate per-disease GAMMs, not one joint model with a disease factor.
+## The joint form (condition*disease + s(., by=disease) throughout) was already
+## fully saturated in disease -- no term borrowed anything across diseases except
+## `horizon` (one shared coefficient, never a deliberate choice) and the residual
+## variance (bam() assumes one shared sigma^2 by default, inappropriate given how
+## different ebola/cholera/covid's log-CRPS scales are). Splitting gives each
+## disease its own horizon effect and its own noise variance for free, at no cost,
+## since there was no genuine cross-disease sharing to give up.
 library(mgcv)
 dat$date_num <- as.numeric(dat$forecast_origin)
-n_origin <- length(unique(dat$date_num))
-k_time <- max(3L, min(10L, n_origin - 1L))
-n_dr <- length(unique(dat$dR[!is.na(dat$dR)]))
-k_dr <- max(3L, min(6L, n_dr - 1L))
 if (any(is.na(dat$dR))) message("dropping ", sum(is.na(dat$dR)),
   " rows with no dR (forecast window too close to the edge of the case series)")
-form <- log_crps ~ condition * disease + s(date_num, by = disease, k = k_time) +
-  s(dR, by = disease, k = k_dr) + horizon
-m <- bam(form, data = dat, method = "fREML")
-saveRDS(m, here("results", "q2_gamm_weekly.rds"))
-cat("\n=== dR smooth terms (is the ΔR confound real here?) ===\n")
-print(summary(m)$s.table[grep("^s\\(dR\\)", rownames(summary(m)$s.table)), , drop = FALSE])
-cat("\n=== GAMM parametric coefficients ===\n")
-print(summary(m)$p.table)
 
-## Condition marginal effects within disease, with 95% CIs
-marg <- tryCatch({
-  emm <- emmeans::emmeans(m, ~ condition | disease)
-  as.data.frame(summary(emm, infer = c(TRUE, FALSE)))
-}, error = function(e) {
-  message("emmeans unavailable (", conditionMessage(e), "); manual reference-grid prediction")
-  ## per-disease median date, not one pooled median: the three case studies span
-  ## disjoint calendar years (ebola 2014, cholera 2017, covid 2021), so a single
-  ## global median would extrapolate each disease's s(date, by=disease) smooth far
-  ## outside its own fitted range for at least two of the three diseases, which is
-  ## exactly when spline confidence bands blow up.
-  ## same reasoning for dR: each disease's realised range of change-in-R differs
-  ## (covid's Delta wave moved far more than cholera's near-flat trajectory), so a
-  ## pooled median dR would extrapolate some diseases' s(dR, by=disease) smooth too.
-  med_ref <- dat |> dplyr::group_by(disease) |>
-    dplyr::summarise(date_num = stats::median(date_num),
-                     dR = stats::median(dR, na.rm = TRUE), .groups = "drop")
-  grid <- dat |> dplyr::distinct(disease, condition) |>
-    dplyr::left_join(med_ref, by = "disease") |>
-    dplyr::mutate(horizon = factor(1, levels = levels(dat$horizon)))
+fit_one_disease <- function(disease_name, origins_only = NULL) {
+  dd <- dat[dat$disease == disease_name & !is.na(dat$dR), ]
+  if (!is.null(origins_only)) dd <- dd[dd$timepoint %in% origins_only, ]
+  dd$condition <- droplevels(dd$condition)
+  n_origin <- length(unique(dd$date_num))
+  k_time <- max(3L, min(10L, n_origin - 1L))
+  n_dr <- length(unique(dd$dR))
+  k_dr <- max(3L, min(6L, n_dr - 1L))
+  form <- log_crps ~ condition + s(date_num, k = k_time) + s(dR, k = k_dr) + horizon
+  bam(form, data = dd, method = "fREML")
+}
+models <- setNames(lapply(diseases, fit_one_disease), diseases)
+saveRDS(models, here("results", "q2_gamm_weekly.rds"))
+
+## Robustness: refit ebola/cholera restricted to the common-origin set (covid's
+## common set is 1 origin, too few to refit; its comparison is already withheld).
+## Every condition then faces the identical set of forecasting problems, so this
+## version cannot be confounded by which origins happened to survive per condition.
+common_models <- setNames(lapply(c("ebola", "cholera"), function(d)
+  fit_one_disease(d, origins_only = common_origins(d))), c("ebola", "cholera"))
+
+for (d in diseases) {
+  cat("\n=== ", d, ": dR smooth term ===\n")
+  st <- summary(models[[d]])$s.table
+  print(st[grep("^s\\(dR\\)", rownames(st)), , drop = FALSE])
+}
+
+## Condition marginal effects within disease, with 95% CIs. Reference dR/date at
+## each disease's own median (its model only ever saw its own range, so this is
+## automatic here, not a safeguard against cross-disease extrapolation as before).
+marg_one <- function(d, m, dd) {
+  grid <- dd |> dplyr::distinct(condition) |>
+    dplyr::mutate(date_num = stats::median(dd$date_num), dR = stats::median(dd$dR),
+                  horizon = factor(1, levels = levels(dd$horizon)))
   pr <- predict(m, newdata = grid, se.fit = TRUE)
+  grid$disease <- d
   grid$emmean <- pr$fit
   grid$lower.CL <- pr$fit - 1.96 * pr$se.fit
   grid$upper.CL <- pr$fit + 1.96 * pr$se.fit
   grid
-})
+}
+marg <- dplyr::bind_rows(lapply(diseases, function(d)
+  marg_one(d, models[[d]], dat[dat$disease == d & !is.na(dat$dR), ])))
 readr::write_csv(marg, here("results", "q2_condition_marginal_effects_weekly.csv"))
-cat("\n=== condition marginal log-CRPS (with 95% CI) ===\n")
+cat("\n=== condition marginal log-CRPS (with 95% CI), separate per-disease models ===\n")
 print(as.data.frame(marg), digits = 3)
+
+## Same, restricted to the common-origin set: immune to selection by construction.
+## Compared directly against the full-data version above to check whether the
+## uneven convergence pattern (ebola/cholera's learn_gt/learn_both have fewer
+## origins than impose/no_input/learn_delay) was actually biasing the comparison,
+## rather than assuming a milder version of covid's problem doesn't matter here.
+marg_common <- dplyr::bind_rows(lapply(c("ebola", "cholera"), function(d) {
+  co <- common_origins(d)
+  dd <- dat[dat$disease == d & !is.na(dat$dR) & dat$timepoint %in% co, ]
+  marg_one(d, common_models[[d]], dd)
+}))
+readr::write_csv(marg_common, here("results", "q2_condition_marginal_effects_common_origins.csv"))
+cat("\n=== same, restricted to origins where all five conditions converged ===\n")
+print(as.data.frame(marg_common), digits = 3)
 
 ## Figure: marginal effects with CIs, faceted by disease
 mcol <- if ("emmean" %in% names(marg)) "emmean" else "estimate"
