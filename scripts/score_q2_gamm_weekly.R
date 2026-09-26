@@ -195,21 +195,51 @@ dat <- dplyr::bind_rows(rows)
 dat$condition <- factor(dat$condition,
                         levels = c("no_input", "impose", "learn_gt", "learn_delay", "learn_both"))
 dat$disease   <- factor(dat$disease, levels = diseases)
+dat$horizon_num <- dat$horizon
 dat$horizon   <- factor(dat$horizon)
+
+## Change in true (fitted, posterior-median) R over the forecast window, matched to
+## each row's own origin and horizon -- the same confound the turning-point analysis
+## treats as the main driver of delay-misspecification error. Without this, an s(date)
+## smooth can only absorb it indirectly, and if convergence differs by condition in a
+## way correlated with dR (plausible for covid's rare-convergence conditions), the
+## condition effect could be confounded with which origins happen to be near a turn.
+rt_col <- function(rt) if ("R" %in% names(rt)) "R" else "median"
+true_R <- setNames(lapply(diseases, function(d) {
+  rt <- readRDS(here("data", paste0("rt_", d, ".rds")))
+  data.frame(date = as.Date(rt$date), R = rt[[rt_col(rt)]]) |> dplyr::arrange(date)
+}), diseases)
+dR_window <- function(d, origin, days) {
+  rt <- true_R[[d]]; w <- rt[rt$date >= origin & rt$date <= origin + days, ]
+  if (nrow(w) < 2) return(NA_real_); diff(range(w$R))
+}
+dat$dR <- mapply(dR_window, as.character(dat$disease), dat$forecast_origin,
+                 7 * dat$horizon_num)
+message("dR computed: ", sum(!is.na(dat$dR)), "/", nrow(dat), " rows; range ",
+        paste(round(range(dat$dR, na.rm = TRUE), 2), collapse = "-"))
+
 readr::write_csv(dat, here("results", "q2_perorigin_logcrps_weekly.csv"))
 message("per-origin scores: ", nrow(dat), " rows; conditions x disease present:")
 print(as.data.frame(table(dat$disease, dat$condition)))
 
-## GAMM: log-scale CRPS ~ condition*disease + s(date, by=disease) + horizon.
-## Origins are keyed by actual calendar date (numeric), not raw timepoint index, so
-## a shared smooth per disease is meaningful across mixed monthly/weekly density.
+## GAMM: log-scale CRPS ~ condition*disease + s(date, by=disease) + s(dR, by=disease)
+## + horizon. Origins are keyed by actual calendar date (numeric), not raw timepoint
+## index, so a shared smooth per disease is meaningful across mixed monthly/weekly
+## density.
 library(mgcv)
 dat$date_num <- as.numeric(dat$forecast_origin)
 n_origin <- length(unique(dat$date_num))
 k_time <- max(3L, min(10L, n_origin - 1L))
-form <- log_crps ~ condition * disease + s(date_num, by = disease, k = k_time) + horizon
+n_dr <- length(unique(dat$dR[!is.na(dat$dR)]))
+k_dr <- max(3L, min(6L, n_dr - 1L))
+if (any(is.na(dat$dR))) message("dropping ", sum(is.na(dat$dR)),
+  " rows with no dR (forecast window too close to the edge of the case series)")
+form <- log_crps ~ condition * disease + s(date_num, by = disease, k = k_time) +
+  s(dR, by = disease, k = k_dr) + horizon
 m <- bam(form, data = dat, method = "fREML")
 saveRDS(m, here("results", "q2_gamm_weekly.rds"))
+cat("\n=== dR smooth terms (is the ΔR confound real here?) ===\n")
+print(summary(m)$s.table[grep("^s\\(dR\\)", rownames(summary(m)$s.table)), , drop = FALSE])
 cat("\n=== GAMM parametric coefficients ===\n")
 print(summary(m)$p.table)
 
@@ -224,10 +254,14 @@ marg <- tryCatch({
   ## global median would extrapolate each disease's s(date, by=disease) smooth far
   ## outside its own fitted range for at least two of the three diseases, which is
   ## exactly when spline confidence bands blow up.
-  med_date <- dat |> dplyr::group_by(disease) |>
-    dplyr::summarise(date_num = stats::median(date_num), .groups = "drop")
+  ## same reasoning for dR: each disease's realised range of change-in-R differs
+  ## (covid's Delta wave moved far more than cholera's near-flat trajectory), so a
+  ## pooled median dR would extrapolate some diseases' s(dR, by=disease) smooth too.
+  med_ref <- dat |> dplyr::group_by(disease) |>
+    dplyr::summarise(date_num = stats::median(date_num),
+                     dR = stats::median(dR, na.rm = TRUE), .groups = "drop")
   grid <- dat |> dplyr::distinct(disease, condition) |>
-    dplyr::left_join(med_date, by = "disease") |>
+    dplyr::left_join(med_ref, by = "disease") |>
     dplyr::mutate(horizon = factor(1, levels = levels(dat$horizon)))
   pr <- predict(m, newdata = grid, se.fit = TRUE)
   grid$emmean <- pr$fit
