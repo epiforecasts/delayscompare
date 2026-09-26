@@ -388,6 +388,65 @@ computationally intractable, not just harder to interpret, once the fitting
 window includes a turning point — a sampling-difficulty analog of the
 identifiability difficulty already documented for the observation delay (§1).
 
+### Extending to five conditions: does learning the delay, or both jointly, help?
+
+Extended the weekly comparison to all five Q2 conditions (`no_input`, `impose`,
+`learn_gt`, `learn_delay`, `learn_both`), reusing `score_origins()` unchanged
+(`score_q2_gamm_weekly.R`; weekly-preferred, monthly-fallback per condition, keyed
+by actual calendar date so mixed densities share a meaningful `s(date, by=disease)`
+smooth). SLURM scripts generalised (`02_run_casestudy_weekly.sh` takes gt/inc as
+args; `02_run_scenarios_widepriors_weekly.sh` takes `vary` as an arg) so all five
+conditions run at weekly density wherever tractable.
+
+**Convergence gradient by number of estimated quantities.** Ebola and cholera
+converge at near-100% across all five conditions (ebola 58-60/60 informed-condition
+origins; cholera 27-29/30; the one exception each time is a single origin with too
+little preceding data for a stable fit — a data-boundary bug (`case_data` empty
+after the lookback filter), not a sampling failure, and not worth chasing since
+it's deterministic, not stochastic). Covid shows a clean step down with the number
+of quantities being estimated at once:
+
+| condition | covid convergence |
+|---|---|
+| no_input | 24/24 |
+| impose | 24/24 |
+| learn_gt | 8/24 (tp9+ time out, §above) |
+| learn_delay | 11/24 (initial 24h run) |
+| learn_both | 1/24 (initial 24h run) |
+
+This tracks the disease-specific delay/GT ratio from §1 (covid ~2.7, ebola ~0.8,
+cholera ~1.2): where that ratio is large, adding a second estimated quantity
+compounds difficulty faster than either quantity's own identifiability problem
+predicts.
+
+**Timing evidence against "just needs more time".** Checked directly rather than
+assumed: of the covid `learn_both` cells, the ones that time out run the *entire*
+24h with no sign of finishing early (elapsed exactly 24:00:00-24:00:26 across
+several checked); the one that did converge took 18h02m, comfortably inside the
+24h budget with margin. Clean bimodal split — converges in bounded time, or
+doesn't converge in a very generous one — consistent with the established
+max-treedepth grind signature (a roughly fixed, enormous cost per iteration, not a
+slowly-improving trajectory). Relaunched the timed-out covid `learn_delay` (13
+cells) and `learn_both` (21 cells) at 48h anyway, as a direct test rather than an
+assumption; tracked via a background watcher, results TBD.
+
+**No marginal CRPS comparison for covid across all five conditions.** The joint
+GAMM's covid marginal effects show a monotonic staircase (no_input < impose <
+learn_gt < learn_delay < learn_both) that tracks convergence rarity almost exactly,
+with `learn_both`'s estimate resting on 2 origins and a correspondingly enormous
+CI. This is very likely survivorship bias: the origins that happen to converge
+under the harder conditions are not a random sample of the outbreak, so a
+comparison built on them conflates "which origins survived" with "what estimation
+does to the forecast." Not reporting a covid cross-condition marginal comparison
+until the 48h retry gives a larger, less selected sample (if it does at all).
+Ebola/cholera's marginal comparisons are unaffected (near-100% convergence
+throughout) and reproduce the original monthly-resolution direction with tighter
+CIs: informed conditions cluster together for ebola (~0.29-0.32, no_input slightly
+worse at 0.37, overlapping); for cholera, impose/no_input remain best (~-0.13),
+learning conditions somewhat worse (~0.04-0.08), CIs overlapping more than the
+paired impose-vs-learn_gt-only test above (§ GAMM quantification) because this
+joint model doesn't exploit the origin-matched pairing that test used.
+
 ## 5. Supplement — case-study ranking robustness
 
 The two excluded case-study fits (covid gt1/inc5/tp5, gt1/inc6/tp5) leave those cells
