@@ -447,6 +447,24 @@ learning conditions somewhat worse (~0.04-0.08), CIs overlapping more than the
 paired impose-vs-learn_gt-only test above (§ GAMM quantification) because this
 joint model doesn't exploit the origin-matched pairing that test used.
 
+**Data-hygiene fix: stale file collision.** Chasing why covid `learn_gt` origin
+count dropped from 8 (raw diagnostics) to 6 (final scored) surfaced a real bug,
+not a benign missing-horizon gap: `results/res_covid_widepriors_FALSE_gt_latest_*_tp6-6.rds`
+was dated 21 July, a leftover from the *original monthly* covid GT-learn run,
+sharing a filename with what should have been this week's fresh weekly-run
+output. Its `timepoint=6` meant the 6th *monthly* origin (late November); read
+under the weekly derivation it was wrongly treated as the 6th *weekly* origin
+(mid-July), a date so far off that the `horizon %in% c(1,2)` filter dropped it
+entirely — an accidental, not deliberate, safeguard. Checking further found four
+more of the same collision (cholera `gt` tp1 and tp6, `inc` tp1, `both` tp1, all
+dated 21 July). None of these five contaminated the reported numbers above
+(checked directly against the per-origin CSV, not assumed), because each
+happened to fall outside the horizon window by the same accident. All five
+archived to `results/stale_monthly_20260721/` (both on the cluster and locally)
+so they can't collide with a future re-score, and the three genuinely-missing
+origins (covid `gt` tp6, cholera `gt` tp1/tp6) relaunched fresh (jobs 6929033,
+6929034) rather than left as a silent, unexplained gap.
+
 ## 5. Supplement — case-study ranking robustness
 
 The two excluded case-study fits (covid gt1/inc5/tp5, gt1/inc6/tp5) leave those cells
