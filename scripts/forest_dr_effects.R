@@ -29,11 +29,14 @@ rows[["Turning-point + resim GAMM\n(GT penalty on forecast, 6wk)"]] <- data.fram
 ## --- 2. Resim-only, simple check (no varying-coefficient machinery) ---
 ## |GT slope| vs true-R range over the 6wk forecast window, pooled across diseases,
 ## from investigate_turningpoints.R. A much simpler estimator, included to show the
-## flagship result isn't an artifact of the GAMM's flexibility.
+## flagship result isn't an artifact of the GAMM's flexibility. (Column is dR_range,
+## true-R-based; an earlier, noisier case-curvature-proxy version of this script used
+## `curv_range` -- if you see that name anywhere, the underlying CSV is stale and
+## needs regenerating, as happened here.)
 ht <- read.csv(here("results", "horizon_turningpoint.csv"))
 ht6 <- ht[ht$horizon == 6, ]
-fit_ht <- lm(gt_slope_abs ~ curv_range, data = ht6)
-co <- summary(fit_ht)$coefficients["curv_range", ]
+fit_ht <- lm(gt_slope_abs ~ dR_range, data = ht6)
+co <- summary(fit_ht)$coefficients["dR_range", ]
 rows[["Resim only, simple check\n(|GT slope| vs ΔR, pooled)"]] <- data.frame(
   family = "synthetic/resim", slope = co["Estimate"],
   lower = co["Estimate"] - 1.96 * co["Std. Error"],
