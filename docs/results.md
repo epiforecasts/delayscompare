@@ -410,9 +410,9 @@ of quantities being estimated at once:
 |---|---|
 | no_input | 24/24 |
 | impose | 24/24 |
-| learn_gt | 8/24 (tp9+ time out, §above) |
-| learn_delay | 11/24 (initial 24h run) |
-| learn_both | 1/24 (initial 24h run) |
+| learn_gt | 7/24 (tp9+ time out, §above) |
+| learn_delay | 15/24 (48h retry final; 11/24 at the initial 24h budget) |
+| learn_both | 5/24 (48h retry final; 1/24 at the initial 24h budget) |
 
 This tracks the disease-specific delay/GT ratio from §1 (covid ~2.7, ebola ~0.8,
 cholera ~1.2): where that ratio is large, adding a second estimated quantity
@@ -428,17 +428,25 @@ doesn't converge in a very generous one — consistent with the established
 max-treedepth grind signature (a roughly fixed, enormous cost per iteration, not a
 slowly-improving trajectory). Relaunched the timed-out covid `learn_delay` (13
 cells) and `learn_both` (21 cells) at 48h anyway, as a direct test rather than an
-assumption; tracked via a background watcher, results TBD.
+assumption; tracked via a background watcher. Result: doubling the budget bought
+`learn_delay` 4 more origins (11/24 → 15/24, sacct: `TIMEOUT` on 9/13 retried
+cells, still running the full 48h with no early exit) and `learn_both` 4 more
+(1/24 → 5/24, `TIMEOUT` on 16/20). Most retried cells still time out even at 2x
+the budget, so this is further evidence for genuine non-identifiability rather
+than "just needs more time" — a linear compute increase does not buy a linear
+convergence increase.
 
 **No marginal CRPS comparison for covid across all five conditions.** The joint
 GAMM's covid marginal effects show a monotonic staircase (no_input < impose <
-learn_gt < learn_delay < learn_both) that tracks convergence rarity almost exactly,
-with `learn_both`'s estimate resting on 2 origins and a correspondingly enormous
-CI. This is very likely survivorship bias: the origins that happen to converge
-under the harder conditions are not a random sample of the outbreak, so a
-comparison built on them conflates "which origins survived" with "what estimation
-does to the forecast." Not reporting a covid cross-condition marginal comparison
-until the 48h retry gives a larger, less selected sample (if it does at all).
+learn_gt < learn_delay < learn_both) that tracks convergence rarity almost exactly.
+This is very likely survivorship bias: the origins that happen to converge under
+the harder conditions are not a random sample of the outbreak, so a comparison
+built on them conflates "which origins survived" with "what estimation does to the
+forecast." With the 48h retry now final, only 3/24 covid origins converge under
+all five conditions at both horizons (up from 2 pre-retry) — still far too thin
+and selected a sample to support a cross-condition comparison, so the decision to
+withhold it stands; `learn_both`'s per-condition estimate alone still rests on
+just 10 origins.
 Ebola/cholera's marginal comparisons are unaffected (near-100% convergence
 throughout) and reproduce the original monthly-resolution direction with tighter
 CIs: informed conditions cluster together for ebola (~0.29-0.32, no_input slightly
