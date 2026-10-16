@@ -335,6 +335,60 @@ Notes:
   very bad estimate for the incubation period better than assuming no delay?
   Likewise for the generation interval.
 
+#### Turning-point evaluation without conditioning on the outcome
+
+*Specified on 2026-10-16, before any of these scores were computed.*
+
+Stratifying ordinary CRPS by the change in R over the forecast window conditions
+the evaluation on a smoothed function of the target, which breaks propriety (the
+forecaster's dilemma; Lerch et al. 2017). The turning-point question is therefore
+split in two and answered with measures that do not condition on the outcome,
+applied to the step trajectories (flat, bend, turn; both delay axes) and to the
+disease-like replicates (generation-interval axis). No new outcome is introduced:
+everything is computed from the log-scale case outcomes already scored, `log(x + 1)`
+of daily cases at one to six weeks after the origin, or from weekly growth rates
+derived from the same forecasts. On the log scale the score already reflects the
+growth since the origin (Bosse et al. 2023), so a forecast that misses a turn is
+penalised without any stratification.
+
+*Does the delay choice change the forecast at turning points?* Primary measure: the
+energy distance between the six-week log-scale forecast path under each
+misspecified delay and under the correct delay at the same origin. No outcome enters
+it, so it may be summarised by trajectory and by where the change sits relative to
+the origin (ahead of it, behind it, neither).
+
+*Is the correct delay better?* Primary measure: the log-scale CRPS at each weekly
+horizon, reported as the paired difference (misspecified minus correct) averaged
+over all origins, never over an outcome-defined subset, with 95% intervals by
+disease, axis, level and horizon.
+
+*Is it better specifically at turning points?* Secondary measures, all proper and
+all reported, on the weekly growth rates `g_k = log(W_k + 1) - log(W_(k-1) + 1)` for
+k = 1–6, where `W_k` is the case total in week k after the origin and `W_0` the last
+observed week, so that `g_0` is the growth rate known at the origin. A turn is growth
+departing from `g_0`. The measures are: the threshold-weighted CRPS of each `g_k`
+with chaining `v(g) = g` if `|g - g_0| > c` and `g_0` otherwise, averaged over the
+six weeks; the threshold-weighted energy score of the growth path with chaining
+`v(g) = g` if `max_k |g_k - g_0| > c` and the constant path `g_0` otherwise; the
+outcome-weighted energy and variogram scores of the growth path with weight
+`plogis((max_k |g_k - g_0| - c) / (0.3 c))`; and the unweighted energy score of the
+growth path. Thresholds c = 0.05, 0.1 and 0.2.
+
+Outcome mapping, agreed in advance:
+
+- *Energy distance larger once the change is behind the origin than when it is
+  ahead or absent* → "the delay choice moves the forecast once a change in
+  transmission is in the fitting window".
+- *Energy distance similar across these strata* → "the delay choice moves the
+  forecast about equally whether or not transmission is changing".
+- *Primary CRPS difference above zero with intervals excluding zero in at least two
+  diseases* → "correctly specified delays forecast better".
+- *Intervals overlapping zero* → "no clear difference in forecast skill".
+- *Threshold-weighted growth scores favouring the correct delay more strongly than
+  the primary* → "the advantage of correct delays is concentrated at turning
+  points"; otherwise no turning-specific skill claim is made.
+- *Secondary measures disagreeing with each other* → reported as such.
+
 ### Potential extensions (future work)
 
 - Repeat the analysis varying factors we hold fixed here:
