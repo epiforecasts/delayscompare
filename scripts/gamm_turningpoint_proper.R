@@ -60,3 +60,43 @@ print(eff |> filter(score %in% c("es_g", "twes_g_010", "owes_g_010", "owvs_g_010
         pivot_wider(names_from = score, values_from = est) |>
         arrange(family, axis, disease, level) |>
         mutate(across(where(is.numeric), ~ signif(.x, 2))) |> as.data.frame(), row.names = FALSE)
+
+## Misspecification effects by the state of transmission known at the origin: for the
+## step trajectories, whether the change is already inside the fitting window; for the
+## disease-like ones, the tercile of the change in true R over the 42 days before the
+## origin. Splitting by a label available when the forecast is made keeps the skill
+## comparison free of the forecaster's dilemma, unlike splitting by trajectory
+## (flat/bend/turn) or by the change still to come.
+d_state <- d |>
+  group_by(family, disease) |>
+  mutate(state = if (first(family) == "step") {
+    ifelse(dR_est > 0, "change behind", "no change yet")
+  } else {
+    as.character(cut(dR_est, quantile(dR_est, c(0, 1/3, 2/3, 1), na.rm = TRUE),
+                     include.lowest = TRUE, labels = c("low past change", "mid past change",
+                                                       "high past change")))
+  }) |> ungroup()
+
+cells_s <- d_state |> filter(axis != "correct") |> distinct(family, axis, disease, state)
+out_s <- list()
+for (i in seq_len(nrow(cells_s))) {
+  cl <- cells_s[i, ]
+  dd <- d_state |> filter(family == cl$family, disease == cl$disease, state == cl$state,
+                          axis %in% c("correct", cl$axis)) |>
+    mutate(level = droplevels(level), origin_id = droplevels(origin_id))
+  if (nlevels(dd$origin_id) < 5 || nlevels(dd$level) < 2) next
+  prim <- dd |> select(origin_id, level, starts_with("crps_log_h")) |>
+    pivot_longer(starts_with("crps_log_h"), names_to = "horizon", values_to = "log_crps",
+                 names_prefix = "crps_log_h") |>
+    mutate(horizon = factor(horizon))
+  m <- bam(log_crps ~ level + horizon + s(origin_id, bs = "re"), data = prim, method = "fREML")
+  out_s[[length(out_s) + 1]] <- cbind(cl, n_origins = nlevels(dd$origin_id), level_effects(m))
+}
+eff_s <- bind_rows(out_s)
+rownames(eff_s) <- NULL
+readr::write_csv(eff_s, here("results", "gamm_turningpoint_proper_by_state.csv"))
+cat("\n=== log-scale CRPS effect vs correct delay, by state known at the origin (positive = worse) ===\n")
+print(eff_s |> arrange(family, axis, disease, state, level) |>
+        mutate(across(c(est, lower, upper), ~ signif(.x, 2)),
+               excl0 = ifelse(lower > 0, "worse", ifelse(upper < 0, "better", ""))) |>
+        as.data.frame(), row.names = FALSE)

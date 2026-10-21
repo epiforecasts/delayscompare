@@ -399,6 +399,13 @@ value can have effects of opposite sign. The turning-emphasis comparison is made
 against the unweighted energy score of the growth path, since the weighted growth
 scores are not on the scale of the log-scale CRPS.
 
+*Exploratory addition, 2026-10-21, after the results above had been seen.* The skill
+GAMM is also fitted within each state of transmission known at the origin: for the
+step trajectories, whether the change is already inside the fitting window; for the
+disease-like replicates, the tercile of the change in true R over the 42 days before
+the origin. This splits by a label available when the forecast is made, so it does
+not condition on the outcome.
+
 ### Potential extensions (future work)
 
 - Repeat the analysis varying factors we hold fixed here:
