@@ -389,6 +389,16 @@ Outcome mapping, agreed in advance:
   points"; otherwise no turning-specific skill claim is made.
 - *Secondary measures disagreeing with each other* → reported as such.
 
+*Amendment, 2026-10-21, made after a first summary had been seen.* The skill
+comparisons are fitted with the score GAMM of the primary comparison above (level as
+a categorical effect against the correct delay, an origin random effect, horizon as
+a fixed effect for the log-scale CRPS), not as paired means with independent
+intervals, which ignored the dependence between rows from the same origin. The
+mapping above is applied per level, because levels on either side of the correct
+value can have effects of opposite sign. The turning-emphasis comparison is made
+against the unweighted energy score of the growth path, since the weighted growth
+scores are not on the scale of the log-scale CRPS.
+
 ### Potential extensions (future work)
 
 - Repeat the analysis varying factors we hold fixed here:
