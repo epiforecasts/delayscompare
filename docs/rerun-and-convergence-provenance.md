@@ -178,3 +178,14 @@ Identifiability requires clear curvature in the infection series to anchor timin
 - **RESEED 4–5**: Cleared 0 cells across 11 remaining COVID-19 fits.
 - **Cancellation**: `RESEED5` (job `6418219`) was cancelled on 2026-07-23 once the diagnostic confirmed the 11 cells are structurally non-identifiable. The 11 cells are formally documented as excluded non-identifiable fits.
 
+
+## Turning-point replicates without a correct-delay fit
+
+Six step-trajectory replicates have no correct-delay fit (`gt4_inc4`) at any origin:
+no samples and no diagnostics files exist on the cluster. They are cholera turn 3,
+COVID-19 bend 1, flat 1 and turn 2, and Ebola bend 3 and turn 1. The paired
+turning-point scoring (`score_turningpoint_proper.R`) compares each misspecified fit
+with the correct one at the same origin, so these replicates contribute no rows, and
+the step-trajectory skill and sensitivity results rest on the other 21 of 27
+replicates. The earlier per-origin slope analysis (`score_turningpoint.R`) did not
+need the correct fit and still used them.

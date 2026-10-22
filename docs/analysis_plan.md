@@ -406,6 +406,18 @@ disease-like replicates, the tercile of the change in true R over the 42 days be
 the origin. This splits by a label available when the forecast is made, so it does
 not condition on the outcome.
 
+*Amendment, 2026-10-22.* Fitting one model per disease, axis, level and state gave
+about a hundred separate intervals and a patchwork of effects in both directions.
+The reported skill analysis is instead one model per trajectory family, across
+diseases and both delay axes, in line with the single-model specification of the
+primary comparison: for each axis, misspecification enters as the log multiplier
+above 1 (too long), minus the log multiplier below 1 (too short) and an indicator of
+the degenerate level, each interacting with the state known at the origin, with the
+correct delay as the shared reference, with horizon as a fixed effect,
+random intercepts and slopes by disease, and an origin random effect. Effects are
+reported per doubling, per halving and for omission, together with the difference
+between the two axes.
+
 ### Potential extensions (future work)
 
 - Repeat the analysis varying factors we hold fixed here:
