@@ -415,8 +415,22 @@ above 1 (too long), minus the log multiplier below 1 (too short) and an indicato
 the degenerate level, each interacting with the state known at the origin, with the
 correct delay as the shared reference, with horizon as a fixed effect,
 random intercepts and slopes by disease, and an origin random effect. Effects are
-reported per doubling, per halving and for omission, together with the difference
-between the two axes.
+reported per doubling, per halving and for the degenerate level (a fixed one-day
+generation interval, or no observation delay), together with the difference between
+the two axes.
+
+*Exploratory additions, 2026-10-22 to 2026-10-29, after the results above had been
+seen.* The energy distance between forecasts under a misspecified and the correct
+delay uses no outcome, so it is modelled against the change in true R before and
+after the origin, against the days from the change to the origin on the step
+trajectories, and against the change in observed growth of reported cases over the
+eight weeks before the origin, which a forecaster can compute at the time. The skill
+GAMM is also refitted on the step trajectories with each misspecification term given
+its own coefficient per scenario and origin time, flat trajectories at the same
+times giving the baseline. Time enters as a factor because the scores jump once
+the change reaches the data, and a smooth spreads that jump across the change. The
+time from the change to the origin is fixed by the design, and every origin is
+scored, so none of these condition on the outcome.
 
 ### Potential extensions (future work)
 
