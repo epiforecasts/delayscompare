@@ -22,7 +22,8 @@ sim_scenarios <- function(case_data,
                           samples=3000,
                           warmup=250,
                           horizon=14,
-                          max_tp=8){
+                          max_tp=8,
+                          origin_days=NULL){
 
   ## Scenarios
   
@@ -79,6 +80,14 @@ if(length(scen_timepoints)>max_tp){scen_timepoints <- scen_timepoints[1:max_tp]}
 # Filter to specific timepoint range if provided
 if(!is.null(timepoint_range)){
   scen_timepoints <- scen_timepoints[timepoint_range[timepoint_range <= length(scen_timepoints)]]
+}
+
+# Explicit origins, as days after the first date, replace the regular schedule; the
+# timepoint id is the day itself, so origins on different grids never share an id
+if(!is.null(origin_days)){
+  scen_timepoints <- start_date + origin_days
+  scen_timepoints <- scen_timepoints[scen_timepoints %in% case_data$date]
+  names(scen_timepoints) <- as.numeric(scen_timepoints - start_date)
 }
 
 # Check for empty timepoints

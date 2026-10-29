@@ -14,10 +14,15 @@
 ##       applied identically to observed and forecast paths, so the scores stay proper
 ##       and are averaged over all origins.
 ##
-## Usage: Rscript scripts/score_turningpoint_proper.R <disease> <scen> <rep>
-## <scen> is flat, bend or turn (step trajectories) or resim (disease-like replicates,
-## generation-interval axis only).
-## Writes results/turningpoint_proper_<disease>_<scen>_rep<rep>.csv
+## Also records the error in R at the origin under each delay against the true R, the
+## mechanism by which a wrong delay would cost skill once a change reaches the data.
+##
+## Usage: Rscript scripts/score_turningpoint_proper.R <disease> <scen> <rep> [label]
+## <scen> is flat, bend, turn, bendup or turnup (step trajectories) or resim
+## (disease-like replicates). <label> is the run label of the fits (default hz; hzd for
+## the dense-origin runs).
+## Writes results/turningpoint_proper_<disease>_<scen>_rep<rep>.csv, with the label
+## after "proper" when it is not hz.
 
 library(here)
 source(here("scripts", "01_packages.R"))
@@ -27,7 +32,9 @@ library(scoringRules)
 
 args <- commandArgs(trailingOnly = TRUE)
 disease <- args[1]; scen <- args[2]; rep_arg <- as.integer(args[3])
-stopifnot(disease %in% c("ebola", "covid", "cholera"), scen %in% c("flat", "bend", "turn", "resim"), !is.na(rep_arg))
+label <- if (length(args) >= 4) args[4] else "hz"
+stopifnot(disease %in% c("ebola", "covid", "cholera"),
+          scen %in% c("flat", "bend", "turn", "bendup", "turnup", "resim"), !is.na(rep_arg))
 
 rt_opts <- "latest"
 raw_dir <- here("results", "raw")
@@ -48,14 +55,17 @@ if (scen == "resim") {
     if (length(w) < 2) NA_real_ else diff(range(w))
   }
   dR_of <- function(origin) c(fc = R_range(origin, origin + 42), est = R_range(origin - 42, origin))
+  true_R_on <- function(date) rt$R[match(as.Date(date), rt$date)]
 } else {
-  ab_of <- list(flat = c(1.10, 1.10), bend = c(1.30, 1.00), turn = c(1.30, 0.70))
+  ab_of <- list(flat = c(1.10, 1.10), bend = c(1.30, 1.00), turn = c(1.30, 0.70),
+                bendup = c(1.00, 1.30), turnup = c(0.70, 1.30))
   true_R_at <- function(day) ifelse(day < CHANGE, ab_of[[scen]][1], ab_of[[scen]][2])
   dR_of <- function(origin) {
     day0 <- as.numeric(origin - startenddates[[disease]][["startdate"]])
     c(fc = abs(true_R_at(day0 + 42) - true_R_at(day0)),
       est = abs(true_R_at(day0) - true_R_at(day0 - 84)))
   }
+  true_R_on <- function(date) true_R_at(as.numeric(as.Date(date) - startenddates[[disease]][["startdate"]]))
 }
 scen_infix <- if (scen == "resim") "" else paste0("_", scen)
 
@@ -105,7 +115,18 @@ forecast_mats <- function(stub, suf, origin, lW0) {
   list(L = log1p(m[, H_DAYS, drop = FALSE]), G = lW - cbind(lW0, lW[, -length(WEEKS)]))
 }
 
-files <- list.files(raw_dir, pattern = paste0("^", disease, "_hz", scen_infix, "_rep[0-9]+_",
+## log R at the origin, from the estimate on partial data, against the true log R
+r_at_origin <- function(stub, suf, origin) {
+  f <- file.path(raw_dir, paste0(stub, "_R", suf))
+  if (!file.exists(f)) return(c(r_crps_log = NA_real_, r_err_log = NA_real_))
+  x <- readRDS(f)
+  v <- log(x$value[as.Date(x$date) == origin & x$type != "forecast"])
+  y <- log(true_R_on(origin))
+  if (!length(v) || is.na(y)) return(c(r_crps_log = NA_real_, r_err_log = NA_real_))
+  c(r_crps_log = crps_sample(y, v), r_err_log = stats::median(v) - y)
+}
+
+files <- list.files(raw_dir, pattern = paste0("^", disease, "_", label, scen_infix, "_rep[0-9]+_",
   rt_opts, "_samples_gt[0-9]+_inc[0-9]+_tp[0-9]+\\.rds$"))
 k <- stringr::str_match(files, "_rep([0-9]+)_.*_samples_gt([0-9]+)_inc([0-9]+)_tp([0-9]+)\\.rds$")
 runs <- data.frame(rep = as.integer(k[, 2]), gt = as.integer(k[, 3]),
@@ -117,7 +138,7 @@ set.seed(1)
 rows <- list()
 for (g in split(runs, list(runs$rep, runs$tp), drop = TRUE)) {
   rep_id <- g$rep[1]; tp <- g$tp[1]
-  stub <- paste0(disease, "_hz", scen_infix, "_rep", rep_id, "_", rt_opts)
+  stub <- paste0(disease, "_", label, scen_infix, "_rep", rep_id, "_", rt_opts)
   suf_of <- function(gt, inc) paste0("_gt", gt, "_inc", inc, "_tp", tp, ".rds")
   if (!any(g$gt == 4 & g$inc == 4) || !converged(stub, suf_of(4, 4))) next
 
@@ -170,10 +191,12 @@ for (g in split(runs, list(runs$rep, runs$tp), drop = TRUE)) {
       as.list(stats::setNames(crps_log, paste0("crps_log_h", WEEKS))),
       crps_log_mean = mean(crps_log),
       es_g = es_sample(y_G, t(G)),
-      as.list(weighted))
+      as.list(weighted),
+      as.list(r_at_origin(stub, suf_of(gt, inc), origin)))
   }
 }
 out <- bind_rows(rows)
-readr::write_csv(out, here("results", paste0("turningpoint_proper_", disease, "_", scen,
+label_infix <- if (label == "hz") "" else paste0(label, "_")
+readr::write_csv(out, here("results", paste0("turningpoint_proper_", label_infix, disease, "_", scen,
                                               "_rep", rep_arg, ".csv")))
 message(disease, " ", scen, " rep ", rep_arg, ": ", nrow(out), " rows from ", length(unique(paste(out$rep, out$tp))), " origins")

@@ -432,6 +432,96 @@ the change reaches the data, and a smooth spreads that jump across the change. T
 time from the change to the origin is fixed by the design, and every origin is
 scored, so none of these condition on the outcome.
 
+#### Dense-origin and step-up turning-point experiment
+
+*Specified on 2026-10-29, before any of these fits were run.*
+
+The exploratory analyses above suggest that a misspecified delay costs nothing in
+skill at origins before a change in R, even when most of the forecast window lies
+after it, and costs most once the first signs of the change reach the data. That
+rests on a single origin a week after the change, on step trajectories that only
+decline, and on a mechanism nobody has tested, and the disease-like replicates
+showed nothing comparable.
+
+Whether the delay choice matters "at turning points" cannot be answered with proper
+scores. Scores stay proper averaged over all forecasts and within subsets defined by
+information the forecaster has at the origin. A turning point is not such
+information: around it, the change in R is mostly in infections not yet reported,
+and it drives the cases being scored. Subsetting or weighting comparisons by the
+true change in R near the origin therefore rewards forecasts whose quirks suit
+those origins, for instance wide forecasts when something unexpected happens. The
+question this experiment answers instead is whether the delay choice matters once a
+change is visible in the reported data, which is a statement about information the
+forecaster has.
+
+*Design.* Step trajectories as above (change on day 105), now in both directions:
+bend (R 1.3 to 1.0), turn (1.3 to 0.7), and their mirrors bendup (1.0 to 1.3) and
+turnup (0.7 to 1.3). Simulated from 100 initial infections, R = 0.7 for 105 days
+leaves almost no cases by the change, so for the step-up trajectories the initial
+infections are scaled to give about 1000 infections on the change day. Three
+replicates each. Forecast origins every three days from 14 days before to 34 days
+after the change (17 origins). The flat trajectory's existing origins between 21
+days before and 49 days after the change are the baseline. Disease-like replicates
+1 to 10 get weekly origins between their existing four-weekly ones, so that
+together they form a weekly grid from day 35 to day 224. Both delay axes: the
+generation interval at levels 1 to 6 with the correct observation delay, and the
+observation delay at levels 1 to 3, 5 and 6 with the correct generation interval.
+Fitting settings and the convergence filter are as for the existing turning-point
+fits. This is 6732 step and 6930 disease-like fits.
+
+*Measures.* Primary: log-scale CRPS at weekly horizons one to six. Mechanism: CRPS
+of log R at the origin (the estimate on partial data) against the true log R, and
+the signed error of its median; this scores an estimate, not a forecast, so it can
+be broken down by anything. Sensitivity: energy distance between the forecast under
+each misspecified delay and the forecast under the correct delay, as above; no
+outcome enters it.
+
+*Visible change.* Each origin is described by the observed growth change, the
+absolute difference between the mean weekly growth of reported cases over the last
+two weeks before the origin and that over the two weeks before those, computed from
+log(weekly cases + 1) with only data up to the origin.
+
+*Primary model, both families.* Log-scale CRPS is modelled with the over, under and
+degenerate-level terms per axis of the overall skill GAMM, each interacting linearly
+with the observed growth change, plus horizon, a disease random effect and an origin
+random effect, fitted separately for the step trajectories (all four, plus flat) and
+the disease-like replicates (all origins of replicates 1 to 10 from both grids).
+Effects are reported per doubling, per halving and for the degenerate level, at the
+median and 90th percentile of the observed growth change, and as the slope per 0.1
+change in weekly growth.
+
+- H1: the cost of a doubled observation delay and of the degenerate level on each
+  axis rises with the observed growth change (95% interval of the slope above zero),
+  in each family.
+
+*Secondary models, step trajectories.* Origins are grouped by time from the change
+into before (14 to 2 days before), early (1 to 13 days after) and later (16 to 34
+days after). The same terms each get a coefficient per window, pooled over the four
+trajectories, with flat origins carrying a single constant per term as the baseline.
+Pooling over step-up and step-down means a bias that helps in one direction counts
+against it in the other.
+
+- H2: before the change, the excess over flat for a doubled observation delay and for
+  the degenerate level is within ±0.05 on the log-scale CRPS (95% interval inside that
+  band).
+- H3: the excess in the early window is larger than in both the before and the later
+  window (95% intervals of the differences above zero).
+- H4: the excess error in R at the origin follows the same pattern as H3.
+
+Time from the change is not known to a forecaster, so H2 and H3 describe the design
+rather than a forecasting situation. Direction-specific (down, up) and size-specific
+(bend, turn) coefficients, a fit with one coefficient per origin time, and the same
+models on the energy distance are descriptive. So is a disease-like fit with the
+true change in R over the 14 days before the origin, the 28 days before those and
+the 42 days after it, reported as not available in real time. Halving and the
+doubled generation interval have no directional hypothesis and are reported.
+
+*Interpretation.* If H1 holds, the paper's turning-point result is that the delay
+choice matters once a change is visible in the reported data. If it holds only for
+the step trajectories, it is stated for sharp changes only. H2 and H3 then say how
+this looks around a known change. Failed and non-converged fits are reported by
+trajectory and origin.
+
 ### Potential extensions (future work)
 
 - Repeat the analysis varying factors we hold fixed here:

@@ -48,6 +48,11 @@ warmup        <- as.integer(Sys.getenv("WARMUP", "500"))
 horizon       <- as.integer(Sys.getenv("HORIZON", "42"))
 freq_fc       <- as.integer(Sys.getenv("FREQ_FC", "4"))   # weeks between origins
 max_tp        <- as.integer(Sys.getenv("MAX_TP", "8"))     # cap on number of origins
+# explicit origins as days after the first date (comma-separated), replacing the
+# regular schedule; RUN_LABEL keeps such runs apart from the regular ones
+origin_days   <- Sys.getenv("ORIGIN_DAYS", "")
+origin_days   <- if (origin_days == "") NULL else as.numeric(strsplit(origin_days, ",")[[1]])
+run_label     <- Sys.getenv("RUN_LABEL", "hz")
 
 tag_infix <- if (is.null(data_tag)) "" else paste0("_", data_tag)
 sim_file <- here("data", paste0(disease, "_sim_data", tag_infix, "_rep", rep_id, ".rds"))
@@ -55,7 +60,7 @@ if (!file.exists(sim_file)) {
   stop("Replicate data not found: ", sim_file, ". Run 05d/05e replicate generator first.")
 }
 sim_data <- readRDS(sim_file)
-scen_label <- paste0("hz", tag_infix, "_rep", rep_id)
+scen_label <- paste0(run_label, tag_infix, "_rep", rep_id)
 
 sim_data_cases <- sim_data |> filter(variable == "reported_cases") |>
   select(date, value) |> rename(confirm = value)
@@ -82,7 +87,8 @@ res_disease <- sim_scenarios(case_data = sim_data_cases,
                              samples = samples,
                              warmup = warmup,
                              horizon = horizon,
-                             max_tp = max_tp)
+                             max_tp = max_tp,
+                             origin_days = origin_days)
 
 if (nrow(res_disease$samples) > 0) {
   save_scenario(res_disease, here("results", "raw"), disease,
