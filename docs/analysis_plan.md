@@ -469,75 +469,17 @@ observation delay at levels 1 to 3, 5 and 6 with the correct generation interval
 Fitting settings and the convergence filter are as for the existing turning-point
 fits. This is 6732 step and 6930 disease-like fits.
 
-*Measures and models.* Each measure answers one question and has one model. All
-models share the misspecification terms of the overall skill GAMM (over, under and
-degenerate level, per axis, with the correct delay as reference), a disease random
-intercept and an origin random effect; with three diseases, random slopes are not
-estimated. Effects are reported per doubling, per halving and for the degenerate
-level.
+*Measures.* Three measures enter hypotheses, two more are descriptive.
 
-| Measure | Question | Model | Hypotheses | Kind |
-|---|---|---|---|---|
-| Log-scale CRPS, weeks 1–6 | Does a wrong delay cost skill? | Gaussian; terms × observed growth change, + horizon (H1); terms × window, + horizon (H2, H3) | H1, H2, H3 | ex-ante (H1), ex-post (H2, H3) |
-| Reversal-weighted CRPS of weekly growth, with the unweighted CRPS of weekly growth as comparator | Does a user who cares about peaks (troughs) lose more from a wrong delay? | Tweedie, log link, both scores stacked; score type × terms × trend sign | H5, H6 | ex-ante |
-| Energy distance between forecasts under a wrong and the correct delay | Does the delay change the forecast? | Gaussian on log; as for the log-scale CRPS | descriptive | no outcome |
-| Signed error of the median log forecast, weeks 1–6 | Does a wrong delay overshoot or undershoot? | Gaussian; terms × window × direction, + horizon | H7 | ex-post |
-| CRPS of log R at the origin, and the signed error of its median | Is the cost explained by misreading R? | Gaussian; terms × window | descriptive | ex-post (estimate, not forecast) |
-
-The Tweedie family handles the exact zeros of the reversal-weighted score (no
-forecast or observed mass beyond the margin) and gives multiplicative effects, so
-H5 compares the relative cost of a wrong delay under the two scores directly.
-
-*Superseded measures.* The threshold-weighted CRPS and energy score on departure
-from the growth at the origin (thresholds 0.05, 0.1 and 0.2), the outcome-weighted
-energy score and the outcome-weighted variogram score, all specified on 2026-10-16,
-are superseded by the reversal-weighted score. Their thresholds sit below the
-counting noise at moderate counts, their reference growth comes from a single week,
-and departure from the current growth is not a turning point. Three thresholds per
-score also multiply the comparisons. They are reported without interpretation in a
-supplementary table. The variogram score is no longer computed for new fits.
-
-*Visible change.* Each origin is described by the observed growth change, the
-absolute difference between the mean weekly growth of reported cases over the last
-two weeks before the origin and that over the two weeks before those, computed from
-log(weekly cases + 1) with only data up to the origin.
-
-*Secondary model (H1), both families.* Log-scale CRPS is modelled with the over, under and
-degenerate-level terms per axis of the overall skill GAMM, each interacting linearly
-with the observed growth change, plus horizon, a disease random effect and an origin
-random effect, fitted separately for the step trajectories (all four, plus flat) and
-the disease-like replicates (all origins of replicates 1 to 10 from both grids).
-Effects are reported per doubling, per halving and for the degenerate level, at the
-median and 90th percentile of the observed growth change, and as the slope per 0.1
-change in weekly growth.
-
-- H1 (secondary): the cost of a doubled observation delay and of the degenerate level on each
-  axis rises with the observed growth change (95% interval of the slope above zero),
-  in each family.
-
-*Secondary models, step trajectories.* Origins are grouped by time from the change
-into before (14 to 2 days before), early (1 to 13 days after) and later (16 to 34
-days after). The same terms each get a coefficient per window, pooled over the four
-trajectories, with flat origins carrying a single constant per term as the baseline.
-Pooling over step-up and step-down means a bias that helps in one direction counts
-against it in the other.
-
-- H2: before the change, the excess over flat for a doubled observation delay and for
-  the degenerate level is within ±0.05 on the log-scale CRPS (95% interval inside that
-  band).
-- H3: the excess in the early window is larger than in both the before and the later
-  window (95% intervals of the differences above zero).
-
-The excess error in R at the origin is modelled the same way and reported
-descriptively, as the mechanism behind H3.
-
-Time from the change is not known to a forecaster, so H2 and H3 describe the design
-rather than a forecasting situation. Direction-specific (down, up) and size-specific
-(bend, turn) coefficients, a fit with one coefficient per origin time, and the same
-models on the energy distance are descriptive. So is a disease-like fit with the
-true change in R over the 14 days before the origin, the 28 days before those and
-the 42 days after it, reported as not available in real time. Halving and the
-doubled generation interval have no directional hypothesis and are reported.
+- Log-scale CRPS at weekly horizons one to six: skill for an ordinary user.
+- Reversal-weighted CRPS of weekly growth, averaged over weeks one to six, with the
+  unweighted CRPS of weekly growth as comparator: skill for a user who cares most
+  about turning points (defined below).
+- Signed error of the median log-scale forecast at weekly horizons one to six:
+  whether a wrong delay overshoots or undershoots.
+- Descriptive: the energy distance between the forecasts under a wrong and the
+  correct delay (no outcome enters it), and the CRPS and signed error of log R at the
+  origin against the true log R (it scores an estimate, not a forecast).
 
 *Turning points as the user's loss.* Decision makers say they care most about
 forecasts at turning points: peaks, which forecasts tend to overshoot badly, and,
@@ -551,35 +493,100 @@ reversal that does not come. The trend is the mean weekly growth of
 log(weekly cases + 1) over the three weeks up to the origin. The margin is
 m = max(0.05, 2·sqrt(2/W₀)), where W₀ is the case count in the week up to the
 origin, so that counting noise alone rarely crosses it. All of this is known at the
-origin. The unweighted CRPS of weekly growth, averaged over weeks one to six, is the
-comparison.
+origin.
 
-- H5 (peaks, primary): at origins with a growing trend, a doubled observation delay
-  and the degenerate level on each axis score worse than the correct delay under the
-  reversal-weighted CRPS (Tweedie model in the table above, in each family). Second
-  part: their excess relative to the correct-delay score is larger than under the
-  unweighted growth CRPS, that is, users who care most about peaks lose more from a
-  wrong delay than other users.
-- H6 (troughs): as H5, at origins with a declining trend; secondary.
+*Model.* One model structure, fitted to each measure, states how we expect a wrong
+delay to produce forecast error: through how much of a change in R the reported data
+at the origin contain, the direction of the change, and the horizon. Each
+misspecification term (over, under and degenerate level, per axis, with the correct
+delay as the shared reference) enters as a constant, which is its effect on a flat
+trajectory, plus a smooth in a measure of the change at the origin, through a
+numeric by-variable (the term's value times an indicator of the trajectory), so
+that each smooth is the departure from the flat effect:
+
+    y ~ Σ_j [ term_j + Σ_t s(x, by = term_j × 1{trajectory t}) ] + horizon
+        + s(disease, bs = "re") + s(origin, bs = "re")
+
+On the step trajectories, x is the days from the change to the origin and t runs
+over bend, turn, bendup and turnup; flat origins between 21 days before and 49 days
+after the change give the constants. The disease-like replicates have no change
+date, so there x is the observed growth change at the origin (the absolute
+difference between the mean weekly growth of log(weekly cases + 1) over the last two
+weeks and that over the two weeks before those, from data up to the origin), with a
+single trajectory class and all origins of replicates 1 to 10 from both grids. Both
+describe how much of a change has reached the data. Days from the change are not
+known to a forecaster, so on the step trajectories the curve is ex-post; the
+observed growth change is known, so on the disease-like replicates it is ex-ante.
+
+Family and link per measure: Gaussian with identity link for the log-scale CRPS and
+the signed error; Tweedie with log link for the reversal-weighted and unweighted
+growth CRPS, fitted together with the score type interacting with every term, since
+the weighted score has exact zeros and the comparison is of relative cost; the
+growth scores have one value per origin and condition, so no horizon term. With
+three diseases, random slopes are not estimated.
+
+*Smoothness.* Thin-plate regression splines with k = 10 (below the 17 distinct origin
+times per step trajectory), smoothing parameters by REML, so that k bounds the
+flexibility and the penalty sets it. After fitting, a smooth whose effective degrees
+of freedom come within one of k − 1 and whose k-index from mgcv's k.check is below 1
+with p < 0.05 is refitted with k doubled, up to 16 on the step trajectories. The
+same models with adaptive smooths (bs = "ad"), which let the wiggliness vary along
+the curve, are a sensitivity analysis. Effective degrees of freedom and k.check
+results are reported.
+
+*Hypotheses as contrasts.* All effects are for a doubled observation delay and for
+the degenerate level on each axis, reported against the correct delay. Contrasts on
+the step trajectories average the fitted curves of the four trajectories with equal
+weight unless stated, so a bias that helps in one direction counts against it in the
+other. Averages over origins use the origins in the data.
+
+- H5 (primary, ex-ante): averaged over all origins with a growing trend, the ratio of
+  the reversal-weighted CRPS under the wrong delay to that under the correct delay is
+  above 1, in each family. Second part: that ratio is larger than the same ratio for
+  the unweighted growth CRPS, that is, users who care most about peaks lose more from
+  a wrong delay than other users.
+- H6 (secondary, ex-ante): as H5, over origins with a declining trend (troughs).
+- H1 (secondary, ex-ante): on the disease-like replicates, the effect on the log-scale
+  CRPS at the 90th percentile of the observed growth change exceeds that at no
+  change.
+- H2 (ex-post): on the step trajectories, the log-scale CRPS effect averaged over the
+  curve from 14 to 2 days before the change is within ±0.05 (95% interval inside
+  that band).
+- H3 (ex-post): its average from 1 to 13 days after the change exceeds both its
+  average from 14 to 2 days before and its average from 16 to 34 days after.
+- H7 (ex-post): averaged over 1 to 13 days after the change, the signed error is
+  positive for delays shorter than the correct one, including no delay, and negative
+  for longer ones after a peak (turn), with the signs reversed after a trough
+  (turnup); turn and turnup separately, not pooled. A shorter assumed delay reads
+  the most recent reported cases as more recent infections, so it lags the change; a
+  longer one places the dip further back in infection time and infers a steeper
+  change by the origin. This direction was suggested by one replicate of the
+  existing turn runs (covid, replicate 1, a week after the change), checked while
+  testing the scorer. The test therefore excludes that replicate at that origin, and
+  the trough half, which no one has looked at, is the cleaner test of it.
+
+The windows in H2, H3 and H7 define which part of a fitted curve is compared; the
+fit itself does not depend on them. Halving and the doubled generation interval have
+no directional hypothesis and are reported. Descriptive: the curves themselves,
+direction- and size-specific curves, the same model on the energy distance and the
+error in R at the origin, and on the disease-like replicates the true change in R
+over the 14 days before the origin, the 28 days before those and the 42 days after
+it, in place of x, reported as not available in real time.
 
 *Ex-ante and ex-post.* Conditioning on what is known at the origin is ex-ante and
 supports claims about predictive value and model choice: H1, H5 and H6. Conditioning
 on what happened, including time from a change the forecaster cannot yet see, is
-ex-post and explains why forecasts under different delays differ: H2, H3 and H7,
-and the descriptive analyses. Ex-post results are never used to rank delays.
+ex-post and explains why forecasts under different delays differ: H2, H3, H7 and the
+descriptive analyses. Ex-post results are never used to rank delays.
 
-*Signed bias (ex-post).* The median of each log-scale forecast minus the observed
-value, per horizon, modelled like H2 to H4 with trajectory direction kept separate.
-
-- H7: in the early window after a peak (turn), a delay shorter than the correct one,
-  including no delay, overestimates, and a longer one underestimates. After a trough
-  (turnup) the signs reverse. A shorter assumed delay reads the most recent reported
-  cases as more recent infections, so it lags the change. A longer one places the
-  dip further back in infection time and infers a steeper change by the origin. This
-  direction was suggested by one replicate of the existing turn runs (covid,
-  replicate 1, a week after the change), checked while testing the scorer. The test
-  therefore excludes that replicate at that origin, and the trough half (turnup),
-  which no one has looked at, is the cleaner test of it.
+*Superseded measures.* The threshold-weighted CRPS and energy score on departure
+from the growth at the origin (thresholds 0.05, 0.1 and 0.2), the outcome-weighted
+energy score and the outcome-weighted variogram score, all specified on 2026-10-16,
+are superseded by the reversal-weighted score. Their thresholds sit below the
+counting noise at moderate counts, their reference growth comes from a single week,
+and departure from the current growth is not a turning point. Three thresholds per
+score also multiply the comparisons. They are reported without interpretation in a
+supplementary table. The variogram score is no longer computed for new fits.
 
 *Interpretation.* H5 is the primary result: whether, for a user who cares most about
 peaks, the delay choice matters, and whether it matters more for them than for other
