@@ -14,6 +14,13 @@
 ##       applied identically to observed and forecast paths, so the scores stay proper
 ##       and are averaged over all origins.
 ##
+## A reversal-weighted score emphasises growth of the opposite sign to the trend at the
+## origin: a fall after growth (a peak) or a rise after decline (a trough, as when a
+## new variant emerges). The trend is the mean weekly growth over the last three weeks
+## and the margin a reversal must exceed is scaled to the counting noise in the last
+## week, so the weight uses only what is known at the origin. The signed error of the
+## median forecast shows whether a delay overshoots or undershoots.
+##
 ## Also records the error in R at the origin under each delay against the true R, the
 ## mechanism by which a wrong delay would cost skill once a change reaches the data.
 ##
@@ -37,7 +44,8 @@ stopifnot(disease %in% c("ebola", "covid", "cholera"),
           scen %in% c("flat", "bend", "turn", "bendup", "turnup", "resim"), !is.na(rep_arg))
 
 rt_opts <- "latest"
-raw_dir <- here("results", "raw")
+raw_dir <- Sys.getenv("RAW_DIR", here("results", "raw"))
+out_dir <- Sys.getenv("OUT_DIR", here("results"))
 mult    <- c(`1` = NA, `2` = 0.25, `3` = 0.8, `4` = 1, `5` = 1.25, `6` = 2)
 CHANGE  <- 105
 WEEKS   <- 1:6
@@ -77,6 +85,9 @@ THRESH <- c(0.05, 0.1, 0.2)
 chain_g    <- function(g, g0, thr) ifelse(abs(g - g0) > thr, g, g0)
 chain_path <- function(g0, thr) function(g) if (max(abs(g - g0)) > thr) g else rep(g0, length(g))
 w_path     <- function(g0, thr) function(g) plogis((max(abs(g - g0)) - thr) / (0.3 * thr))
+## reversal: tail chaining towards growth of the opposite sign to the trend
+rev_margin <- function(W0) max(0.05, 2 * sqrt(2 / max(W0, 1)))
+chain_rev  <- function(trend, m) if (trend >= 0) function(g) pmin(g, -m) else function(g) pmax(g, m)
 
 energy_distance <- function(X, Y) {
   nx <- nrow(X); ny <- nrow(Y)
@@ -148,8 +159,12 @@ for (g in split(runs, list(runs$rep, runs$tp), drop = TRUE)) {
   obs <- obs[obs$variable == "reported_cases", ]
   obs$day <- as.numeric(as.Date(obs$date) - origin)
   obs_day <- function(days) obs$value[match(days, obs$day)]
-  wk <- sapply(-1:6, function(k) sum(obs_day(7 * (k - 1) + 1:7)))
+  wk <- sapply(-3:6, function(k) sum(obs_day(7 * (k - 1) + 1:7)))
   if (anyNA(wk) || anyNA(obs_day(H_DAYS))) next
+  trend <- (log1p(wk[4]) - log1p(wk[1])) / 3   # mean weekly growth over weeks -2..0
+  m_rev <- rev_margin(wk[4])
+  v_rev <- chain_rev(trend, m_rev)
+  wk <- wk[-(1:2)]
   lW_obs <- log1p(wk)                      # weeks -1, 0, 1..6
   g0 <- lW_obs[2] - lW_obs[1]              # growth known at the origin
   y_L <- log1p(obs_day(H_DAYS))
@@ -192,11 +207,17 @@ for (g in split(runs, list(runs$rep, runs$tp), drop = TRUE)) {
       crps_log_mean = mean(crps_log),
       es_g = es_sample(y_G, t(G)),
       as.list(weighted),
+      trend = trend, m_rev = m_rev,
+      crps_g = mean(sapply(WEEKS, function(h) crps_sample(y_G[h], G[, h]))),
+      twcrps_rev = mean(sapply(WEEKS, function(h) crps_sample(v_rev(y_G[h]), v_rev(G[, h])))),
+      twes_rev = es_sample(v_rev(y_G), t(v_rev(G))),
+      as.list(stats::setNames(sapply(WEEKS, function(h) stats::median(L[, h]) - y_L[h]),
+                              paste0("bias_log_h", WEEKS))),
       as.list(r_at_origin(stub, suf_of(gt, inc), origin)))
   }
 }
 out <- bind_rows(rows)
 label_infix <- if (label == "hz") "" else paste0(label, "_")
-readr::write_csv(out, here("results", paste0("turningpoint_proper_", label_infix, disease, "_", scen,
+readr::write_csv(out, file.path(out_dir, paste0("turningpoint_proper_", label_infix, disease, "_", scen,
                                               "_rep", rep_arg, ".csv")))
 message(disease, " ", scen, " rep ", rep_arg, ": ", nrow(out), " rows from ", length(unique(paste(out$rep, out$tp))), " origins")

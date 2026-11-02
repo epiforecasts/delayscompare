@@ -516,11 +516,54 @@ true change in R over the 14 days before the origin, the 28 days before those an
 the 42 days after it, reported as not available in real time. Halving and the
 doubled generation interval have no directional hypothesis and are reported.
 
+*Turning points as the user's loss.* Decision makers say they care most about
+forecasts at turning points: peaks, which forecasts tend to overshoot badly, and,
+less so, troughs, as when a new variant emerges. That preference is about the loss,
+so it enters through a weighted proper score fixed in advance, not by selecting
+origins. The reversal-weighted CRPS on weekly growth chains each forecast and
+observed growth g to min(g, −m) when the trend at the origin is growing, and to
+max(g, m) when it is declining. It scores only how well a forecast describes growth
+of the opposite sign to the trend, and penalises forecasts that put mass on a
+reversal that does not come. The trend is the mean weekly growth of
+log(weekly cases + 1) over the three weeks up to the origin. The margin is
+m = max(0.05, 2·sqrt(2/W₀)), where W₀ is the case count in the week up to the
+origin, so that counting noise alone rarely crosses it. All of this is known at the
+origin. The unweighted CRPS of weekly growth, averaged over weeks one to six, is the
+comparison. The earlier threshold-weighted growth scores, whose thresholds sit below
+the counting noise at moderate counts, are kept as secondary.
+
+- H5 (peaks): at origins with a growing trend, a doubled observation delay and the
+  degenerate level on each axis score worse than the correct delay under the
+  reversal-weighted CRPS, and their excess relative to the correct-delay score is
+  larger than under the unweighted growth CRPS. Same GAMM as for H1, with
+  misspecification terms per trend sign, in each family.
+- H6 (troughs): as H5, at origins with a declining trend; secondary.
+
+*Ex-ante and ex-post.* Conditioning on what is known at the origin is ex-ante and
+supports claims about predictive value and model choice: H1, H5 and H6. Conditioning
+on what happened, including time from a change the forecaster cannot yet see, is
+ex-post and explains why forecasts under different delays differ: H2 to H4 and H7,
+and the descriptive analyses. Ex-post results are never used to rank delays.
+
+*Signed bias (ex-post).* The median of each log-scale forecast minus the observed
+value, per horizon, modelled like H2 to H4 with trajectory direction kept separate.
+
+- H7: in the early window after a peak (turn), a delay shorter than the correct one,
+  including no delay, overestimates, and a longer one underestimates. After a trough
+  (turnup) the signs reverse. A shorter assumed delay reads the most recent reported
+  cases as more recent infections, so it lags the change. A longer one places the
+  dip further back in infection time and infers a steeper change by the origin. This
+  direction was suggested by one replicate of the existing turn runs (covid,
+  replicate 1, a week after the change), checked while testing the scorer, and is
+  stated as such.
+
 *Interpretation.* If H1 holds, the paper's turning-point result is that the delay
 choice matters once a change is visible in the reported data. If it holds only for
-the step trajectories, it is stated for sharp changes only. H2 and H3 then say how
-this looks around a known change. Failed and non-converged fits are reported by
-trajectory and origin.
+the step trajectories, it is stated for sharp changes only. H5 says whether a user
+who cares most about peaks loses more from a wrong delay than other users, and H7
+whether a wrong delay overshoots or undershoots. H2 and H3 then say how this looks
+around a known change. Failed and non-converged fits are reported by trajectory and
+origin.
 
 ### Potential extensions (future work)
 
