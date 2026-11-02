@@ -482,7 +482,7 @@ level.
 | Reversal-weighted CRPS of weekly growth, with the unweighted CRPS of weekly growth as comparator | Does a user who cares about peaks (troughs) lose more from a wrong delay? | Tweedie, log link, both scores stacked; score type × terms × trend sign | H5, H6 | ex-ante |
 | Energy distance between forecasts under a wrong and the correct delay | Does the delay change the forecast? | Gaussian on log; as for the log-scale CRPS | descriptive | no outcome |
 | Signed error of the median log forecast, weeks 1–6 | Does a wrong delay overshoot or undershoot? | Gaussian; terms × window × direction, + horizon | H7 | ex-post |
-| CRPS of log R at the origin, and the signed error of its median | Is the cost explained by misreading R? | Gaussian; terms × window | H4 (CRPS), sign descriptive | ex-post (estimate, not forecast) |
+| CRPS of log R at the origin, and the signed error of its median | Is the cost explained by misreading R? | Gaussian; terms × window | descriptive | ex-post (estimate, not forecast) |
 
 The Tweedie family handles the exact zeros of the reversal-weighted score (no
 forecast or observed mass beyond the margin) and gives multiplicative effects, so
@@ -502,7 +502,7 @@ absolute difference between the mean weekly growth of reported cases over the la
 two weeks before the origin and that over the two weeks before those, computed from
 log(weekly cases + 1) with only data up to the origin.
 
-*Primary model, both families.* Log-scale CRPS is modelled with the over, under and
+*Secondary model (H1), both families.* Log-scale CRPS is modelled with the over, under and
 degenerate-level terms per axis of the overall skill GAMM, each interacting linearly
 with the observed growth change, plus horizon, a disease random effect and an origin
 random effect, fitted separately for the step trajectories (all four, plus flat) and
@@ -511,7 +511,7 @@ Effects are reported per doubling, per halving and for the degenerate level, at 
 median and 90th percentile of the observed growth change, and as the slope per 0.1
 change in weekly growth.
 
-- H1: the cost of a doubled observation delay and of the degenerate level on each
+- H1 (secondary): the cost of a doubled observation delay and of the degenerate level on each
   axis rises with the observed growth change (95% interval of the slope above zero),
   in each family.
 
@@ -527,7 +527,9 @@ against it in the other.
   band).
 - H3: the excess in the early window is larger than in both the before and the later
   window (95% intervals of the differences above zero).
-- H4: the excess error in R at the origin follows the same pattern as H3.
+
+The excess error in R at the origin is modelled the same way and reported
+descriptively, as the mechanism behind H3.
 
 Time from the change is not known to a forecaster, so H2 and H3 describe the design
 rather than a forecasting situation. Direction-specific (down, up) and size-specific
@@ -552,17 +554,18 @@ origin, so that counting noise alone rarely crosses it. All of this is known at 
 origin. The unweighted CRPS of weekly growth, averaged over weeks one to six, is the
 comparison.
 
-- H5 (peaks): at origins with a growing trend, a doubled observation delay and the
-  degenerate level on each axis score worse than the correct delay under the
-  reversal-weighted CRPS, and their excess relative to the correct-delay score is
-  larger than under the unweighted growth CRPS (Tweedie model in the table above, in
-  each family).
+- H5 (peaks, primary): at origins with a growing trend, a doubled observation delay
+  and the degenerate level on each axis score worse than the correct delay under the
+  reversal-weighted CRPS (Tweedie model in the table above, in each family). Second
+  part: their excess relative to the correct-delay score is larger than under the
+  unweighted growth CRPS, that is, users who care most about peaks lose more from a
+  wrong delay than other users.
 - H6 (troughs): as H5, at origins with a declining trend; secondary.
 
 *Ex-ante and ex-post.* Conditioning on what is known at the origin is ex-ante and
 supports claims about predictive value and model choice: H1, H5 and H6. Conditioning
 on what happened, including time from a change the forecaster cannot yet see, is
-ex-post and explains why forecasts under different delays differ: H2 to H4 and H7,
+ex-post and explains why forecasts under different delays differ: H2, H3 and H7,
 and the descriptive analyses. Ex-post results are never used to rank delays.
 
 *Signed bias (ex-post).* The median of each log-scale forecast minus the observed
@@ -574,16 +577,17 @@ value, per horizon, modelled like H2 to H4 with trajectory direction kept separa
   cases as more recent infections, so it lags the change. A longer one places the
   dip further back in infection time and infers a steeper change by the origin. This
   direction was suggested by one replicate of the existing turn runs (covid,
-  replicate 1, a week after the change), checked while testing the scorer, and is
-  stated as such.
+  replicate 1, a week after the change), checked while testing the scorer. The test
+  therefore excludes that replicate at that origin, and the trough half (turnup),
+  which no one has looked at, is the cleaner test of it.
 
-*Interpretation.* If H1 holds, the paper's turning-point result is that the delay
-choice matters once a change is visible in the reported data. If it holds only for
-the step trajectories, it is stated for sharp changes only. H5 says whether a user
-who cares most about peaks loses more from a wrong delay than other users, and H7
-whether a wrong delay overshoots or undershoots. H2 and H3 then say how this looks
-around a known change. Failed and non-converged fits are reported by trajectory and
-origin.
+*Interpretation.* H5 is the primary result: whether, for a user who cares most about
+peaks, the delay choice matters, and whether it matters more for them than for other
+users; H6 gives the same for troughs. If it holds only for the step trajectories, it
+is stated for sharp changes only. H1 adds when a forecaster should worry: once a
+change is visible in the reported data. H7 says whether a wrong delay overshoots or
+undershoots, and H2 and H3 how all this looks around a known change. Failed and
+non-converged fits are reported by trajectory and origin.
 
 ### Potential extensions (future work)
 
