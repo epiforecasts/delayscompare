@@ -51,7 +51,6 @@ CHANGE  <- 105
 WEEKS   <- 1:6
 N_ED    <- 300   # forecast paths per condition for the energy distance (O(n^2))
 N_SC    <- 1000  # forecast samples per condition for the scores
-N_VS    <- 300   # for the variogram score, whose cost grows with the square of this
 
 ## Change in true R over the 42 days after and before the origin. Used only to label
 ## origins for the sensitivity summary, never to select which scores are compared.
@@ -190,10 +189,8 @@ for (g in split(runs, list(runs$rep, runs$tp), drop = TRUE)) {
         mean(sapply(WEEKS, function(h)
           crps_sample(chain_g(y_G[h], g0, thr), chain_g(G[, h], g0, thr)))),
         twes_sample(y_G, t(G), chain_func = chain_path(g0, thr)),
-        owes_sample(y_G, t(G), weight_func = w_path(g0, thr)),
-        owvs_sample(y_G, t(G[seq_len(min(N_VS, nrow(G))), , drop = FALSE]),
-                    weight_func = w_path(g0, thr))),
-        paste0(c("twcrps_g_", "twes_g_", "owes_g_", "owvs_g_"), tag))
+        owes_sample(y_G, t(G), weight_func = w_path(g0, thr))),
+        paste0(c("twcrps_g_", "twes_g_", "owes_g_"), tag))
     }))
     rows[[length(rows) + 1]] <- data.frame(
       disease = disease, scen = scen, rep = rep_id, tp = tp, origin = origin,
@@ -210,7 +207,6 @@ for (g in split(runs, list(runs$rep, runs$tp), drop = TRUE)) {
       trend = trend, m_rev = m_rev,
       crps_g = mean(sapply(WEEKS, function(h) crps_sample(y_G[h], G[, h]))),
       twcrps_rev = mean(sapply(WEEKS, function(h) crps_sample(v_rev(y_G[h]), v_rev(G[, h])))),
-      twes_rev = es_sample(v_rev(y_G), t(v_rev(G))),
       as.list(stats::setNames(sapply(WEEKS, function(h) stats::median(L[, h]) - y_L[h]),
                               paste0("bias_log_h", WEEKS))),
       as.list(r_at_origin(stub, suf_of(gt, inc), origin)))

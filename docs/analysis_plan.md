@@ -469,12 +469,33 @@ observation delay at levels 1 to 3, 5 and 6 with the correct generation interval
 Fitting settings and the convergence filter are as for the existing turning-point
 fits. This is 6732 step and 6930 disease-like fits.
 
-*Measures.* Primary: log-scale CRPS at weekly horizons one to six. Mechanism: CRPS
-of log R at the origin (the estimate on partial data) against the true log R, and
-the signed error of its median; this scores an estimate, not a forecast, so it can
-be broken down by anything. Sensitivity: energy distance between the forecast under
-each misspecified delay and the forecast under the correct delay, as above; no
-outcome enters it.
+*Measures and models.* Each measure answers one question and has one model. All
+models share the misspecification terms of the overall skill GAMM (over, under and
+degenerate level, per axis, with the correct delay as reference), a disease random
+intercept and an origin random effect; with three diseases, random slopes are not
+estimated. Effects are reported per doubling, per halving and for the degenerate
+level.
+
+| Measure | Question | Model | Hypotheses | Kind |
+|---|---|---|---|---|
+| Log-scale CRPS, weeks 1–6 | Does a wrong delay cost skill? | Gaussian; terms × observed growth change, + horizon (H1); terms × window, + horizon (H2, H3) | H1, H2, H3 | ex-ante (H1), ex-post (H2, H3) |
+| Reversal-weighted CRPS of weekly growth, with the unweighted CRPS of weekly growth as comparator | Does a user who cares about peaks (troughs) lose more from a wrong delay? | Tweedie, log link, both scores stacked; score type × terms × trend sign | H5, H6 | ex-ante |
+| Energy distance between forecasts under a wrong and the correct delay | Does the delay change the forecast? | Gaussian on log; as for the log-scale CRPS | descriptive | no outcome |
+| Signed error of the median log forecast, weeks 1–6 | Does a wrong delay overshoot or undershoot? | Gaussian; terms × window × direction, + horizon | H7 | ex-post |
+| CRPS of log R at the origin, and the signed error of its median | Is the cost explained by misreading R? | Gaussian; terms × window | H4 (CRPS), sign descriptive | ex-post (estimate, not forecast) |
+
+The Tweedie family handles the exact zeros of the reversal-weighted score (no
+forecast or observed mass beyond the margin) and gives multiplicative effects, so
+H5 compares the relative cost of a wrong delay under the two scores directly.
+
+*Superseded measures.* The threshold-weighted CRPS and energy score on departure
+from the growth at the origin (thresholds 0.05, 0.1 and 0.2), the outcome-weighted
+energy score and the outcome-weighted variogram score, all specified on 2026-10-16,
+are superseded by the reversal-weighted score. Their thresholds sit below the
+counting noise at moderate counts, their reference growth comes from a single week,
+and departure from the current growth is not a turning point. Three thresholds per
+score also multiply the comparisons. They are reported without interpretation in a
+supplementary table. The variogram score is no longer computed for new fits.
 
 *Visible change.* Each origin is described by the observed growth change, the
 absolute difference between the mean weekly growth of reported cases over the last
@@ -529,14 +550,13 @@ log(weekly cases + 1) over the three weeks up to the origin. The margin is
 m = max(0.05, 2·sqrt(2/W₀)), where W₀ is the case count in the week up to the
 origin, so that counting noise alone rarely crosses it. All of this is known at the
 origin. The unweighted CRPS of weekly growth, averaged over weeks one to six, is the
-comparison. The earlier threshold-weighted growth scores, whose thresholds sit below
-the counting noise at moderate counts, are kept as secondary.
+comparison.
 
 - H5 (peaks): at origins with a growing trend, a doubled observation delay and the
   degenerate level on each axis score worse than the correct delay under the
   reversal-weighted CRPS, and their excess relative to the correct-delay score is
-  larger than under the unweighted growth CRPS. Same GAMM as for H1, with
-  misspecification terms per trend sign, in each family.
+  larger than under the unweighted growth CRPS (Tweedie model in the table above, in
+  each family).
 - H6 (troughs): as H5, at origins with a declining trend; secondary.
 
 *Ex-ante and ex-post.* Conditioning on what is known at the origin is ex-ante and
