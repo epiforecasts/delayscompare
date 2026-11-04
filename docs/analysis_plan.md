@@ -434,7 +434,10 @@ scored, so none of these condition on the outcome.
 
 #### Dense-origin and step-up turning-point experiment
 
-*Specified on 2026-10-29, before any of these fits were run.*
+*Specified on 2026-10-29, before any of these fits were run. Amended on 2026-11-04,
+after testing the analysis code on synthetic data and before any of these fits were
+scored: the trend sign in the growth-score model, the window for all step
+trajectories, and the constants on the disease-like replicates.*
 
 The exploratory analyses above suggest that a misspecified delay costs nothing in
 skill at origins before a change in R, even when most of the forecast window lies
@@ -508,12 +511,15 @@ that each smooth is the departure from the flat effect:
         + s(disease, bs = "re") + s(origin, bs = "re")
 
 On the step trajectories, x is the days from the change to the origin and t runs
-over bend, turn, bendup and turnup; flat origins between 21 days before and 49 days
-after the change give the constants. The disease-like replicates have no change
+over bend, turn, bendup and turnup. Only origins between 21 days before and 49 days
+after the change enter, on all step trajectories. The flat ones among them give the
+constants. The disease-like replicates have no change
 date, so there x is the observed growth change at the origin (the absolute
 difference between the mean weekly growth of log(weekly cases + 1) over the last two
 weeks and that over the two weeks before those, from data up to the origin), with a
-single trajectory class and all origins of replicates 1 to 10 from both grids. Both
+single trajectory class and all origins of replicates 1 to 10 from both grids. With
+no flat origins to separate the constant of each term from its smooth, the smooths
+there include the constant. Both
 describe how much of a change has reached the data. Days from the change are not
 known to a forecaster, so on the step trajectories the curve is ex-post; the
 observed growth change is known, so on the disease-like replicates it is ex-ante.
@@ -522,7 +528,12 @@ Family and link per measure: Gaussian with identity link for the log-scale CRPS 
 the signed error; Tweedie with log link for the reversal-weighted and unweighted
 growth CRPS, fitted together with the score type interacting with every term, since
 the weighted score has exact zeros and the comparison is of relative cost; the
-growth scores have one value per origin and condition, so no horizon term. With
+growth scores have one value per origin and condition, so no horizon term. The
+reversal weight depends on the sign of the trend at the origin. On some trajectories
+that sign changes from one origin to the next (bend after the change, bendup before
+it). In the growth-score model each term therefore also gets a shift at
+origins with a declining trend on the step trajectories, and on the disease-like
+replicates the smooths are fitted separately for growing and declining trends. With
 three diseases, random slopes are not estimated.
 
 *Smoothness.* Thin-plate regression splines with k = 10 (below the 17 distinct origin
